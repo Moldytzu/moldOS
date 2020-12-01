@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>AVR System emulator &#8212; QEMU 5.1.0 (v5.1.0-11824-g8699890d91-dirty) documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Security" href="security.html" />
+    <link rel="prev" title="RX System emulator" href="target-rx.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="avr-system-emulator">
+<span id="id1"></span><h1>AVR System emulator<a class="headerlink" href="#avr-system-emulator" title="Permalink to this headline">¶</a></h1>
+<p>Use the executable <code class="docutils literal notranslate"><span class="pre">qemu-system-avr</span></code> to emulate a AVR 8 bit based machine.
+These can have one of the following cores: avr1, avr2, avr25, avr3, avr31,
+avr35, avr4, avr5, avr51, avr6, avrtiny, xmega2, xmega3, xmega4, xmega5,
+xmega6 and xmega7.</p>
+<p>As for now it supports few Arduino boards for educational and testing purposes.
+These boards use a ATmega controller, which model is limited to USART &amp; 16-bit
+timer devices, enought to run FreeRTOS based applications (like
+<a class="reference external" href="https://github.com/seharris/qemu-avr-tests/blob/master/free-rtos/Demo/AVR_ATMega2560_GCC/demo.elf">https://github.com/seharris/qemu-avr-tests/blob/master/free-rtos/Demo/AVR_ATMega2560_GCC/demo.elf</a>
+).</p>
+<p>Following are examples of possible usages, assuming demo.elf is compiled for
+AVR cpu</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Continuous non interrupted execution:
+<code class="docutils literal notranslate"><span class="pre">qemu-system-avr</span> <span class="pre">-machine</span> <span class="pre">mega2560</span> <span class="pre">-bios</span> <span class="pre">demo.elf</span></code></p></li>
+<li><p>Continuous non interrupted execution with serial output into telnet window:
+<code class="docutils literal notranslate"><span class="pre">qemu-system-avr</span> <span class="pre">-machine</span> <span class="pre">mega2560</span> <span class="pre">-bios</span> <span class="pre">demo.elf</span> <span class="pre">-serial</span>
+<span class="pre">tcp::5678,server,nowait</span> <span class="pre">-nographic</span></code>
+and then in another shell
+<code class="docutils literal notranslate"><span class="pre">telnet</span> <span class="pre">localhost</span> <span class="pre">5678</span></code></p></li>
+<li><p>Debugging wit GDB debugger:
+<code class="docutils literal notranslate"><span class="pre">qemu-system-avr</span> <span class="pre">-machine</span> <span class="pre">mega2560</span> <span class="pre">-bios</span> <span class="pre">demo.elf</span> <span class="pre">-s</span> <span class="pre">-S</span></code>
+and then in another shell
+<code class="docutils literal notranslate"><span class="pre">avr-gdb</span> <span class="pre">demo.elf</span></code>
+and then within GDB shell
+<code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">remote</span> <span class="pre">:1234</span></code></p></li>
+<li><p>Print out executed instructions:
+<code class="docutils literal notranslate"><span class="pre">qemu-system-avr</span> <span class="pre">-machine</span> <span class="pre">mega2560</span> <span class="pre">-bios</span> <span class="pre">demo.elf</span> <span class="pre">-d</span> <span class="pre">in_asm</span></code></p></li>
+</ul>
+</div></blockquote>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">QEMU</a></h1>
+
+
+
+<p class="blurb">System Emulation Users Guide</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="invocation.html">Invocation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keys.html">Keys in the graphical frontends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mux-chardev.html">Keys in the character backend multiplexer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">QEMU Monitor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="images.html">Disk Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="net.html">Network emulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usb.html">USB emulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ivshmem.html">Inter-VM Shared Memory device</a></li>
+<li class="toctree-l1"><a class="reference internal" href="linuxboot.html">Direct Linux Boot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vnc-security.html">VNC security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tls.html">TLS setup for network services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gdb.html">GDB usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="managed-startup.html">Managed start up options</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="targets.html">QEMU System Emulator Targets</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="target-i386.html">x86 (PC) System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-ppc.html">PowerPC System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-sparc.html">Sparc32 System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-sparc64.html">Sparc64 System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-mips.html">MIPS System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-arm.html">Arm System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-m68k.html">ColdFire System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-xtensa.html">Xtensa System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-s390x.html">s390x System emulator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="target-rx.html">RX System emulator</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">AVR System emulator</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deprecated.html">Deprecated features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deprecated.html#recently-removed-features">Recently removed features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-platforms.html">Supported build platforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, The QEMU Project Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

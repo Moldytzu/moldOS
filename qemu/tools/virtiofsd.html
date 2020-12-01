@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>QEMU virtio-fs shared file system daemon &#8212; QEMU 5.1.0 (v5.1.0-11824-g8699890d91-dirty) documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="QEMU 9p virtfs proxy filesystem helper" href="virtfs-proxy-helper.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="qemu-virtio-fs-shared-file-system-daemon">
+<h1>QEMU virtio-fs shared file system daemon<a class="headerlink" href="#qemu-virtio-fs-shared-file-system-daemon" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p><strong>virtiofsd</strong> [<em>OPTIONS</em>]</p>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Share a host directory tree with a guest through a virtio-fs device.  This
+program is a vhost-user backend that implements the virtio-fs device.  Each
+virtio-fs device instance requires its own virtiofsd process.</p>
+<p>This program is designed to work with QEMU’s <code class="docutils literal notranslate"><span class="pre">--device</span> <span class="pre">vhost-user-fs-pci</span></code>
+but should work with any virtual machine monitor (VMM) that supports
+vhost-user.  See the Examples section below.</p>
+<p>This program must be run as the root user.  Upon startup the program will
+switch into a new file system namespace with the shared directory tree as its
+root.  This prevents “file system escapes” due to symlinks and other file
+system objects that might lead to files outside the shared directory.  The
+program also sandboxes itself using seccomp(2) to prevent ptrace(2) and other
+vectors that could allow an attacker to compromise the system after gaining
+control of the virtiofsd process.</p>
+</div>
+<div class="section" id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<dl class="option">
+<dt id="cmdoption-virtiofsd-h">
+<code class="sig-name descname">-h</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--help</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-virtiofsd-h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print help.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-virtiofsd-v">
+<code class="sig-name descname">-V</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--version</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-virtiofsd-v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print version.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-virtiofsd-d">
+<code class="sig-name descname">-d</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-virtiofsd-d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable debug output.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-virtiofsd-syslog">
+<code class="sig-name descname">--syslog</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-virtiofsd-syslog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print log messages to syslog instead of stderr.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-virtiofsd-o">
+<code class="sig-name descname">-o</code><code class="sig-prename descclassname"> OPTION</code><a class="headerlink" href="#cmdoption-virtiofsd-o" title="Permalink to this definition">¶</a></dt>
+<dd><ul class="simple">
+<li><p>debug -
+Enable debug output.</p></li>
+<li><p>flock|no_flock -
+Enable/disable flock.  The default is <code class="docutils literal notranslate"><span class="pre">no_flock</span></code>.</p></li>
+<li><p>modcaps=CAPLIST
+Modify the list of capabilities allowed; CAPLIST is a colon separated
+list of capabilities, each preceded by either + or -, e.g.
+‘’+sys_admin:-chown’’.</p></li>
+<li><p>log_level=LEVEL -
+Print only log messages matching LEVEL or more severe.  LEVEL is one of
+<code class="docutils literal notranslate"><span class="pre">err</span></code>, <code class="docutils literal notranslate"><span class="pre">warn</span></code>, <code class="docutils literal notranslate"><span class="pre">info</span></code>, or <code class="docutils literal notranslate"><span class="pre">debug</span></code>.  The default is <code class="docutils literal notranslate"><span class="pre">info</span></code>.</p></li>
+<li><p>norace -
+Disable racy fallback.  The default is false.</p></li>
+<li><p>posix_lock|no_posix_lock -
+Enable/disable remote POSIX locks.  The default is <code class="docutils literal notranslate"><span class="pre">posix_lock</span></code>.</p></li>
+<li><p>readdirplus|no_readdirplus -
+Enable/disable readdirplus.  The default is <code class="docutils literal notranslate"><span class="pre">readdirplus</span></code>.</p></li>
+<li><p>source=PATH -
+Share host directory tree located at PATH.  This option is required.</p></li>
+<li><p>timeout=TIMEOUT -
+I/O timeout in seconds.  The default depends on cache= option.</p></li>
+<li><p>writeback|no_writeback -
+Enable/disable writeback cache. The cache alows the FUSE client to buffer
+and merge write requests.  The default is <code class="docutils literal notranslate"><span class="pre">no_writeback</span></code>.</p></li>
+<li><p>xattr|no_xattr -
+Enable/disable extended attributes (xattr) on files and directories.  The
+default is <code class="docutils literal notranslate"><span class="pre">no_xattr</span></code>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-virtiofsd-socket-path">
+<code class="sig-name descname">--socket-path</code><code class="sig-prename descclassname">=PATH</code><a class="headerlink" href="#cmdoption-virtiofsd-socket-path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Listen on vhost-user UNIX domain socket at PATH.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-virtiofsd-fd">
+<code class="sig-name descname">--fd</code><code class="sig-prename descclassname">=FDNUM</code><a class="headerlink" href="#cmdoption-virtiofsd-fd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accept connections from vhost-user UNIX domain socket file descriptor FDNUM.
+The file descriptor must already be listening for connections.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-virtiofsd-thread-pool-size">
+<code class="sig-name descname">--thread-pool-size</code><code class="sig-prename descclassname">=NUM</code><a class="headerlink" href="#cmdoption-virtiofsd-thread-pool-size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restrict the number of worker threads per request queue to NUM.  The default
+is 64.</p>
+</dd></dl>
+
+<dl class="option">
+<dt id="cmdoption-virtiofsd-cache">
+<code class="sig-name descname">--cache</code><code class="sig-prename descclassname">=none|auto|always</code><a class="headerlink" href="#cmdoption-virtiofsd-cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select the desired trade-off between coherency and performance.  <code class="docutils literal notranslate"><span class="pre">none</span></code>
+forbids the FUSE client from caching to achieve best coherency at the cost of
+performance.  <code class="docutils literal notranslate"><span class="pre">auto</span></code> acts similar to NFS with a 1 second metadata cache
+timeout.  <code class="docutils literal notranslate"><span class="pre">always</span></code> sets a long cache lifetime at the expense of coherency.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Export <code class="docutils literal notranslate"><span class="pre">/var/lib/fs/vm001/</span></code> on vhost-user UNIX domain socket
+<code class="docutils literal notranslate"><span class="pre">/var/run/vm001-vhost-fs.sock</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">host</span><span class="c1"># virtiofsd --socket-path=/var/run/vm001-vhost-fs.sock -o source=/var/lib/fs/vm001</span>
+<span class="n">host</span><span class="c1"># qemu-system-x86_64 \</span>
+    <span class="o">-</span><span class="n">chardev</span> <span class="n">socket</span><span class="p">,</span><span class="nb">id</span><span class="o">=</span><span class="n">char0</span><span class="p">,</span><span class="n">path</span><span class="o">=/</span><span class="n">var</span><span class="o">/</span><span class="n">run</span><span class="o">/</span><span class="n">vm001</span><span class="o">-</span><span class="n">vhost</span><span class="o">-</span><span class="n">fs</span><span class="o">.</span><span class="n">sock</span> \
+    <span class="o">-</span><span class="n">device</span> <span class="n">vhost</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">fs</span><span class="o">-</span><span class="n">pci</span><span class="p">,</span><span class="n">chardev</span><span class="o">=</span><span class="n">char0</span><span class="p">,</span><span class="n">tag</span><span class="o">=</span><span class="n">myfs</span> \
+    <span class="o">-</span><span class="nb">object</span> <span class="n">memory</span><span class="o">-</span><span class="n">backend</span><span class="o">-</span><span class="n">memfd</span><span class="p">,</span><span class="nb">id</span><span class="o">=</span><span class="n">mem</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="n">G</span><span class="p">,</span><span class="n">share</span><span class="o">=</span><span class="n">on</span> \
+    <span class="o">-</span><span class="n">numa</span> <span class="n">node</span><span class="p">,</span><span class="n">memdev</span><span class="o">=</span><span class="n">mem</span> \
+    <span class="o">...</span>
+<span class="n">guest</span><span class="c1"># mount -t virtiofs myfs /mnt</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">QEMU</a></h1>
+
+
+
+<p class="blurb">Tools Guide</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="qemu-img.html">QEMU disk image utility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qemu-nbd.html">QEMU Disk Network Block Device Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="qemu-trace-stap.html">QEMU SystemTap trace tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtfs-proxy-helper.html">QEMU 9p virtfs proxy filesystem helper</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">QEMU virtio-fs shared file system daemon</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#options">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, The QEMU Project Developers.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

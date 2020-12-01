@@ -1,4 +1,5 @@
-#include "../../common/utils.h"
-
-void play_sound(long long nFrequence);
-void stop_sound();
+#pragma once
+class Sound{
+    void play_sound(long long nFrequence);
+    void stop_sound();
+};
