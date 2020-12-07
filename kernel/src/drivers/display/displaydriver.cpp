@@ -41,15 +41,13 @@ void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
 
 void DisplayDriver::puts(const char* ch)
 {
-	char* cr = (char*)ch;
-	while(*cr != 0) {
-		putc(*cr,CursorPos.X,CursorPos.Y);
+	for(int i = 0;ch[i] != '\0';i++) {
+		putc(ch[i],CursorPos.X,CursorPos.Y);
 		CursorPos.X+=8;
 		if(CursorPos.X + 8 > globalFrameBuffer->Width) {
 			CursorPos.X = 0;
 			CursorPos.Y += 16;
 		}
-		cr++;
 	}
 }
 
@@ -67,13 +65,11 @@ void DisplayDriver::InitDisplayDriver(framebuffer* framebuf, PSF1_FONT* font) {
 }
 
 void DisplayDriver::clearScreen(unsigned int colour) {
-	for(unsigned int y = 0;y< globalFrameBuffer->Height;y++) {
-		for(unsigned int x = 0; x<globalFrameBuffer->Width*4;x+=4) {
+	for(unsigned int y = 0;y< getHeight();y++) {
+		for(unsigned int x = 0; x<getWidth()*4;x+=4) {
 			*(unsigned int*)(x+(y* globalFrameBuffer->PixelPerScanLine * 4) + globalFrameBuffer->BaseAddr) = colour;
 		}
 	}
-	CursorPos.X = 0;
-	CursorPos.Y = 0;
 }
 
 void DisplayDriver::putpix(int x,int y) {
@@ -82,7 +78,7 @@ void DisplayDriver::putpix(int x,int y) {
 
 void DisplayDriver::putrect(int xx,int yy,int h,int w) {
 	for(unsigned int y = yy;y<(yy+h);y++) {
-		for(unsigned int x = xx; x<(xx+w*4);x+=4) {
+		for(unsigned int x = xx*4; x<(xx+w)*4;x+=4) {
 			putpix(x,y);
 		}
 	}

@@ -1,4 +1,5 @@
 #include "cstring.h"
+
 char uintTo_StringOutput[128];
 char* inttostr(uint64_t val) {
     uint8_t size;

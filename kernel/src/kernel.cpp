@@ -3,10 +3,22 @@
 
 #include "misc/cstring.h" //miscuri pt string
 #include "drivers/display/displaydriver.h" //display
-#include "drivers/rtc/rtc.h"
+#include "drivers/rtc/rtc.h" //real time clock
+#include "drivers/rtc/rtc.h" //real time clock
+#include "misc/power.h" //real time clock
+#include "memory/efiMemory.h"
 
+struct BootInfo {
+	DisplayDriver::framebuffer* framebuf;
+	DisplayDriver::PSF1_FONT* font;
+	void* PowerDownVoid;
+	void* mMap;
+	uint64_t mMapSize;
+	uint64_t mMapDescSize;
+};
 DisplayDriver display;
 RealTimeClock rtc;
+Power power;
 
 /*
 De facut:
@@ -14,6 +26,21 @@ De facut:
 - driver de mouse
 - driver de tascatura
 */
+
+void Panic(char* errorstr) {
+	for(int i = 10;i>0;i--) {
+		display.setCursorPos(0,0);
+		display.clearScreen(display.BLUE);
+		display.puts("Kernel panic because ");
+		display.puts(errorstr);
+		display.cursorNewLine();
+		display.puts("Shutdowning in ");
+		display.puts(inttostr((uint64_t)i));
+		display.puts(" seconds...");
+		rtc.waitSeconds(1);
+	}
+	power.Shutdown();
+}
 
 void LogoTest() {
 	display.puts("/ \\   / \\   / \\   /  _ \\/ ___\\");
@@ -30,24 +57,38 @@ void LogoTest() {
 }
 
 void DesktopTest() {
+	int screenWidth = display.getWidth();
+	int screenHeight = display.getHeight();
 	display.clearScreen(display.WHITE);
 
+	//taskbar
 	display.setColour(display.DARKGRAY);
-	display.putrect(0,0,20,display.getWidth());
-	display.setColour(display.WHITE);
+	display.putrect(0,0,20,screenWidth);
 
-	display.setCursorPos(display.getWidth()/2-20,2);
+	//startmenu
+	display.setColour(display.GREEN);
+	display.putrect(0,0,20,48);
+	display.setColour(display.WHITE);
+	display.setCursorPos(8,0);
 	display.puts("LLOS");
 
+	//taskbar
+	display.setColour(display.GRAY);
+	display.putrect(60,0,20,128);
 	display.setColour(display.BLACK);
-	display.putbox(0,20,display.getHeight()/2-20,display.getWidth()/2);
+	display.setCursorPos(68,0);
+	display.puts("app abc");
 
-	display.putbox(display.getWidth()*2,20,display.getHeight()/2-20,display.getWidth()/2);
+	//app frame
+	display.setColour(0x82ab95);
+	display.putrect(0,20,20,screenWidth);
+	display.setColour(display.BLACK);
+	display.setCursorPos(5,20);
+	display.puts("app abc");
 
-	display.putbox(0,display.getHeight()/2,display.getHeight()/2,display.getWidth()/2);
-
-	display.putbox(display.getWidth()*2,display.getHeight()/2,display.getHeight()/2,display.getWidth()/2);
-	display.setColour(display.WHITE);
+	//app content
+	display.setColour(display.RED);
+	display.putrect(432,100,100,100);
 }
 
 void NumbersTest() {
@@ -69,23 +110,33 @@ void NumbersTest() {
 }
 
 void TimeTest() {
-	for(;;){
-		display.clearScreen(display.BLACK);
-		display.puts(inttostr((uint64_t)rtc.readHours()));
-		display.puts(":");
-		display.puts(inttostr((uint64_t)rtc.readMinutes()));
-		display.puts(":");
-		display.puts(inttostr((uint64_t)rtc.readSecond()));
-		display.cursorNewLine();
-		display.puts(inttostr((uint64_t)rtc.readTime()));
-		rtc.waitSeconds(1);
-	}
+	display.setCursorPos(display.getWidth()-64,0);
+	display.setColour(display.WHITE);
+	display.puts(inttostr((uint64_t)rtc.readHours()));
+	display.puts(":");
+	display.puts(inttostr((uint64_t)rtc.readMinutes()));
+	display.puts(":");
+	display.puts(inttostr((uint64_t)rtc.readSecond()));
 }
 
-extern "C" int _start(DisplayDriver::framebuffer* framebuf, DisplayDriver::PSF1_FONT* font,void* PowerDownVoid) {
-	display.InitDisplayDriver(framebuf,font);
-
+void drawDesktopTest() {
+	DesktopTest();
 	TimeTest();
+	rtc.waitSeconds(1);
+}
+
+extern "C" int _start(BootInfo* binfo) {
+	display.InitDisplayDriver(binfo->framebuf,binfo->font);
+	power.InitPower(binfo->PowerDownVoid);
+
+	display.cursorNewLine();
+	uint64_t mMapEntries = binfo->mMapSize / binfo->mMapDescSize;
+
+	for(int i = 0;i < mMapEntries;i++) {
+		EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)binfo->mMap + (i * binfo->mMapDescSize));
+		display.puts(inttostr(desc->numPages * 4096 / 1024));
+		display.cursorNewLine();
+	}
 
 	while(1) {}
 
