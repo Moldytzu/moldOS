@@ -24,11 +24,17 @@ DIRS = $(wildcard $(SRCDIR)/*)
 kernel: $(OBJS) link
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $^ -o $@
+	@ tput setaf 3
+	@ echo Compilez: $^
+	@ tput sgr0
+	@ mkdir -p $(@D)
+	@ $(CC) $(CFLAGS) -c $^ -o $@
 	
 link:
-	$(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS)
+	@ tput setaf 2
+	@ echo Lincuiesc: $(OBJS)
+	@ tput sgr0
+	@ $(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS)
 	
 setup:
 	@mkdir $(BUILDDIR)
@@ -36,27 +42,22 @@ setup:
 	@mkdir $(OBJDIR)
 
 buildimg:
-	mv $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.llexec
-	mv $(GNUEFI)/x86_64/bootloader/main.efi $(GNUEFI)/x86_64/bootloader/BOOTx64.efi
+	@ tput setaf 14
+	@ mv $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.llexec
+	@ mv $(GNUEFI)/x86_64/bootloader/main.efi $(GNUEFI)/x86_64/bootloader/BOOTx64.efi
 	
-	#dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=512 count=2880
-	#mformat -i $(BUILDDIR)/$(OSNAME).img -f 2880 ::
-	#mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI
-	#mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI/BOOT
-	#mcopy -i $(BUILDDIR)/$(OSNAME).img $(GNUEFI)/x86_64/bootloader/BOOTx64.efi ::/EFI/BOOT
-	#mcopy -i $(BUILDDIR)/$(OSNAME).img startup.nsh ::
-	#mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.llexec ::
+	@ # dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=512 count=2880
+	@ # mformat -i $(BUILDDIR)/$(OSNAME).img -f 2880 ::
 
-	dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=1024 count=32768
-	mkfs.vfat $(BUILDDIR)/$(OSNAME).img
-	mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI
-	mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI/BOOT
-	mcopy -i $(BUILDDIR)/$(OSNAME).img $(GNUEFI)/x86_64/bootloader/BOOTx64.efi ::/EFI/BOOT
-	mcopy -i $(BUILDDIR)/$(OSNAME).img startup.nsh ::
-	mcopy -i $(BUILDDIR)/$(OSNAME).img a.txt ::
-	mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/zap-light16.psf ::
-	mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.llexec ::
-	
+	@ dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=1024 count=32768
+	@ mkfs.vfat $(BUILDDIR)/$(OSNAME).img
+	@ mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI
+	@ mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI/BOOT
+	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(GNUEFI)/x86_64/bootloader/BOOTx64.efi ::/EFI/BOOT
+	@ mcopy -i $(BUILDDIR)/$(OSNAME).img startup.nsh ::
+	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/font.psf ::
+	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.llexec ::
+	@ tput sgr0
 	
 
 run:

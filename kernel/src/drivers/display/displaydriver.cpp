@@ -1,6 +1,9 @@
 #include "displaydriver.h"
 #include "../../misc/math.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpointer-arith"
+
 typedef struct {
 	unsigned char magic[2];
 	unsigned char mode;
@@ -20,11 +23,6 @@ typedef struct {
 	unsigned int PixelPerScanLine;
 } framebuffer;
 
-DisplayDriver::framebuffer* globalFrameBuffer;
-DisplayDriver::PSF1_FONT* globalFont;
-Point CursorPos;
-unsigned int colour;
-
 void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
     unsigned int* pixPtr = (unsigned int*)globalFrameBuffer->BaseAddr;
     char* fontPtr = (char*)globalFont->glyphBuffer + (ch * globalFont->psf1_Header->charsize);
@@ -41,6 +39,10 @@ void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
 
 void DisplayDriver::puts(const char* ch)
 {
+	if(getHeight() <= CursorPos.Y) { 
+		clearScreen(0x0);
+		setCursorPos(0,0);
+	} 
 	for(int i = 0;ch[i] != '\0';i++) {
 		putc(ch[i],CursorPos.X,CursorPos.Y);
 		CursorPos.X+=8;
@@ -152,3 +154,4 @@ int DisplayDriver::getHeight() {
 void DisplayDriver::setColour(unsigned int colo) {
 	colour = colo;
 }
+#pragma GCC diagnostic pop

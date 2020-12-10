@@ -215,10 +215,8 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 			
 			ClearScreen();
 			Printf(L"Loading LLOS [@@@-]\n\r");
-
-			int	(*EntryPoint)(BootInfo*) = ((__attribute__((sysv_abi)) int (*)(BootInfo*)) header.e_entry);
 			
-			PSF1_FONT* newFont = LoadFont(NULL, L"zap-light16.psf",ImageHandle,SystemTable);
+			PSF1_FONT* newFont = LoadFont(NULL, L"font.psf",ImageHandle,SystemTable);
 			if(newFont == NULL) {
 				ClearScreen();
 				Printf(L"Error!\n\r");
@@ -226,18 +224,20 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 			}
 
 			framebuffer* buf = InitGOP();
-
-	EFI_MEMORY_DESCRIPTOR* Map = NULL;
-	UINTN MapSize, MapKey;
-	UINTN DescriptorSize;
-	UINT32 DescriptorVersion;
-	{
+			
+			EFI_MEMORY_DESCRIPTOR* Map = NULL;
+			UINTN MapSize, MapKey;
+			UINTN DescriptorSize;
+			UINT32 DescriptorVersion;
+			{
 		
-		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-		SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void**)&Map);
-		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+				SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+				SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void**)&Map);
+				SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
 
-	}
+			}
+
+			int	(*EntryPoint)(BootInfo*) = ((__attribute__((sysv_abi)) int (*)(BootInfo*)) header.e_entry);
 			BootInfo info;
 			info.framebuf = buf;
 			info.font = newFont;

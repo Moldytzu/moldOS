@@ -1,5 +1,7 @@
 #pragma once
+#include "../../misc/io.h"
 class Sound{
-    void play_sound(long long nFrequence);
-    void stop_sound();
+public:
+    void play(long long nFrequence);
+    void stop();
 };
