@@ -166,7 +166,7 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 	if(monkernel == NULL) {
 		ClearScreen();
-		Printf(L"Error!\n\r");
+		Printf(L"Cannot find the kernel!\n\r");
 		while(1){}
 	} else {
 		ClearScreen();
@@ -186,7 +186,7 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 		if(memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 || header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64 || header.e_version != EV_CURRENT)
 		{
 			ClearScreen();
-			Printf(L"Error!\n\r");
+			Printf(L"Cannot verify the kernel!\n\r");
 			while(1){}
 		}else {
 			ClearScreen();
@@ -219,7 +219,7 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 			PSF1_FONT* newFont = LoadFont(NULL, L"font.psf",ImageHandle,SystemTable);
 			if(newFont == NULL) {
 				ClearScreen();
-				Printf(L"Error!\n\r");
+				Printf(L"Cannot find the font!\n\r");
 				while(1){};
 			}
 

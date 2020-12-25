@@ -55,10 +55,18 @@ buildimg:
 	@ mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI/BOOT
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(GNUEFI)/x86_64/bootloader/BOOTx64.efi ::/EFI/BOOT
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img startup.nsh ::
-	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/font.psf ::
+	@ mcopy -i $(BUILDDIR)/$(OSNAME).img font.psf ::
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.llexec ::
 	@ tput sgr0
-	
 
-run:
-	qemu-system-x86_64 -drive file=$(BUILDDIR)/$(OSNAME).img -m 256M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMFDIR)/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(OVMFDIR)/OVMF_VARS-pure-efi.fd" -net none
+	@ mkdir -p $(BUILDDIR)/iso
+	@ mkdir -p $(BUILDDIR)/iso/EFI
+	@ mkdir -p $(BUILDDIR)/iso/EFI/BOOT
+	@ cp $(GNUEFI)/x86_64/bootloader/BOOTx64.efi $(BUILDDIR)/iso/EFI/BOOT
+	@ cp startup.nsh $(BUILDDIR)/iso/
+	@ cp font.psf $(BUILDDIR)/iso/
+	@ cp $(BUILDDIR)/kernel.llexec $(BUILDDIR)/iso/
+	@ cd $(BUILDDIR)
+	@ xorrisofs -r -J -o $(BUILDDIR)/$(OSNAME).iso $(BUILDDIR)/iso
+	
+	@ rm -rf $(BUILDDIR)/iso

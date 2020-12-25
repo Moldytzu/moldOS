@@ -1,4 +1,4 @@
 [ZoneTransfer]
 ZoneId=3
-ReferrerUrl=https://github.com/Absurdponcho/PonchoOS/blob/Episode-5-Efi-Memory-Map/OVMFbin/OVMF_VARS-pure-efi.fd
-HostUrl=https://raw.githubusercontent.com/Absurdponcho/PonchoOS/Episode-5-Efi-Memory-Map/OVMFbin/OVMF_VARS-pure-efi.fd
+ReferrerUrl=https://github.com/Absurdponcho/OVMFbin/blob/main/OVMF_VARS-pure-efi.fd
+HostUrl=https://raw.githubusercontent.com/Absurdponcho/OVMFbin/main/OVMF_VARS-pure-efi.fd

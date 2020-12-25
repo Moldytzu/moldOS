@@ -37,20 +37,77 @@ void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
     }
 }
 
-void DisplayDriver::puts(const char* ch)
-{
-	if(getHeight() <= CursorPos.Y) { 
-		clearScreen(0x0);
-		setCursorPos(0,0);
-	} 
-	for(int i = 0;ch[i] != '\0';i++) {
-		putc(ch[i],CursorPos.X,CursorPos.Y);
-		CursorPos.X+=8;
-		if(CursorPos.X + 8 > globalFrameBuffer->Width) {
-			CursorPos.X = 0;
-			CursorPos.Y += 16;
+void DisplayDriver::putc(char ch) {
+	putc(ch,CursorPos.X,CursorPos.Y);
+	CursorPos.X+=8;
+	if(CursorPos.X + 8 > globalFrameBuffer->Width) {
+		CursorPos.X = 0;
+		CursorPos.Y += 16;
+		checkScroll();
+	}
+}
+
+void DisplayDriver::scroll() {
+	for(int j = 0; j<=8;j++) {
+	for(int i = 0;i<getHeight();i++) {
+		for(int m = 0;m<getWidth()*4;m++) {
+			*(unsigned int*)(globalFrameBuffer->BaseAddr+(i*getWidth()+m)*4) = *(unsigned int*)(globalFrameBuffer->BaseAddr+((i + 1) * getWidth() + m)*4); //cod scris de la 12 la 2 noaptea
 		}
 	}
+	}
+}
+
+void DisplayDriver::checkScroll() {
+	if(CursorPos.Y+17 >= getHeight()) { 
+		scroll();
+		CursorPos.X=0;
+		CursorPos.Y=CursorPos.Y-17;
+	} //shî asta la fel
+}
+
+void DisplayDriver::puts(const char* ch)
+{
+	checkScroll();
+	for(int i = 0;ch[i] != '\0';i++) {
+		if(ch[i] == '\n') {
+			cursorNewLine();
+			checkScroll();
+			continue;
+		}
+		putc(ch[i],CursorPos.X,CursorPos.Y);
+			CursorPos.X+=8;
+			if(CursorPos.X + 8 > globalFrameBuffer->Width) {
+				CursorPos.X = 0;
+				CursorPos.Y += 16;
+				checkScroll();
+			}
+	}
+}
+
+void DisplayDriver::puts(const char* ch, const char* ch2) {
+	puts(ch);
+	puts(ch2);
+}
+
+void DisplayDriver::puts(const char* ch, const char* ch2, const char* ch3) {
+	puts(ch);
+	puts(ch2);
+	puts(ch3);
+}
+
+void DisplayDriver::puts(const char* ch, const char* ch2, const char* ch3, const char* ch4) {
+	puts(ch);
+	puts(ch2);
+	puts(ch3);
+	puts(ch4);
+}
+
+void DisplayDriver::puts(const char* ch, const char* ch2, const char* ch3, const char* ch4, const char* ch5) {
+	puts(ch);
+	puts(ch2);
+	puts(ch3);
+	puts(ch4);
+	puts(ch5);
 }
 
 void DisplayDriver::setCursorPos(int x,int y) {
@@ -62,7 +119,6 @@ void DisplayDriver::InitDisplayDriver(framebuffer* framebuf, PSF1_FONT* font) {
 	globalFont = font;
 	globalFrameBuffer = framebuf;
 	clearScreen(0);
-	setCursorPos(0,0);
 	colour = 0xffffff;
 }
 
@@ -72,6 +128,7 @@ void DisplayDriver::clearScreen(unsigned int colour) {
 			*(unsigned int*)(x+(y* globalFrameBuffer->PixelPerScanLine * 4) + globalFrameBuffer->BaseAddr) = colour;
 		}
 	}
+	setCursorPos(0,0);
 }
 
 void DisplayDriver::putpix(int x,int y) {

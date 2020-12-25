@@ -1,16 +1,30 @@
+//definitii standard
 #include "stddef.h"
-#include "stdint.h" //definitii standard
+#include "stdint.h"
 
-#include "misc/cstring.h" //miscuri pt string
+//drivere
 #include "drivers/display/displaydriver.h" //display
-#include "drivers/rtc/rtc.h" //real time clock
-#include "misc/power.h" //power
 #include "drivers/sound/sounddriver.h" //sunet
-#include "memory/efiMemory.h" //memorie
+#include "drivers/pci/pci.h" //pci
+#include "drivers/rtc/rtc.h" //realtimeclock
+
+//misc
+#include "misc/cstring.h" //miscuri pt string
+#include "misc/power.h" //power
 #include "misc/colors.h" //culori
 #include "misc/math.h" //matematica
 #include "misc/bitmap.h" //bitmap
+#include "misc/cpu.h" //cpu
+
+//io
+#include "io/serial.h" //serial port
+
+//memorie
+#include "memory/efiMemory.h" //memorie
 #include "memory/pagefileallocator.h" //pfa
+#include "memory/pagemapindexer.h" //pmi
+#include "memory/paging.h" //paging
+#include "memory/pagetablemanager.h" //ptm
 
 struct BootInfo {
 	DisplayDriver::framebuffer* framebuf;
@@ -21,276 +35,181 @@ struct BootInfo {
 	uint64_t mMapDescSize;
 };
 
+extern uint64_t _KernelStart;
+extern uint64_t _KernelEnd;
+
+char** CPUFeatures;
+
 DisplayDriver display;
-RealTimeClock rtc;
 Power power;
 Sound sound;
-PageFrameAllocator pfa;
+CPU cpu;
+PCI pci;
+RealTimeClock rtc;
+SerialPort com1;
 
+void EnablePaging(BootInfo* bootInfo) {
+    uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
-/*
-De facut:
-- un loader de fisiere
-- driver de mouse
-- driver de tascatura
-*/
+    GlobalAllocator = PageFrameAllocator();
+    GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
-void InitDrivers(BootInfo* binfo) {
-	display.InitDisplayDriver(binfo->framebuf,binfo->font);
-	power.InitPower(binfo->PowerDownVoid);
-}
+    uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
+    uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
+    GlobalAllocator.LockPages(&_KernelStart, kernelPages);
 
-void Panic(char* errorstr) {
-	for(int i = 10;i>0;i--) {
-		display.setCursorPos(0,0);
-		display.clearScreen(BLUE);
-		display.puts("Kernel panic because ");
-		display.puts(errorstr);
-		display.cursorNewLine();
-		display.puts("Shutdowning in ");
-		display.puts(inttostr((uint64_t)i));
-		display.puts(" seconds...");
-		rtc.waitSeconds(1);
-	}
-	power.Shutdown();
-}
+    uint64_t fbBase = (uint64_t)bootInfo->framebuf->BaseAddr;
+    uint64_t fbSize = (uint64_t)bootInfo->framebuf->BufferSize+ 0x1000;
+    uint64_t fbPages = fbSize / 4096 + 1;
+    GlobalAllocator.LockPages(&fbBase, fbPages);	
 
-void LogoTest() {
-	display.puts("/ \\   / \\   / \\   /  _ \\/ ___\\");
-	display.cursorNewLine();
+    PageTable* PML4 = (PageTable*)GlobalAllocator.RequestPage();
+    memset(PML4, 0, 0x1000);
 
-	display.puts("| |   | |   | |   | / \\||    \\");
-	display.cursorNewLine();
+    PageTableManager pageTableManager = PageTableManager(PML4);
 
-	display.puts("| |_/\\| |_/\\| |_/\\| \\_/|\\___ |");
-	display.cursorNewLine();
+    for (uint64_t t = 0; t < GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize); t+= 0x1000){
+        pageTableManager.MapMemory((void*)t, (void*)t);
+    }
 
-	display.puts("\\____/\\____/\\____/\\____/\\____/");
-}
+    asm volatile ("mov %0, %%cr3" : : "r" (PML4));
 
-void DesktopTest() {
-	int screenWidth = display.getWidth();
-	int screenHeight = display.getHeight();
-	display.clearScreen(WHITE);
+    pageTableManager.MapMemory((void*)0x600000000, (void*)0x80000);
 
-	//taskbar
-	display.setColour(DARKGRAY);
-	display.putrect(0,0,20,screenWidth);
-
-	//startmenu
-	display.setColour(GREEN);
-	display.putrect(0,0,20,48);
-	display.setColour(WHITE);
-	display.setCursorPos(8,0);
-	display.puts("LLOS");
-
-	//taskbar
-	display.setColour(GRAY);
-	display.putrect(60,0,20,128);
-	display.setColour(BLACK);
-	display.setCursorPos(68,0);
-	display.puts("app abc");
-
-	//app frame
-	display.setColour(0x82ab95);
-	display.putrect(0,20,20,screenWidth);
-	display.setColour(BLACK);
-	display.setCursorPos(5,20);
-	display.puts("app abc");
-
-	//app content
-	display.setColour(RED);
-	display.putrect(432,100,100,100);
-}
-
-void NumbersTest() {
-	display.puts(inttostr((uint64_t)1234));
-	display.cursorNewLine();
-	display.puts(inttostr((int64_t)-1654));
-	display.cursorNewLine();
-	display.puts(inttostr((double)2019.2,10));
-	display.cursorNewLine();
-	display.puts(inttostr((double)-645019.2));
-	display.cursorNewLine();
-	display.puts(inttohstr((uint64_t)0x2061));
-	display.cursorNewLine();
-	display.puts(inttohstr((uint32_t)0x2061));
-	display.cursorNewLine();
-	display.puts(inttohstr((uint16_t)0x2061));
-	display.cursorNewLine();
-	display.puts(inttohstr((uint8_t)0x2061));
-}
-
-void TimeTest() {
-	display.setColour(WHITE);
-	display.puts(inttostr((uint64_t)rtc.readHours()));
-	display.puts(":");
-	display.puts(inttostr((uint64_t)rtc.readMinutes()));
-	display.puts(":");
-	display.puts(inttostr((uint64_t)rtc.readSecond()));
-}
-
-void drawDesktopTest() {
-	DesktopTest();
-	TimeTest();
-	rtc.waitSeconds(1);
-}
-
-void drawMemoryMapTest(BootInfo* binfo) {
-	display.puts("Memory Map: ");
-	display.cursorNewLine();
-	uint64_t mMapEntries = binfo->mMapSize / binfo->mMapDescSize;
-
-	for(int i = 0;i < mMapEntries;i++) {
-		EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)binfo->mMap + (i * binfo->mMapDescSize));
-		display.puts(EFI_MEMORY_TYPE_STRINGS[desc->type]);
-		display.setColour(0xff00ff);
-		display.puts("->");
-		display.puts(inttostr(desc->numPages * 4096 /1024));
-		display.puts("KB");
-		display.setColour(WHITE);
-		display.puts("  ");
-		if(i%5==0 && i!=0) {display.cursorNewLine();}
+    uint64_t* test = (uint64_t*)0x600000000;
+    *test = 10;
+	if(*test != 10) {
+		com1.Write("Failed\n");
+		while(1);
 	}
 }
 
-void drawUsableRamTest(BootInfo* binfo) {
-	uint64_t mMapEntries = binfo->mMapSize / binfo->mMapDescSize;
+void InitDrivers(BootInfo* bootInfo) {
+	com1.Init();
+	com1.ClearMonitor();
+	com1.Write(SERIALWHITE,"Initialized Serial Port!\n");
 
-	uint64_t ramsize = 0;
-	uint64_t usableram = 0;
+	com1.Write("Enabling paging...\n");
 
-	for(int i = 0;i < mMapEntries;i++) {
-		EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)binfo->mMap + (i * binfo->mMapDescSize));
-		if(desc->type == 7) {
-			usableram = usableram + (desc->numPages * 4096 / 1024);
-		}
-		ramsize = ramsize + (desc->numPages * 4096 / 1024);
-	}
-	display.puts("Total RAM: ");
-	display.puts(inttostr((double)ramsize/1024/1024,2));
-	display.puts("GB ");
-	display.puts("Usable RAM: ");
-	display.puts(inttostr((double)usableram/1024/1024,2));
-	display.puts("GB ");
-	display.puts("Reserved RAM: ");
-	display.puts(inttostr((double)(ramsize-usableram)/1024,2));
-	display.puts("MB");
-}
-	uint8_t testbuf[20];
-void efiMemoryTest(BootInfo* binfo) {
-	display.puts("Total RAM: ");
-	display.puts(inttostr(GetMemorySize(binfo->mMap,binfo->mMapSize / binfo->mMapDescSize,binfo->mMapDescSize)));
-	display.puts(" B");
-	display.cursorNewLine();
+	EnablePaging(bootInfo);
 
-	Bitmap bitm;
-	bitm.Buffer = &testbuf[0];
-	bitm.Set(0,true);
-	bitm.Set(1,false);
-	bitm.Set(2,false);
-	bitm.Set(3,true);
-	display.puts("Bitmap Test: ");
-	for(int i=0;i<20;i++) {
-		display.puts(bitm[i] ? "1" : "0");
-	}
+	com1.Write("Paging enabled!\n");
 
-	display.cursorNewLine();
-	display.puts("PageFileAllocator Test: ");
-	display.cursorNewLine();
-	display.puts("N-avem ce sa testam :)");
-	pfa.readMemoryMap(binfo->mMap,binfo->mMapSize,binfo->mMapDescSize);
-	display.cursorNewLine();
-	display.cursorNewLine();
-}
+	com1.Write("Initializing Power...\n");
+	power.InitPower(bootInfo->PowerDownVoid);
+	com1.Write("Initialized Power!\n");
+	
+	com1.Write("Detecting PCI devices...\n");
+	pci.detectDevices();
+	com1.Write("Detected ", inttostr(pci.DeviceCount), " PCI devices!\n");
 
-void soundTest() {
-	rtc.waitSeconds(1);
-	display.puts("Sound test");
-	sound.play(1000);
-	rtc.waitSeconds(1);
-	sound.stop();
-}
+	com1.Write("Detecting CPU features...\n");
+	CPUFeatures = cpu.getFeatures();
+	com1.Write("Detected ",inttostr(cpu.cpuFeatures)," CPU features!\n");
 
-void shutdownTest() {
-	display.puts("The computer will shutdown in 5 seconds!");
-	rtc.waitSeconds(5);
-	power.Shutdown();
-}
-
-void gopTest() {
-	display.puts("GOP Test:");
-	display.cursorNewLine();
-	display.puts("Address: 0x");
-	display.puts(inttohstr((uint32_t)(uint64_t)display.globalFrameBuffer->BaseAddr));
-	display.cursorNewLine();
-	display.puts("Buffer Size: 0x");
-	display.puts(inttohstr((uint32_t)(uint64_t)display.globalFrameBuffer->BufferSize));
-	display.cursorNewLine();
-	display.puts("Width: ");
-	display.puts(inttostr((uint64_t)display.globalFrameBuffer->Width));
-	display.cursorNewLine();
-	display.puts("Height: ");
-	display.puts(inttostr((uint64_t)display.globalFrameBuffer->Height));
-	display.cursorNewLine();
-	display.puts("PixelsPerScanLine: ");
-	display.puts(inttostr((uint64_t)display.globalFrameBuffer->PixelPerScanLine));
-	display.cursorNewLine();
-}
-
-void runTests(BootInfo* binfo) {
-	gopTest();
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
-
-	LogoTest();
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
-
-	NumbersTest();
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
-
-	TimeTest();
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
-
-	drawMemoryMapTest(binfo);
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
-
-	drawUsableRamTest(binfo);
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
-
-	efiMemoryTest(binfo);
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
-
-	soundTest();
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
-
-	shutdownTest();
-	display.cursorNewLine();
-	display.cursorNewLine();
-	rtc.waitSeconds(2);
+	com1.Write("Initializing Display...\n");
+	display.InitDisplayDriver(bootInfo->framebuf,bootInfo->font);	
+	com1.Write("Initialized Display!\n");
 }
 
 extern "C" int _start(BootInfo* binfo) {
 	InitDrivers(binfo);
 
-	runTests(binfo);
+	display.setColour(LIGHTRED);
+	display.puts("/ \\   / \\   / \\   /  _ \\/ ___\\\n");
+	display.puts("| |   | |   | |   | / \\||    \\\n");
+	display.puts("| |_/\\| |_/\\| |_/\\| \\_/|\\___ |\n");
+	display.puts("\\____/\\____/\\____/\\____/\\____/\n");
+	display.setColour(WHITE);
+
+	display.puts("\n\nCPU: ");
+	display.setColour(ORANGE);
+	display.puts(cpu.getName(),"\n");
+	display.setColour(WHITE);
+
+	display.puts("CPU Vendor: ");
+	display.setColour(ORANGE);
+	display.puts(cpu.getVendor(),"\n");
+	display.setColour(WHITE);
+
+	display.puts("CPU Features: ");
+	display.setColour(ORANGE);
+	for(int i = 0;i<cpu.cpuFeatures;i++) {
+		display.puts(CPUFeatures[i]," ");
+	}
+	display.setColour(WHITE);
+
+	display.puts("\n\nTotal RAM: ");
+	display.setColour(YELLOW);
+	display.puts(inttostr((GlobalAllocator.GetFreeRAM()+GlobalAllocator.GetUsedRAM()+GlobalAllocator.GetReservedRAM())/1024/1024), " MB");
+	display.setColour(WHITE);
+
+	display.puts("\nFree RAM: ");
+	display.setColour(YELLOW);
+	display.puts(inttostr(GlobalAllocator.GetFreeRAM()/1024/1024)," MB");
+	display.setColour(WHITE);
+
+	display.puts("\nUsed RAM: ");
+	display.setColour(YELLOW);
+	display.puts(inttostr(GlobalAllocator.GetUsedRAM()/1024/1024)," MB");
+	display.setColour(WHITE);
+
+	display.puts("\nReserved RAM: ");
+	display.setColour(YELLOW);
+	display.puts(inttostr(GlobalAllocator.GetReservedRAM()/1024/1024)," MB");
+	display.setColour(WHITE);
+
+	
+	display.puts("\n\nScreen Width: ");
+	display.setColour(LIGHTGREEN);
+	display.puts(inttostr(display.getWidth()),"px");
+	display.setColour(WHITE);
+
+	display.puts("\nScreen Height: ");
+	display.setColour(LIGHTGREEN);
+	display.puts(inttostr(display.getHeight()),"px\n");
+	display.setColour(WHITE);
+
+	display.puts("\nDetected ");
+	display.setColour(LIGHTTURQOISE);
+	display.puts(inttostr(pci.DeviceCount));
+	display.setColour(WHITE);
+	display.puts(" PCI devices: \n");
+
+	for(int i = 0;i<pci.DeviceCount;i++) {
+		display.puts("\nPCI Device ", inttostr(i) , "\n");
+
+		display.puts("Vendor: ");
+		display.setColour(LIGHTTURQOISE);
+		display.puts("0x",inttohstr(pci.Devices[i].VendorID));
+		display.setColour(WHITE);
+
+		display.puts(" Device: ");
+		display.setColour(LIGHTTURQOISE);
+		display.puts("0x",inttohstr(pci.Devices[i].DeviceID));
+		display.setColour(WHITE);
+
+		display.puts(" Class: ");
+		display.setColour(LIGHTTURQOISE);
+		display.puts(pci.Devices[i].Class);
+		display.setColour(WHITE);
+
+		display.puts(" Function: ");
+		display.setColour(LIGHTTURQOISE);
+		display.puts(inttostr(pci.Devices[i].Function));
+		display.setColour(WHITE);
+
+		display.puts(" Bus: ");
+		display.setColour(LIGHTTURQOISE);
+		display.puts(inttostr(pci.Devices[i].Bus));
+		display.setColour(WHITE);
+
+		display.puts(" Slot: ");
+		display.setColour(LIGHTTURQOISE);
+		display.puts(inttostr(pci.Devices[i].Slot));
+		display.setColour(WHITE);
+	}
 
 	while(1) {}
-
 	return 0;
 } 

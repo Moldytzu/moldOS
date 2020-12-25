@@ -22,6 +22,20 @@ char* inttostr(uint64_t val) {
     return uintTo_StringOutput;
 }
 
+char* inttostr(uint32_t val) {
+    return inttostr((uint64_t)val);
+}
+char* inttostr(uint16_t val) {
+    return inttostr((uint64_t)val);
+}
+char* inttostr(uint8_t val) {
+    return inttostr((uint64_t)val);
+}
+
+char* inttostr(int val) {
+    return inttostr((uint64_t)val);
+}
+
 char intTo_StringOutput[128];
 char* inttostr(int64_t val) {
     uint8_t isNegative = 0;
