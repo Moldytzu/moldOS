@@ -52,12 +52,17 @@ void checkScroll();
 
 //initializare
 void InitDisplayDriver(framebuffer* framebuf, PSF1_FONT* font);
+void InitDoubleBuffer(framebuffer* f);
 
 //ceva geturi
 int getWidth();
 int getHeight();
 
+//chestii de double buffer
+void update();
+
 //variabile
+DisplayDriver::framebuffer* secondFrameBuffer;
 DisplayDriver::framebuffer* globalFrameBuffer;
 DisplayDriver::PSF1_FONT* globalFont;
 Point CursorPos;

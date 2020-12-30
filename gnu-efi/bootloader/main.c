@@ -29,16 +29,6 @@ void PowerDown() {
 	ST->RuntimeServices->ResetSystem(EfiResetShutdown,0,0,NULL);
 }
 
-void PrintfInt(int num) {
-	Print(L"%u",num);
-}
-
-void Printf(wchar_t* str) {
-	SIMPLE_TEXT_OUTPUT_INTERFACE *conout;
-	conout = ST->ConOut;
-	uefi_call_wrapper(conout->OutputString, 2, conout, str);
-}
-
 void ClearScreen() {
 	uefi_call_wrapper(ST->ConOut->ClearScreen, 1, ST->ConOut); 
 }
@@ -69,19 +59,6 @@ EFI_FILE* ReadFile(EFI_FILE* Directory, CHAR16* Path, EFI_HANDLE ImageHandle, EF
 	return LoadedFile;
 }
 
-char* GetFile(CHAR16* path,EFI_HANDLE ImageHandle,EFI_SYSTEM_TABLE* SystemTable) {
-	EFI_FILE* file = ReadFile(NULL,path,ImageHandle,SystemTable);
-	if(file == NULL) {
-		return " ";
-	}
-
-	char* ret;
-	ST->BootServices->AllocatePool(EfiLoaderData, sizeof(char*), (void**)&ret);
-	UINTN size = sizeof(char*);
-	file->Read(file,&size,ret);
-	return ret;
-}
-
 framebuffer frambuf;
 
 framebuffer* InitGOP() {
@@ -92,7 +69,7 @@ framebuffer* InitGOP() {
 	stat = uefi_call_wrapper(BS->LocateProtocol, 3, &gopGuid, NULL, (void**)&gop);;
 	if(EFI_ERROR(stat)) {
 		ClearScreen();
-		Printf(L"Error!\n\r");
+		Print(L"Cannot init GOP!\n\r");
 		while(1) {}
 	}
 	else {
@@ -155,104 +132,91 @@ typedef struct {
 	UINTN mMapDescSize;
 } BootInfo;
 
+void TriggerError(wchar_t* errstr) {
+	ClearScreen();
+	Print(errstr);
+	while(1){}
+}
+
 EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	InitUEFI(ImageHandle, SystemTable);
-	//Codul
-	ClearScreen(); //curata ecranul
 
-	Printf(L"Loading LLOS [----]\n\r");
+	ClearScreen();
 
-	EFI_FILE* monkernel = ReadFile(NULL,L"kernel.llexec",ImageHandle,SystemTable);
+	Print(L"Loading LLOS [----]\n\r");
 
-	if(monkernel == NULL) {
-		ClearScreen();
-		Printf(L"Cannot find the kernel!\n\r");
-		while(1){}
-	} else {
-		ClearScreen();
-		Printf(L"Loading LLOS [@---]\n\r");
-		Elf64_Ehdr header;
-		{
-			UINTN FileInfoSize;
-			EFI_FILE_INFO* FileInfo;
-			monkernel->GetInfo(monkernel,&gEfiFileInfoGuid,&FileInfoSize,NULL);
-			SystemTable->BootServices->AllocatePool(EfiLoaderData, FileInfoSize, (void**)&FileInfo);
-			monkernel->GetInfo(monkernel,&gEfiFileInfoGuid,&FileInfoSize,(void**)&FileInfo);
-			
-			UINTN size = sizeof(header);
-			monkernel->Read(monkernel,&size,&header);
-		}
+	EFI_FILE* monkernel = ReadFile(NULL,L"kernel.llexec",ImageHandle,SystemTable); if(monkernel == NULL) TriggerError(L"Cannot find \"kernel.llexec\"!");
+	
+	ClearScreen();
+	Print(L"Loading LLOS [@---]\n\r");
+	Elf64_Ehdr header;
+	{
+		UINTN FileInfoSize;
+		EFI_FILE_INFO* FileInfo;
+		monkernel->GetInfo(monkernel,&gEfiFileInfoGuid,&FileInfoSize,NULL);
+		SystemTable->BootServices->AllocatePool(EfiLoaderData, FileInfoSize, (void**)&FileInfo);
+		monkernel->GetInfo(monkernel,&gEfiFileInfoGuid,&FileInfoSize,(void**)&FileInfo);
 		
-		if(memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 || header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64 || header.e_version != EV_CURRENT)
-		{
-			ClearScreen();
-			Printf(L"Cannot verify the kernel!\n\r");
-			while(1){}
-		}else {
-			ClearScreen();
-			Printf(L"Loading LLOS [@@--]\n\r");
-			
-			Elf64_Phdr* phdrs; {
-				monkernel->SetPosition(monkernel,header.e_phoff);
-				UINTN size = header.e_phnum * header.e_phentsize;
-				SystemTable->BootServices->AllocatePool(EfiLoaderData, size, (void**)&phdrs);
-				monkernel->Read(monkernel,&size,phdrs);
-			}
-			
-			for(Elf64_Phdr* phdr = phdrs;(char*)phdr < (char*)phdrs + header.e_phnum * header.e_phentsize;phdr = (Elf64_Phdr*)((char*)phdr + header.e_phentsize)) {
-				switch(phdr->p_type) {
-					case PT_LOAD:{
-						int pages = (phdr->p_memsz + 0x1000-1) / 0x1000;
-						Elf64_Addr segment = phdr->p_paddr;
-						SystemTable->BootServices->AllocatePages(AllocateAddress,EfiLoaderData,pages, &segment);
-						monkernel->SetPosition(monkernel,phdr->p_offset);
-						UINTN size = phdr->p_filesz;
-						monkernel->Read(monkernel, &size, (void*)segment);
-						break;
-					}
-				}
-			}
-			
-			ClearScreen();
-			Printf(L"Loading LLOS [@@@-]\n\r");
-			
-			PSF1_FONT* newFont = LoadFont(NULL, L"font.psf",ImageHandle,SystemTable);
-			if(newFont == NULL) {
-				ClearScreen();
-				Printf(L"Cannot find the font!\n\r");
-				while(1){};
-			}
-
-			framebuffer* buf = InitGOP();
-			
-			EFI_MEMORY_DESCRIPTOR* Map = NULL;
-			UINTN MapSize, MapKey;
-			UINTN DescriptorSize;
-			UINT32 DescriptorVersion;
-			{
+		UINTN size = sizeof(header);
+		monkernel->Read(monkernel,&size,&header);
+	}
 		
-				SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-				SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void**)&Map);
-				SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-
-			}
-
-			int	(*EntryPoint)(BootInfo*) = ((__attribute__((sysv_abi)) int (*)(BootInfo*)) header.e_entry);
-			BootInfo info;
-			info.framebuf = buf;
-			info.font = newFont;
-			info.PowerDownVoid = PowerDown;
-			info.mMap = Map;
-			info.mMapSize = MapSize;
-			info.mMapDescSize = DescriptorSize;
-
-			SystemTable->BootServices->ExitBootServices(ImageHandle,MapKey);
+	if(memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 || header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64 || header.e_version != EV_CURRENT)  TriggerError(L"Cannot verify the kernel!");
+	
+	ClearScreen();
+	Print(L"Loading LLOS [@@--]\n\r");
+	Elf64_Phdr* phdrs; 
+	{
+		monkernel->SetPosition(monkernel,header.e_phoff);
+		UINTN size = header.e_phnum * header.e_phentsize;
+		SystemTable->BootServices->AllocatePool(EfiLoaderData, size, (void**)&phdrs);
+		monkernel->Read(monkernel,&size,phdrs);
+	}
 			
-			EntryPoint(&info);
+	for(Elf64_Phdr* phdr = phdrs;(char*)phdr < (char*)phdrs + header.e_phnum * header.e_phentsize;phdr = (Elf64_Phdr*)((char*)phdr + header.e_phentsize)) {
+		switch(phdr->p_type) {
+			case PT_LOAD:{
+				int pages = (phdr->p_memsz + 0x1000-1) / 0x1000;
+				Elf64_Addr segment = phdr->p_paddr;
+				SystemTable->BootServices->AllocatePages(AllocateAddress,EfiLoaderData,pages, &segment);
+				monkernel->SetPosition(monkernel,phdr->p_offset);
+				UINTN size = phdr->p_filesz;
+				monkernel->Read(monkernel, &size, (void*)segment);
+				break;
+			}
 		}
 	}
-	while(1){}
+			
+	ClearScreen();
+	Print(L"Loading LLOS [@@@-]\n\r");
+			
+	PSF1_FONT* newFont = LoadFont(NULL, L"font.psf",ImageHandle,SystemTable); if(newFont == NULL) TriggerError(L"Cannot load \"font.psf\"!");
 
-	//Iesire din aplicatie
-	return 1; //iesire
+	framebuffer* buf = InitGOP();
+			
+	EFI_MEMORY_DESCRIPTOR* Map = NULL;
+	UINTN MapSize, MapKey;
+	UINTN DescriptorSize;
+	UINT32 DescriptorVersion;
+	{
+		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+		SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void**)&Map);
+		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+	}
+
+	int	(*EntryPoint)(BootInfo*) = ((__attribute__((sysv_abi)) int (*)(BootInfo*)) header.e_entry);
+
+	BootInfo info;
+	info.framebuf = buf;
+	info.font = newFont;
+	info.PowerDownVoid = PowerDown;
+	info.mMap = Map;
+	info.mMapSize = MapSize;
+	info.mMapDescSize = DescriptorSize;
+
+	SystemTable->BootServices->ExitBootServices(ImageHandle,MapKey);
+			
+	EntryPoint(&info); TriggerError(L"Cannot run the kernel!");
+
+	return 1;
 }

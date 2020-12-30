@@ -1,5 +1,7 @@
 #include "displaydriver.h"
 #include "../../misc/math.h"
+#include "../../memory/efiMemory.h"
+#include "../../memory/pagefileallocator.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-arith"
@@ -24,14 +26,13 @@ typedef struct {
 } framebuffer;
 
 void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
-    unsigned int* pixPtr = (unsigned int*)globalFrameBuffer->BaseAddr;
+    unsigned int* pixPtr = (unsigned int*)secondFrameBuffer->BaseAddr;
     char* fontPtr = (char*)globalFont->glyphBuffer + (ch * globalFont->psf1_Header->charsize);
     for (unsigned long y = yy; y < yy + 16; y++){
         for (unsigned long x = xx; x < xx+8; x++){
             if ((*fontPtr & (0b10000000 >> (x - xx))) > 0){
-                    *(unsigned int*)(pixPtr + x + (y * globalFrameBuffer->PixelPerScanLine)) = colour;
+                    *(unsigned int*)(pixPtr + x + (y * secondFrameBuffer->PixelPerScanLine)) = colour;
                 }
-
         }
         fontPtr++;
     }
@@ -40,7 +41,7 @@ void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
 void DisplayDriver::putc(char ch) {
 	putc(ch,CursorPos.X,CursorPos.Y);
 	CursorPos.X+=8;
-	if(CursorPos.X + 8 > globalFrameBuffer->Width) {
+	if(CursorPos.X + 8 > secondFrameBuffer->Width) {
 		CursorPos.X = 0;
 		CursorPos.Y += 16;
 		checkScroll();
@@ -51,7 +52,7 @@ void DisplayDriver::scroll() {
 	for(int j = 0; j<=8;j++) {
 	for(int i = 0;i<getHeight();i++) {
 		for(int m = 0;m<getWidth()*4;m++) {
-			*(unsigned int*)(globalFrameBuffer->BaseAddr+(i*getWidth()+m)*4) = *(unsigned int*)(globalFrameBuffer->BaseAddr+((i + 1) * getWidth() + m)*4); //cod scris de la 12 la 2 noaptea
+			*(unsigned int*)(secondFrameBuffer->BaseAddr+(i*getWidth()+m)*4) = *(unsigned int*)(secondFrameBuffer->BaseAddr+((i + 1) * getWidth() + m)*4); //cod scris de la 12 la 2 noaptea
 		}
 	}
 	}
@@ -76,7 +77,7 @@ void DisplayDriver::puts(const char* ch)
 		}
 		putc(ch[i],CursorPos.X,CursorPos.Y);
 			CursorPos.X+=8;
-			if(CursorPos.X + 8 > globalFrameBuffer->Width) {
+			if(CursorPos.X + 8 > secondFrameBuffer->Width) {
 				CursorPos.X = 0;
 				CursorPos.Y += 16;
 				checkScroll();
@@ -115,24 +116,24 @@ void DisplayDriver::setCursorPos(int x,int y) {
 	CursorPos.Y = y;
 }
 
+void DisplayDriver::InitDoubleBuffer(framebuffer* f) {
+	secondFrameBuffer = f;
+}
+
 void DisplayDriver::InitDisplayDriver(framebuffer* framebuf, PSF1_FONT* font) {
 	globalFont = font;
 	globalFrameBuffer = framebuf;
-	clearScreen(0);
+	//clearScreen(0);
 	colour = 0xffffff;
 }
 
 void DisplayDriver::clearScreen(unsigned int colour) {
-	for(unsigned int y = 0;y< getHeight();y++) {
-		for(unsigned int x = 0; x<getWidth()*4;x+=4) {
-			*(unsigned int*)(x+(y* globalFrameBuffer->PixelPerScanLine * 4) + globalFrameBuffer->BaseAddr) = colour;
-		}
-	}
+	memset(secondFrameBuffer->BaseAddr,colour,secondFrameBuffer->BufferSize);
 	setCursorPos(0,0);
 }
 
 void DisplayDriver::putpix(int x,int y) {
-	*(unsigned int*)(x+(y* globalFrameBuffer->PixelPerScanLine * 4) + globalFrameBuffer->BaseAddr) = colour;
+	*(unsigned int*)(x+(y* secondFrameBuffer->PixelPerScanLine * 4) + secondFrameBuffer->BaseAddr) = colour;
 }
 
 void DisplayDriver::putrect(int xx,int yy,int h,int w) {
@@ -171,7 +172,7 @@ void DisplayDriver::boxedputs(unsigned int highcolour,const char* ch) {
 	while(*cr != 0) {
 		putc(*cr,CursorPos.X,CursorPos.Y);
 		setCursorPos(CursorPos.X+8,CursorPos.Y);
-		if(CursorPos.X + 8 > globalFrameBuffer->Width) {
+		if(CursorPos.X + 8 > secondFrameBuffer->Width) {
 			setCursorPos(0,CursorPos.Y+16);
 		}
 		cr++;
@@ -187,7 +188,7 @@ void DisplayDriver::highlightputs(unsigned int highcolour,const char* ch) {
 	while(*cr != 0) {
 		putc(*cr,CursorPos.X,CursorPos.Y);
 		CursorPos.X+=8;
-		if(CursorPos.X + 8 > globalFrameBuffer->Width) {
+		if(CursorPos.X + 8 > secondFrameBuffer->Width) {
 			CursorPos.X = 0;
 			CursorPos.Y += 16;
 		}
@@ -201,14 +202,19 @@ void DisplayDriver::cursorNewLine() {
 }
 
 int DisplayDriver::getWidth() {
-	return globalFrameBuffer->Width;
+	return secondFrameBuffer->Width;
 }
 
 int DisplayDriver::getHeight() {
-	return globalFrameBuffer->Height;
+	return secondFrameBuffer->Height;
 }
 
 void DisplayDriver::setColour(unsigned int colo) {
 	colour = colo;
 }
+
+void DisplayDriver::update() {
+	memcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
+}
+
 #pragma GCC diagnostic pop
