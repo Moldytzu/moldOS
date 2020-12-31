@@ -1,7 +1,4 @@
 #include "displaydriver.h"
-#include "../../misc/math.h"
-#include "../../memory/efiMemory.h"
-#include "../../memory/pagefileallocator.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-arith"
@@ -23,7 +20,7 @@ typedef struct {
 	unsigned int Width;
 	unsigned int Height;
 	unsigned int PixelPerScanLine;
-} framebuffer;
+} DisplayBuffer;
 
 void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
     unsigned int* pixPtr = (unsigned int*)secondFrameBuffer->BaseAddr;
@@ -116,11 +113,11 @@ void DisplayDriver::setCursorPos(int x,int y) {
 	CursorPos.Y = y;
 }
 
-void DisplayDriver::InitDoubleBuffer(framebuffer* f) {
+void DisplayDriver::InitDoubleBuffer(DisplayBuffer* f) {
 	secondFrameBuffer = f;
 }
 
-void DisplayDriver::InitDisplayDriver(framebuffer* framebuf, PSF1_FONT* font) {
+void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font) {
 	globalFont = font;
 	globalFrameBuffer = framebuf;
 	//clearScreen(0);

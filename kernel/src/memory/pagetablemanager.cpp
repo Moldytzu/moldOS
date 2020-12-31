@@ -1,8 +1,4 @@
 #include "pagetablemanager.h"
-#include "pagemapindexer.h"
-#include "stdint.h"
-#include "pagefileallocator.h"
-#include "efiMemory.h"
 
 PageTableManager::PageTableManager(PageTable* PML4Address){
     this->PML4 = PML4Address;

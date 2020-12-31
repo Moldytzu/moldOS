@@ -2,6 +2,10 @@
 #include "../../misc/math.h"
 #include "stdint.h"
 #include "stddef.h"
+#include "../../misc/math.h"
+#include "../../memory/efiMemory.h"
+#include "../../memory/pagefileallocator.h"
+
 class DisplayDriver {
 public:
 typedef struct {
@@ -21,7 +25,7 @@ typedef struct {
 	unsigned int Width;
 	unsigned int Height;
 	unsigned int PixelPerScanLine;
-} framebuffer;
+} DisplayBuffer;
 
 //drawing pixels
 void putpix(int x,int y);
@@ -42,6 +46,7 @@ void setCursorPos(int x,int y);
 void boxedputs(unsigned int highcolour,const char* ch);
 void highlightputs(unsigned int highcolour,const char* ch);
 void cursorNewLine();
+void returnCursor();
 
 int getLenght(char* ch);
 
@@ -51,8 +56,8 @@ void setColour(unsigned int colo);
 void checkScroll();
 
 //initializare
-void InitDisplayDriver(framebuffer* framebuf, PSF1_FONT* font);
-void InitDoubleBuffer(framebuffer* f);
+void InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font);
+void InitDoubleBuffer(DisplayBuffer* f);
 
 //ceva geturi
 int getWidth();
@@ -62,8 +67,8 @@ int getHeight();
 void update();
 
 //variabile
-DisplayDriver::framebuffer* secondFrameBuffer;
-DisplayDriver::framebuffer* globalFrameBuffer;
+DisplayDriver::DisplayBuffer* secondFrameBuffer;
+DisplayDriver::DisplayBuffer* globalFrameBuffer;
 DisplayDriver::PSF1_FONT* globalFont;
 Point CursorPos;
 unsigned int colour;

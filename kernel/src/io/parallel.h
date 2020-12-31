@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "../misc/io.h"
+#include "ports.h"
 
 #define LPT1_DATA 0x378
 #define LPT1_STATUS 0x379

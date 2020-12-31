@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include "../../misc/io.h"
+#include "../../io/ports.h"
 class RealTimeClock {
     public:
         void waitSeconds(uint32_t secs);

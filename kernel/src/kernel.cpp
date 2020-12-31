@@ -2,10 +2,7 @@
 
 void displayLogo() {
 	display.setColour(LIGHTRED);
-	display.puts("/ \\   / \\   / \\   /  _ \\/ ___\\\n");
-	display.puts("| |   | |   | |   | / \\||    \\\n");
-	display.puts("| |_/\\| |_/\\| |_/\\| \\_/|\\___ |\n");
-	display.puts("\\____/\\____/\\____/\\____/\\____/\n");
+	display.puts(LLOSLogo);
 	display.setColour(WHITE);
 }
 
@@ -110,17 +107,17 @@ extern "C" int _start(BootInfo* binfo) {
 	int i = 0;
 
 	while(1){
-	i++;
-	display.clearScreen(0);
+		i++;
+		display.clearScreen(0);
 
-	displayLogo();
-	displayCPU();
-	displayRAM(binfo);
-	displayScreen();
-	displayPCI();
-	display.puts("\n\nI:",inttostr(i));
+		displayLogo();
+		displayCPU();
+		displayRAM(binfo);
+		displayScreen();
+		displayPCI();
+		display.puts("\n\nI:",inttostr(i));
 
-	display.update();
+		display.update();
 	}
 
 	while(1) {}

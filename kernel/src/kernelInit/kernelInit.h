@@ -30,18 +30,28 @@
 #include "../memory/pagetablemanager.h" //ptm
 
 struct BootInfo {
-	DisplayDriver::framebuffer* framebuf;
+	//display
+	DisplayDriver::DisplayBuffer* framebuf;
 	DisplayDriver::PSF1_FONT* font;
-	void* PowerDownVoid;
+
+	//memory
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	uint64_t mMapSize;
 	uint64_t mMapDescSize;
+
+	//misc
+	void* PowerDownVoid;
 };
 
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
 char** CPUFeatures;
+
+const char* LLOSLogo = "/ \\   / \\   / \\   /  _ \\/ ___\\\n" //
+					   "| |   | |   | |   | / \\||    \\\n" //
+					   "| |_/\\| |_/\\| |_/\\| \\_/|\\___ |\n" //
+					   "\\____/\\____/\\____/\\____/\\____/\n";
 
 DisplayDriver display;
 Power power;
@@ -51,11 +61,10 @@ PCI pci;
 RealTimeClock rtc;
 SerialPort com1;
 Parallel paralel;
-DisplayDriver::framebuffer* tmp;
+DisplayDriver::DisplayBuffer* tmp;
 PageTableManager pageTableManager = PageTableManager((PageTable*)0);
 
 uint64_t mMapEntries;
-
 void EnablePaging(BootInfo* bootInfo) {
 	mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
     GlobalAllocator = PageFrameAllocator();
@@ -91,14 +100,16 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	com1.Write("Initializing Display...\n");
 	display.InitDisplayDriver(bootInfo->framebuf,bootInfo->font);	
+	com1.Write("Initialized Display!\n");
 
 	com1.Write("Enabling paging...\n");
 
 	EnablePaging(bootInfo);
+	memset(display.globalFrameBuffer->BaseAddr,0,display.globalFrameBuffer->BufferSize);
 
 	com1.Write("Paging enabled!\n");
 
-	memset(display.globalFrameBuffer->BaseAddr,0,display.globalFrameBuffer->BufferSize);
+	com1.Write("Initializing Double Buffering...\n");
 
 	tmp->BaseAddr = GlobalAllocator.RequestPage();
 	tmp->BufferSize = display.globalFrameBuffer->BufferSize;
@@ -123,26 +134,32 @@ void InitDrivers(BootInfo* bootInfo) {
 	display.setCursorPos(display.getWidth()/2-180, display.CursorPos.Y);
 	display.puts("\\____/\\____/\\____/\\____/\\____/\n\n");
 	display.setCursorPos(display.getWidth()/2-180, display.CursorPos.Y);
+	display.update();
 	display.puts("########");
 
 	com1.Write("Initializing Power...\n");
 	power.InitPower(bootInfo->PowerDownVoid);
 	com1.Write("Initialized Power!\n");
+	display.update();
 	
 	display.puts("#######");
 
 	com1.Write("Detecting PCI devices...\n");
 	pci.detectDevices();
 	com1.Write("Detected ", inttostr(pci.DeviceCount), " PCI devices!\n");
+	display.update();
 
 	display.puts("########");
 
 	com1.Write("Detecting CPU features...\n");
 	CPUFeatures = cpu.getFeatures();
 	com1.Write("Detected ",inttostr(cpu.cpuFeatures)," CPU features!\n");
+	display.update();
 
 	display.puts("#######\n");
+	display.update();
 
 	display.setColour(WHITE);
 	display.clearScreen(0);
+	display.update();
 }
