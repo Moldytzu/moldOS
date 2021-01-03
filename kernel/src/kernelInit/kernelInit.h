@@ -29,18 +29,21 @@
 #include "../memory/paging.h" //paging
 #include "../memory/pagetablemanager.h" //ptm
 
+//intrerupturi
+#include "../intrerupts/gdt.h" //gdt
+
 struct BootInfo {
 	//display
-	DisplayDriver::DisplayBuffer* framebuf;
-	DisplayDriver::PSF1_FONT* font;
+	DisplayDriver::DisplayBuffer* GOPFrameBuffer;
+	PSF1_FONT* Font;
+
+	//misc
+	void* PowerDownVoid;
 
 	//memory
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	uint64_t mMapSize;
 	uint64_t mMapDescSize;
-
-	//misc
-	void* PowerDownVoid;
 };
 
 extern uint64_t _KernelStart;
@@ -61,21 +64,20 @@ PCI pci;
 RealTimeClock rtc;
 SerialPort com1;
 Parallel paralel;
-DisplayDriver::DisplayBuffer* tmp;
+DisplayDriver::DisplayBuffer* doubleBuffer;
 PageTableManager pageTableManager = PageTableManager((PageTable*)0);
 
-uint64_t mMapEntries;
 void EnablePaging(BootInfo* bootInfo) {
-	mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
+	uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
     GlobalAllocator = PageFrameAllocator();
-    GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
+	GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
     uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
     uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
     GlobalAllocator.LockPages(&_KernelStart, kernelPages);
 
-    uint64_t fbBase = (uint64_t)bootInfo->framebuf->BaseAddr;
-    uint64_t fbSize = (uint64_t)bootInfo->framebuf->BufferSize + 0x1000;
+    uint64_t fbBase = (uint64_t)bootInfo->GOPFrameBuffer->BaseAddr;
+    uint64_t fbSize = (uint64_t)bootInfo->GOPFrameBuffer->BufferSize + 0x1000;
     GlobalAllocator.LockPages((void*)fbBase, fbSize/ 0x1000 + 1);
 
     PageTable* PML4 = (PageTable*)GlobalAllocator.RequestPage();
@@ -98,30 +100,39 @@ void InitDrivers(BootInfo* bootInfo) {
 	com1.ClearMonitor();
 	com1.Write(SERIALWHITE,"Initialized Serial Port!\n");
 
-	com1.Write("Initializing Display...\n");
-	display.InitDisplayDriver(bootInfo->framebuf,bootInfo->font);	
-	com1.Write("Initialized Display!\n");
+	com1.Write("Loading GDT...\n");
+	GDTDescriptor gdtDescriptor;
+	gdtDescriptor.Size = sizeof(GDT)-1;
+	gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
+	LoadGDT(&gdtDescriptor);
+	com1.Write("Loaded GDT!\n");
 
 	com1.Write("Enabling paging...\n");
 
 	EnablePaging(bootInfo);
-	memset(display.globalFrameBuffer->BaseAddr,0,display.globalFrameBuffer->BufferSize);
 
 	com1.Write("Paging enabled!\n");
+	
+	com1.Write("Initializing Display...\n");
+	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
+	com1.Write("Initialized Display!\n");
 
 	com1.Write("Initializing Double Buffering...\n");
 
-	tmp->BaseAddr = GlobalAllocator.RequestPage();
-	tmp->BufferSize = display.globalFrameBuffer->BufferSize;
-	tmp->Height = display.globalFrameBuffer->Height;
-	tmp->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
-	tmp->Width = display.globalFrameBuffer->Width;
+	doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
+	doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;
+	doubleBuffer->Height = display.globalFrameBuffer->Height;
+	doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
+	doubleBuffer->Width = display.globalFrameBuffer->Width;
+	GlobalAllocator.LockPages(doubleBuffer->BaseAddr, ((uint64_t)doubleBuffer->BufferSize / 4096) + 1);
 
-	GlobalAllocator.LockPages(tmp->BaseAddr, ((uint64_t)tmp->BufferSize / 4096) + 1);
+    for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < (uint64_t)doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096){
+        pageTableManager.MapMemory((void*)t, (void*)t);
+    }
 
-	display.InitDoubleBuffer(tmp);
+	display.InitDoubleBuffer(doubleBuffer);
 	com1.Write("Initialized Display!\n");
-	
+
 	display.clearScreen(DARKGRAY);
 
 	display.setCursorPos(display.getWidth()/2-180, display.getHeight()/2-120);

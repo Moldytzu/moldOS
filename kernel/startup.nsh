@@ -1,6 +1,4 @@
 @echo -off
-mode 80 25
-
 cls
 if exist .\efi\boot\BOOTx64.efi then
  .\efi\boot\main.efi

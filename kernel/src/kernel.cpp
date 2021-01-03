@@ -28,7 +28,7 @@ void displayCPU() {
 void displayRAM(BootInfo* bootInfo) {
 	display.puts("\n\nTotal RAM: ");
 	display.setColour(YELLOW);
-	display.puts(inttostr(GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize)/1024/1024), " MB");
+	display.puts(inttostr(GetMemorySize(bootInfo->mMap, bootInfo->mMapSize / bootInfo->mMapDescSize, bootInfo->mMapDescSize)/1024/1024), " MB");
 	display.setColour(WHITE);
 
 	display.puts("\nFree RAM: ");
@@ -101,13 +101,19 @@ void displayPCI() {
 	}
 }
 
+void displayTime() {
+	display.puts("\n\nTime: ");
+	display.setColour(LIGHTMAGENTA);
+	display.puts(inttostr(rtc.readHours()));
+	display.puts(":",inttostr(rtc.readMinutes()));
+	display.puts(":",inttostr(rtc.readSeconds()));
+	display.setColour(WHITE);
+}
+
 extern "C" int _start(BootInfo* binfo) {
 	InitDrivers(binfo);
 
-	int i = 0;
-
 	while(1){
-		i++;
 		display.clearScreen(0);
 
 		displayLogo();
@@ -115,11 +121,9 @@ extern "C" int _start(BootInfo* binfo) {
 		displayRAM(binfo);
 		displayScreen();
 		displayPCI();
-		display.puts("\n\nI:",inttostr(i));
+		displayTime();
 
 		display.update();
 	}
-
-	while(1) {}
 	return 0;
 } 

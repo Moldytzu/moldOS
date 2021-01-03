@@ -1,11 +1,11 @@
 #include "rtc.h"
 
-unsigned char getRegister(int reg) {
+unsigned char RealTimeClock::getRegister(int reg) {
     outportb(0x70, reg);
     return inportb(0x71);
 }
 
-uint32_t RealTimeClock::readSecond() {
+uint32_t RealTimeClock::readSeconds() {
     int second = getRegister(0x0);
     return (second & 0x0F) + ((second / 16) * 10);
 }
@@ -21,7 +21,7 @@ uint32_t RealTimeClock::readMinutes() {
 }
 
 uint32_t RealTimeClock::readTime() {
-    return readHours()*3600+readMinutes()*60+readSecond();
+    return readHours()*3600+readMinutes()*60+readSeconds();
 }
 
 void RealTimeClock::waitSeconds(uint32_t secs) {

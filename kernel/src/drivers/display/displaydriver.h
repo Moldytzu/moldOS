@@ -1,24 +1,13 @@
 #pragma once
-#include "../../misc/math.h"
 #include "stdint.h"
 #include "stddef.h"
 #include "../../misc/math.h"
 #include "../../memory/efiMemory.h"
 #include "../../memory/pagefileallocator.h"
+#include "../../misc/psf1.h"
 
 class DisplayDriver {
 public:
-typedef struct {
-	unsigned char magic[2];
-	unsigned char mode;
-	unsigned char charsize;
-} PSF1_HEADER;
-
-typedef struct {
-	PSF1_HEADER* psf1_Header;
-	void* glyphBuffer;
-} PSF1_FONT;
-
 typedef struct {
 	void* BaseAddr;
 	long long BufferSize;
@@ -69,7 +58,7 @@ void update();
 //variabile
 DisplayDriver::DisplayBuffer* secondFrameBuffer;
 DisplayDriver::DisplayBuffer* globalFrameBuffer;
-DisplayDriver::PSF1_FONT* globalFont;
+PSF1_FONT* globalFont;
 Point CursorPos;
 unsigned int colour;
 bool scrol = false;

@@ -4,17 +4,6 @@
 #pragma GCC diagnostic ignored "-Wpointer-arith"
 
 typedef struct {
-	unsigned char magic[2];
-	unsigned char mode;
-	unsigned char charsize;
-} PSF1_HEADER;
-
-typedef struct {
-	PSF1_HEADER* psf1_Header;
-	void* glyphBuffer;
-} PSF1_FONT;
-
-typedef struct {
 	void* BaseAddr;
 	long long BufferSize;
 	unsigned int Width;

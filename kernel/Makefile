@@ -6,9 +6,11 @@ OVMFDIR = ../OVMFbin
 LDS = kern.ld
 CC = gcc
 LD = ld
+ASM = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -mmmx -msse -msse2 -msse3 -o1
+CFLAGS = -ffreestanding -fshort-wchar
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
+ASMFLAGS = 
 
 SRCDIR := src
 OBJDIR := lib
@@ -17,8 +19,10 @@ BOOTEFI := $(GNUEFI)/x86_64/bootloader/main.efi
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
-SRC = $(call rwildcard,$(SRCDIR),*.cpp)          
+SRC = $(call rwildcard,$(SRCDIR),*.cpp)     
+ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)
 OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
+OBJS+= $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_nasm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
 kernel: $(OBJS) link
@@ -30,6 +34,13 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ mkdir -p $(@D)
 	@ $(CC) $(CFLAGS) -c $^ -o $@
 	
+$(OBJDIR)/%_nasm.o: $(SRCDIR)/%.asm
+	@ tput setaf 3
+	@ echo Asamblez: $^
+	@ tput sgr0
+	@ mkdir -p $(@D)
+	@ $(ASM) $(ASMFLAGS) $^ -f elf64 -o $@
+
 link:
 	@ tput setaf 2
 	@ echo Lincuiesc: $(OBJS)
@@ -44,10 +55,6 @@ setup:
 buildimg:
 	@ tput setaf 14
 	@ mv $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.llexec
-	@ mv $(GNUEFI)/x86_64/bootloader/main.efi $(GNUEFI)/x86_64/bootloader/BOOTx64.efi
-	
-	@ # dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=512 count=2880
-	@ # mformat -i $(BUILDDIR)/$(OSNAME).img -f 2880 ::
 
 	@ dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=1024 count=32768
 	@ mkfs.vfat $(BUILDDIR)/$(OSNAME).img

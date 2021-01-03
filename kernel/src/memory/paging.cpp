@@ -3,7 +3,7 @@
 void PageDirectoryEntry::SetFlag(PT_Flag flag, bool enabled) {
     uint64_t bitSelector = (uint64_t)1 << flag;
     Value &= ~bitSelector;
-    if(enabled) {
+    if (enabled){
         Value |= bitSelector;
     }
 }
@@ -14,7 +14,7 @@ bool PageDirectoryEntry::GetFlag(PT_Flag flag) {
 }
 
 uint64_t PageDirectoryEntry::GetAddress() {
-    return (Value & 0x000ffffffffff000) >> 12;
+     return (Value & 0x000ffffffffff000) >> 12;
 }
 
 void PageDirectoryEntry::SetAddress(uint64_t address) {

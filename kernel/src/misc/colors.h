@@ -18,6 +18,8 @@ const int LIGHTPINK = 0xffc4c4;
 const int YELLOW = 0xffff00;
 const int WHITE = 0xffffff;
 const int ORANGE = 0xff9100;
+const int MAGENTA = 0x5a03fc;
+const int LIGHTMAGENTA = 0x7e38ff;
 
 //serial
 const char* SERIALWHITE = "\033[1;1m";
