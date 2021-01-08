@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-//standard
+//int
 char* inttostr(uint64_t val);
 char* inttostr(uint32_t val);
 char* inttostr(uint16_t val);
@@ -18,3 +18,12 @@ char* inttohstr(uint64_t val);
 char* inttohstr(uint32_t val);
 char* inttohstr(uint16_t val);
 char* inttohstr(uint8_t val);
+
+//short
+char* shorttostr(unsigned short* sh);
+
+//is something
+int isalpha(char _c);
+
+//char to char*
+char* chartostr(char c);

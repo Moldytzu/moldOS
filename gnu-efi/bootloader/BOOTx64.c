@@ -14,6 +14,11 @@ typedef struct {
 	unsigned int PixelPerScanLine;
 } framebuffer;
 
+typedef struct  {
+	CHAR16* Vendor;
+	uint32_t Version;
+} UEFIFirmware;
+
 typedef struct {
 	unsigned char magic[2];
 	unsigned char mode;
@@ -29,6 +34,7 @@ typedef struct {
 	framebuffer* framebuf;
 	PSF1_FONT* font;
 	void* PowerDownVoid;
+	UEFIFirmware* firm;
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	UINTN mMapSize;
 	UINTN mMapDescSize;
@@ -36,9 +42,9 @@ typedef struct {
 
 
 const wchar_t* LLOSLogo = L"/ \\   / \\   / \\   /  _ \\/ ___\\\n\r" //
-					   "| |   | |   | |   | / \\||    \\\n\r" //
-					   "| |_/\\| |_/\\| |_/\\| \\_/|\\___ |\n\r" //
-					   "\\____/\\____/\\____/\\____/\\____/\n\r";
+			   "| |   | |   | |   | / \\||    \\\n\r" //
+			   "| |_/\\| |_/\\| |_/\\| \\_/|\\___ |\n\r" //
+			   "\\____/\\____/\\____/\\____/\\____/\n\r";
 
 
 void PowerDown() {
@@ -212,6 +218,10 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 	int	(*EntryPoint)(BootInfo*) = ((__attribute__((sysv_abi)) int (*)(BootInfo*)) header.e_entry);
 
+	UEFIFirmware f;
+	f.Vendor = SystemTable->FirmwareVendor;
+	f.Version = SystemTable->FirmwareRevision;
+
 	BootInfo info;
 	info.framebuf = buf;
 	info.font = newFont;
@@ -219,6 +229,7 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	info.mMap = Map;
 	info.mMapSize = MapSize;
 	info.mMapDescSize = DescriptorSize;
+	info.firm =  &f;
 
 	SystemTable->BootServices->ExitBootServices(ImageHandle,MapKey);
 

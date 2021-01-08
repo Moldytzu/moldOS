@@ -3,6 +3,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpointer-arith"
 
+DisplayDriver* GlobalDisplay;
+
 typedef struct {
 	void* BaseAddr;
 	long long BufferSize;

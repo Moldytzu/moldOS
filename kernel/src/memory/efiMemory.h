@@ -1,8 +1,6 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#include <immintrin.h>
-#include <cstdint>
 
 struct EFI_MEMORY_DESCRIPTOR {
     uint32_t type;

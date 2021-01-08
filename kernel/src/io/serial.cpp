@@ -1,6 +1,8 @@
 #include "serial.h"
 #define COM1 0x3f8
 
+SerialPort* GlobalCOM1;
+
 void SerialPort::Init() {
    outportb(COM1 + 1, 0x00);    // Disable all interrupts
    outportb(COM1 + 3, 0x80);    // Enable DLAB (set baud rate divisor)

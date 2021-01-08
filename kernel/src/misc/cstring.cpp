@@ -1,5 +1,21 @@
 #include "cstring.h"
 
+int isalpha(char _c)
+{
+    return  _c >= 'A' &&  _c <= 'Z' ||  _c >= 'a' &&  _c <= 'z'; 
+}
+
+char str[1025]; 
+char* shorttostr(unsigned short* sh) {
+	int strIndex = 0;
+	for(int i = 0;i<1024;i++) {
+		str[strIndex] = sh[i];
+		strIndex++;
+	}
+	str[1024] = 0;
+    return str;
+}
+
 char uintTo_StringOutput[128];
 char* inttostr(uint64_t val) {
     uint8_t size;
@@ -171,4 +187,11 @@ char* inttohstr(uint8_t val) {
 
     hexTo_StringOutput8[size+1] = 0;
     return hexTo_StringOutput8;
+}
+
+char chartostrOutput[2];
+char* chartostr(char c) {
+    chartostrOutput[0] = c;
+    chartostrOutput[1] = 0;
+    return chartostrOutput;
 }

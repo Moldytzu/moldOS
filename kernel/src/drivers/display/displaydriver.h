@@ -63,3 +63,5 @@ Point CursorPos;
 unsigned int colour;
 bool scrol = false;
 };
+
+extern DisplayDriver* GlobalDisplay;

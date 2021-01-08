@@ -15,3 +15,5 @@ public:
     char Read();
     void ClearMonitor();
 };
+
+extern SerialPort* GlobalCOM1;

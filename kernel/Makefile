@@ -8,7 +8,7 @@ CC = gcc
 LD = ld
 ASM = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar
+CFLAGS = -ffreestanding -fshort-wchar -O2 -s -DNDEBUG
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 
 
@@ -26,6 +26,13 @@ OBJS+= $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_nasm.o, $(ASMSRC))
 DIRS = $(wildcard $(SRCDIR)/*)
 
 kernel: $(OBJS) link
+
+$(OBJDIR)/intrerupts/intrerupts.o: $(SRCDIR)/intrerupts/intrerupts.cpp
+	@ tput setaf 3
+	@ echo Compilez: $^
+	@ tput sgr0
+	@ mkdir -p $(@D)
+	@ $(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -c $^ -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ tput setaf 3
@@ -45,6 +52,7 @@ link:
 	@ tput setaf 2
 	@ echo Lincuiesc: $(OBJS)
 	@ tput sgr0
+	@ $(shell strip --strip-unneeded $(OBJS))
 	@ $(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS)
 	
 setup:

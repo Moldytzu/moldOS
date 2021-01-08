@@ -1,113 +1,52 @@
-#include "kernelInit/kernelInit.h"
+#include "kernelInit.h"
 
 void displayLogo() {
-	display.setColour(LIGHTRED);
-	display.puts(LLOSLogo);
-	display.setColour(WHITE);
+	printf("%co%s%co",LIGHTRED,LLOSLogo,WHITE);
 }
 
 void displayCPU() {
-	display.puts("\n\nCPU: ");
-	display.setColour(ORANGE);
-	display.puts(cpu.getName(),"\n");
-	display.setColour(WHITE);
-
-	display.puts("CPU Vendor: ");
-	display.setColour(ORANGE);
-	display.puts(cpu.getVendor(),"\n");
-	display.setColour(WHITE);
-
-	display.puts("CPU Features: ");
-	display.setColour(ORANGE);
+	printf("\n\nCPU: %co%s%co\n",ORANGE,cpu.getName(),WHITE);
+	printf("CPU Vendor: %co%s%co\n",ORANGE,cpu.getVendor(),WHITE);
+	printf("CPU Features: %co",ORANGE);
 	for(int i = 0;i<cpu.cpuFeatures;i++) {
-		display.puts(CPUFeatures[i]," ");
+		printf("%s ",CPUFeatures[i]);
 	}
-	display.setColour(WHITE);
+	printf("%co",WHITE);
 }
 
 void displayRAM(BootInfo* bootInfo) {
-	display.puts("\n\nTotal RAM: ");
-	display.setColour(YELLOW);
-	display.puts(inttostr(GetMemorySize(bootInfo->mMap, bootInfo->mMapSize / bootInfo->mMapDescSize, bootInfo->mMapDescSize)/1024/1024), " MB");
-	display.setColour(WHITE);
-
-	display.puts("\nFree RAM: ");
-	display.setColour(YELLOW);
-	display.puts(inttostr(GlobalAllocator.GetFreeRAM()/1024/1024)," MB");
-	display.setColour(WHITE);
-
-	display.puts("\nUsed RAM: ");
-	display.setColour(YELLOW);
-	display.puts(inttostr(GlobalAllocator.GetUsedRAM()/1024/1024)," MB");
-	display.setColour(WHITE);
-
-	display.puts("\nReserved RAM: ");
-	display.setColour(YELLOW);
-	display.puts(inttostr(GlobalAllocator.GetReservedRAM()/1024/1024)," MB");
-	display.setColour(WHITE);
+	printf("\n\nTotal RAM: %co%d MB%co",YELLOW,GetMemorySize(bootInfo->mMap, bootInfo->mMapSize / bootInfo->mMapDescSize, bootInfo->mMapDescSize)/1024/1024,WHITE);
+	printf("\nFree RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetFreeRAM()/1024/1024,WHITE);
+	printf("\nUsed RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetUsedRAM()/1024/1024,WHITE);
+	printf("\nReserved RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetReservedRAM()/1024/1024,WHITE);
 }
 
 void displayScreen() {
-	display.puts("\n\nScreen Width: ");
-	display.setColour(LIGHTGREEN);
-	display.puts(inttostr(display.getWidth()),"px");
-	display.setColour(WHITE);
-
-	display.puts("\nScreen Height: ");
-	display.setColour(LIGHTGREEN);
-	display.puts(inttostr(display.getHeight()),"px\n");
-	display.setColour(WHITE);
+	printf("\n\nScreen Width: %co%dpx%co",LIGHTGREEN,display.getWidth(),WHITE);
+	printf("\nScreen Height: %co%dpx%co\n",LIGHTGREEN,display.getHeight(),WHITE);
 }
 
 void displayPCI() {
-	display.puts("\nDetected ");
-	display.setColour(LIGHTTURQOISE);
-	display.puts(inttostr(pci.DeviceCount));
-	display.setColour(WHITE);
-	display.puts(" PCI devices: \n");
+	printf("\nDetected %co%d%co PCI devices: \n",LIGHTTURQOISE,pci.DeviceCount,WHITE);
 
 	for(int i = 0;i<pci.DeviceCount;i++) {
-		display.puts("\nPCI Device ", inttostr(i) , "\n");
-
-		display.puts("Vendor: ");
-		display.setColour(LIGHTTURQOISE);
-		display.puts("0x",inttohstr(pci.Devices[i].VendorID));
-		display.setColour(WHITE);
-
-		display.puts(" Device: ");
-		display.setColour(LIGHTTURQOISE);
-		display.puts("0x",inttohstr(pci.Devices[i].DeviceID));
-		display.setColour(WHITE);
-
-		display.puts(" Class: ");
-		display.setColour(LIGHTTURQOISE);
-		display.puts(pci.Devices[i].Class);
-		display.setColour(WHITE);
-
-		display.puts(" Function: ");
-		display.setColour(LIGHTTURQOISE);
-		display.puts(inttostr(pci.Devices[i].Function));
-		display.setColour(WHITE);
-
-		display.puts(" Bus: ");
-		display.setColour(LIGHTTURQOISE);
-		display.puts(inttostr(pci.Devices[i].Bus));
-		display.setColour(WHITE);
-
-		display.puts(" Slot: ");
-		display.setColour(LIGHTTURQOISE);
-		display.puts(inttostr(pci.Devices[i].Slot));
-		display.setColour(WHITE);
+		printf("\nPCI Device %d \n",i);
+		printf("Vendor: %co0x%x%co",LIGHTTURQOISE,pci.Devices[i].VendorID,WHITE);
+		printf(" Device: %co0x%x%co",LIGHTTURQOISE,pci.Devices[i].DeviceID,WHITE);
+		printf(" Class: %co%s%co",LIGHTTURQOISE,pci.Devices[i].Class,WHITE);
+		printf(" Function: %co%d%co",LIGHTTURQOISE,pci.Devices[i].Function,WHITE);
+		printf(" Bus: %co%d%co",LIGHTTURQOISE,pci.Devices[i].Bus,WHITE);
+		printf(" Slot: %co%d%co",LIGHTTURQOISE,pci.Devices[i].Slot,WHITE);
 	}
 }
 
 void displayTime() {
-	display.puts("\n\nTime: ");
-	display.setColour(LIGHTMAGENTA);
-	display.puts(inttostr(rtc.readHours()));
-	display.puts(":",inttostr(rtc.readMinutes()));
-	display.puts(":",inttostr(rtc.readSeconds()));
-	display.setColour(WHITE);
+	printf("\n\nTime: %co%d:%d:%d%co",LIGHTMAGENTA,rtc.readHours(),rtc.readMinutes(),rtc.readSeconds(),WHITE);
+}
+
+void displayFirmware(BootInfo* binfo) {
+	printf("\n\nUEFI Firmware Vendor: %co%s%co",MAGENTA,shorttostr(binfo->Efi->Vendor),WHITE);
+	printf("\nUEFI Firmware Version: %co%d%co",MAGENTA,binfo->Efi->Version,WHITE);
 }
 
 extern "C" int _start(BootInfo* binfo) {
@@ -122,6 +61,7 @@ extern "C" int _start(BootInfo* binfo) {
 		displayScreen();
 		displayPCI();
 		displayTime();
+		displayFirmware(binfo);
 
 		display.update();
 	}
