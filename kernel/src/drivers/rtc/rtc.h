@@ -11,4 +11,7 @@ class RealTimeClock {
         uint32_t readMinutes();
         uint32_t readSeconds();
         uint32_t readTime();
+        uint32_t readDay();
+        uint32_t readMonth();
+        uint32_t readYear();
 };

@@ -28,6 +28,24 @@ uint32_t RealTimeClock::readMinutes() {
     return (second & 0x0F) + ((second / 16) * 10);
 }
 
+uint32_t RealTimeClock::readDay() {
+    while(getUpdateInProgress());
+    int second = getRegister(0x7);
+    return (second & 0x0F) + ((second / 16) * 10);
+}
+
+uint32_t RealTimeClock::readMonth() {
+    while(getUpdateInProgress());
+    int second = getRegister(0x8);
+    return (second & 0x0F) + ((second / 16) * 10);
+}
+
+uint32_t RealTimeClock::readYear() {
+    while(getUpdateInProgress());
+    int second = getRegister(0x9);
+    return (second & 0x0F) + ((second / 16) * 10);
+}
+
 uint32_t RealTimeClock::readTime() {
     return readHours()*3600+readMinutes()*60+readSeconds();
 }

@@ -11,7 +11,7 @@ void SerialPort::Init() {
    outportb(COM1 + 3, 0x03);    // 8 bits, no parity, one stop bit
    outportb(COM1 + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
    outportb(COM1 + 4, 0x0B);    // IRQs enabled, RTS/DSR set
-   outportb(COM1 + 4, 0x0F);    //Set in normal mode
+   outportb(COM1 + 4, 0x0F);    // Set in normal mode
 }
 
 int SerialPort::isTransmitEmpty() {
@@ -44,6 +44,7 @@ void SerialPort::Write(const char* chr) {
 void SerialPort::ClearMonitor() {
 	for(int i = 0;i<50;i++) {
 		Write('\n');
+        Write('\r');
 	}
 }
 

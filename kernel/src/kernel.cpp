@@ -8,9 +8,7 @@ void displayCPU() {
 	printf("\n\nCPU: %co%s%co\n",ORANGE,cpu.getName(),WHITE);
 	printf("CPU Vendor: %co%s%co\n",ORANGE,cpu.getVendor(),WHITE);
 	printf("CPU Features: %co",ORANGE);
-	for(int i = 0;i<cpu.cpuFeatures;i++) {
-		printf("%s ",CPUFeatures[i]);
-	}
+	for(int i = 0;i<cpu.cpuFeatures;i++) printf("%s ",CPUFeatures[i]);
 	printf("%co",WHITE);
 }
 
@@ -30,8 +28,8 @@ void displayPCI() {
 	printf("\nDetected %co%d%co PCI devices: \n",LIGHTTURQOISE,pci.DeviceCount,WHITE);
 
 	for(int i = 0;i<pci.DeviceCount;i++) {
-		printf("\nPCI Device %d \n",i);
-		printf("Vendor: %co0x%x%co",LIGHTTURQOISE,pci.Devices[i].VendorID,WHITE);
+		printf("\nPCI Device %d:\n",i);
+		printf(" Vendor: %co0x%x%co",LIGHTTURQOISE,pci.Devices[i].VendorID,WHITE);
 		printf(" Device: %co0x%x%co",LIGHTTURQOISE,pci.Devices[i].DeviceID,WHITE);
 		printf(" Class: %co%s%co",LIGHTTURQOISE,pci.Devices[i].Class,WHITE);
 		printf(" Function: %co%d%co",LIGHTTURQOISE,pci.Devices[i].Function,WHITE);
@@ -44,26 +42,48 @@ void displayTime() {
 	printf("\n\nTime: %co%d:%d:%d%co",LIGHTMAGENTA,rtc.readHours(),rtc.readMinutes(),rtc.readSeconds(),WHITE);
 }
 
-void displayFirmware(BootInfo* binfo) {
-	printf("\n\nUEFI Firmware Vendor: %co%s%co",MAGENTA,shorttostr(binfo->Efi->Vendor),WHITE);
-	printf("\nUEFI Firmware Version: %co%d%co",MAGENTA,binfo->Efi->Version,WHITE);
+void displayDate() {
+	printf("\n\nDate: %co%d/%d/20%d%co",MAGENTA,rtc.readDay(),rtc.readMonth(),rtc.readYear(),WHITE);
 }
 
-extern "C" int _start(BootInfo* binfo) {
+void displayFirmware(BootInfo* binfo) {
+	printf("\n\nUEFI Firmware Vendor: %co%s%co",LIGHTRED,shorttostr(binfo->Efi->Vendor),WHITE);
+	printf("\nUEFI Firmware Version: %co%d%co",LIGHTRED,binfo->Efi->Version,WHITE);
+}
+
+void displayRandomNumber() {
+	printf("\n\nRandom number: %co%d%co\n",ORANGE,rand(),WHITE);
+}
+
+void displayKeyboard() {
+	printf("%s_",kb.buffer);
+}
+
+extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
+	display.setColour(WHITE);
+	display.clearScreen(0);
+	display.update();
+	srand(rtc.readTime());
 
 	while(1){
-		display.clearScreen(0);
-
+		display.clearScreen(BLACK);
+		
 		displayLogo();
 		displayCPU();
 		displayRAM(binfo);
 		displayScreen();
 		displayPCI();
 		displayTime();
+		displayDate();
 		displayFirmware(binfo);
+		displayRandomNumber();
+		displayKeyboard();
 
 		display.update();
 	}
+
+	while(1);
+
 	return 0;
 } 

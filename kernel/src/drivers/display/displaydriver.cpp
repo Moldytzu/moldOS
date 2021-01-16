@@ -5,14 +5,6 @@
 
 DisplayDriver* GlobalDisplay;
 
-typedef struct {
-	void* BaseAddr;
-	long long BufferSize;
-	unsigned int Width;
-	unsigned int Height;
-	unsigned int PixelPerScanLine;
-} DisplayBuffer;
-
 void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
     unsigned int* pixPtr = (unsigned int*)secondFrameBuffer->BaseAddr;
     char* fontPtr = (char*)globalFont->glyphBuffer + (ch * globalFont->psf1_Header->charsize);
@@ -28,21 +20,16 @@ void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
 
 void DisplayDriver::putc(char ch) {
 	putc(ch,CursorPos.X,CursorPos.Y);
-	CursorPos.X+=8;
-	if(CursorPos.X + 8 > secondFrameBuffer->Width) {
-		CursorPos.X = 0;
-		CursorPos.Y += 16;
-		checkScroll();
-	}
+	advanceCursor();
 }
 
 void DisplayDriver::scroll() {
 	for(int j = 0; j<=8;j++) {
-	for(int i = 0;i<getHeight();i++) {
-		for(int m = 0;m<getWidth()*4;m++) {
-			*(unsigned int*)(secondFrameBuffer->BaseAddr+(i*getWidth()+m)*4) = *(unsigned int*)(secondFrameBuffer->BaseAddr+((i + 1) * getWidth() + m)*4); //cod scris de la 12 la 2 noaptea
+		for(int i = 0;i<getHeight();i++) {
+			for(int m = 0;m<getWidth()*4;m++) {
+				*(unsigned int*)(secondFrameBuffer->BaseAddr+(i*getWidth()+m)*4) = *(unsigned int*)(secondFrameBuffer->BaseAddr+((i + 1) * getWidth() + m)*4); //cod scris de la 12 la 2 noaptea
+			}
 		}
-	}
 	}
 }
 
@@ -64,39 +51,8 @@ void DisplayDriver::puts(const char* ch)
 			continue;
 		}
 		putc(ch[i],CursorPos.X,CursorPos.Y);
-			CursorPos.X+=8;
-			if(CursorPos.X + 8 > secondFrameBuffer->Width) {
-				CursorPos.X = 0;
-				CursorPos.Y += 16;
-				checkScroll();
-			}
+		advanceCursor();
 	}
-}
-
-void DisplayDriver::puts(const char* ch, const char* ch2) {
-	puts(ch);
-	puts(ch2);
-}
-
-void DisplayDriver::puts(const char* ch, const char* ch2, const char* ch3) {
-	puts(ch);
-	puts(ch2);
-	puts(ch3);
-}
-
-void DisplayDriver::puts(const char* ch, const char* ch2, const char* ch3, const char* ch4) {
-	puts(ch);
-	puts(ch2);
-	puts(ch3);
-	puts(ch4);
-}
-
-void DisplayDriver::puts(const char* ch, const char* ch2, const char* ch3, const char* ch4, const char* ch5) {
-	puts(ch);
-	puts(ch2);
-	puts(ch3);
-	puts(ch4);
-	puts(ch5);
 }
 
 void DisplayDriver::setCursorPos(int x,int y) {
@@ -111,23 +67,38 @@ void DisplayDriver::InitDoubleBuffer(DisplayBuffer* f) {
 void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font) {
 	globalFont = font;
 	globalFrameBuffer = framebuf;
-	//clearScreen(0);
 	colour = 0xffffff;
 }
 
 void DisplayDriver::clearScreen(unsigned int colour) {
-	memset(secondFrameBuffer->BaseAddr,colour,secondFrameBuffer->BufferSize);
+	for(uint64_t y = 0;y<=getHeight();y++) {
+		for(uint64_t x = 0;x<=getWidth()*4;x+=4) {
+			putpix(x,y,colour);
+		}
+	}
 	setCursorPos(0,0);
 }
 
 void DisplayDriver::putpix(int x,int y) {
-	*(unsigned int*)(x+(y* secondFrameBuffer->PixelPerScanLine * 4) + secondFrameBuffer->BaseAddr) = colour;
+	*(uint64_t*)(x+(y* secondFrameBuffer->PixelPerScanLine * 4) + secondFrameBuffer->BaseAddr) = colour;
+}
+
+void DisplayDriver::putpix(int x,int y,unsigned int clr) {
+	*(uint64_t*)(x+(y* secondFrameBuffer->PixelPerScanLine * 4) + secondFrameBuffer->BaseAddr) = clr;
 }
 
 void DisplayDriver::putrect(int xx,int yy,int h,int w) {
 	for(unsigned int y = yy;y<(yy+h);y++) {
 		for(unsigned int x = xx*4; x<(xx+w)*4;x+=4) {
 			putpix(x,y);
+		}
+	}
+}
+
+void DisplayDriver::putrect(int xx,int yy,int h,int w,unsigned int clr) {
+	for(unsigned int y = yy;y<(yy+h);y++) {
+		for(unsigned int x = xx*4; x<(xx+w)*4;x+=4) {
+			putpix(x,y,clr);
 		}
 	}
 }
@@ -143,57 +114,38 @@ void DisplayDriver::putbox(int xx,int yy,int h,int w) {
 	}
 }
 
-int DisplayDriver::getLenght(char* ch) {
-	int l=0;
-	while(*ch != 0) {
-		l+=1;
-		ch++;
+void DisplayDriver::putbox(int xx,int yy,int h,int w,unsigned int clr) {
+	for(unsigned int x = xx; x<(xx+w*4);x+=4) {
+		putpix(x,yy,clr);
+		putpix(x,(yy+h),clr);
 	}
-	return l;
+	for(unsigned int y = yy;y<(yy+h);y++) {
+		putpix(xx,y,clr);
+		putpix((xx+w*4),y,clr);
+	}
 }
 
 void DisplayDriver::boxedputs(unsigned int highcolour,const char* ch) {
 	char* cr = (char*)ch;
-	unsigned int bak = colour;
-	colour = highcolour;
-	putbox(CursorPos.X,CursorPos.Y,16,getLenght(cr)*8);
-	while(*cr != 0) {
-		putc(*cr,CursorPos.X,CursorPos.Y);
-		setCursorPos(CursorPos.X+8,CursorPos.Y);
-		if(CursorPos.X + 8 > secondFrameBuffer->Width) {
-			setCursorPos(0,CursorPos.Y+16);
-		}
-		cr++;
-	}
-	colour = bak;
+	putbox(CursorPos.X,CursorPos.Y,16,strlen(cr)*10,highcolour);
+	puts(cr);
 }
 
 void DisplayDriver::highlightputs(unsigned int highcolour,const char* ch) {
 	char* cr = (char*)ch;
-	unsigned int bak = colour;
-	colour = highcolour;
-	putrect(CursorPos.X,CursorPos.Y,16,getLenght(cr)*8);
-	while(*cr != 0) {
-		putc(*cr,CursorPos.X,CursorPos.Y);
-		CursorPos.X+=8;
-		if(CursorPos.X + 8 > secondFrameBuffer->Width) {
-			CursorPos.X = 0;
-			CursorPos.Y += 16;
-		}
-		cr++;
-	}
-	colour = bak;
+	putrect(CursorPos.X,CursorPos.Y,16,strlen(cr)*10,highcolour);
+	puts(cr);
 }
 
 void DisplayDriver::cursorNewLine() {
 	setCursorPos(0,CursorPos.Y+16);
 }
 
-int DisplayDriver::getWidth() {
+uint64_t DisplayDriver::getWidth() {
 	return secondFrameBuffer->Width;
 }
 
-int DisplayDriver::getHeight() {
+uint64_t DisplayDriver::getHeight() {
 	return secondFrameBuffer->Height;
 }
 
@@ -203,6 +155,15 @@ void DisplayDriver::setColour(unsigned int colo) {
 
 void DisplayDriver::update() {
 	memcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
+}
+
+void DisplayDriver::advanceCursor() {
+	CursorPos.X+=8;
+	if(CursorPos.X + 8 > secondFrameBuffer->Width) {
+		CursorPos.X = 0;
+		CursorPos.Y += 16;
+		checkScroll();
+	}
 }
 
 #pragma GCC diagnostic pop

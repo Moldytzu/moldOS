@@ -1,7 +1,7 @@
 #pragma once
 #include "../../io/ports.h"
 #include "stdint.h"
-#include "../../misc/cstring.h"
+#include "../../libc/stdio.h"
 
 struct PCIDevice {
     uint16_t VendorID;
@@ -21,7 +21,7 @@ private:
     uint16_t getClassId(uint16_t bus, uint16_t device, uint16_t function);
     uint16_t getSubClassId(uint16_t bus, uint16_t device, uint16_t function);
 public:
-    PCIDevice Devices[256];
+    PCIDevice Devices[0xFFFF];
     uint16_t DeviceCount;
     void detectDevices();
 };

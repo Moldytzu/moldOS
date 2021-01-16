@@ -1,47 +1,74 @@
 #include "intrerupts.h"
+#include "../libc/stdio.h"
+#include "../drivers/keyboard/keyboarddriver.h"
 
 void trigger(const char* Message) {
-    GlobalCOM1->Write(Message);
-    GlobalDisplay->clearScreen(0);
-    GlobalDisplay->puts(Message);
+	GlobalDisplay->clearScreen(LIGHTRED);
+	GlobalDisplay->setCursorPos(0,0);
+	GlobalDisplay->setColour(WHITE);
+	GlobalDisplay->puts("Kernel Panic!\nMessage: ");
+	GlobalDisplay->puts(Message);
     GlobalDisplay->update();
-    while(true);
+	while(1);
 }
 
-__attribute__((interrupt)) void DivByZeroHandler(struct interrupt_frame* frame) {}
-
-__attribute__((interrupt)) void DebugHandler(struct interrupt_frame* frame) {}
-
-__attribute__((interrupt)) void BoundRangeHandler(struct interrupt_frame* frame) {}
-
-__attribute__((interrupt)) void InvalidOpcodeHandler(struct interrupt_frame* frame) {}
-
-__attribute__((interrupt)) void DeviceUnavailableHandler(struct interrupt_frame* frame) {}
-
-__attribute__((interrupt)) void InvalidTSSHandler(struct interrupt_frame* frame) {
-    trigger("Invalid TSS detected!");
-}
-__attribute__((interrupt)) void SegmentNotPresentHandler(struct interrupt_frame* frame) {
-    trigger("Segment Not Present detected!");
-}
-__attribute__((interrupt)) void StackFaultHandler(struct interrupt_frame* frame) {
-    trigger("Stack-Segment Fault detected!");
-}
-__attribute__((interrupt)) void GeneralProtectionFaultHandler(struct interrupt_frame* frame) {
+__attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFrame* frame) {
     trigger("General Protection Fault detected!");
 }
-__attribute__((interrupt)) void PageFaultHandler(struct interrupt_frame* frame) {
+__attribute__((interrupt)) void PageFaultHandler(struct IntreruptFrame* frame) {
     trigger("Page Fault detected!");
 }
-__attribute__((interrupt)) void FloatingPointHandler(struct interrupt_frame* frame) {}
 
-__attribute__((interrupt)) void AligmentHandler(struct interrupt_frame* frame) {
-    trigger("Aligment Check detected!");
+__attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame) {
+    trigger("Double Fault detected!");
 }
-__attribute__((interrupt)) void SMIDFloatHandler(struct interrupt_frame* frame) {}
 
-__attribute__((interrupt)) void VirtualizationFaultHandler(struct interrupt_frame* frame) {}
+__attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame) {
+    uint8_t keycode = inportb(0x60);
+    GlobalKeyboard->Handle(keycode);
+    EndMaster();
+}
 
-__attribute__((interrupt)) void SecurityExceptionHandler(struct interrupt_frame* frame) {
-    trigger("Security Exception detected!");
+void EndMaster(){
+    outportb(PIC1_COMMAND, PIC_EOI);
+}
+
+void EndSlave(){
+    outportb(PIC2_COMMAND, PIC_EOI);
+    outportb(PIC1_COMMAND, PIC_EOI);
+}
+   
+
+void RemapPIC(){
+    uint8_t a1, a2; 
+
+    a1 = inportb(PIC1_DATA);
+    io_wait();
+    a2 = inportb(PIC2_DATA);
+    io_wait();
+
+    outportb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
+    io_wait();
+    outportb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
+    io_wait();
+
+    outportb(PIC1_DATA, 0x20);
+    io_wait();
+    outportb(PIC2_DATA, 0x28);
+    io_wait();
+
+    outportb(PIC1_DATA, 4);
+    io_wait();
+    outportb(PIC2_DATA, 2);
+    io_wait();
+
+    outportb(PIC1_DATA, ICW4_8086);
+    io_wait();
+    outportb(PIC2_DATA, ICW4_8086);
+    io_wait();
+
+    outportb(PIC1_DATA, a1);
+    io_wait();
+    outportb(PIC2_DATA, a2);
+
 }

@@ -26,3 +26,7 @@ void outportw(unsigned short int port, unsigned short int data) {
 void outportl(unsigned long long port, unsigned long long data) {
    __asm__ volatile("outl %%eax, %%dx" : : "d"(port), "a"(data));
 }
+
+void io_wait() {
+   asm volatile ("outb %%al, $0x80" : : "a"(0));
+}

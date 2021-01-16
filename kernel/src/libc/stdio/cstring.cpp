@@ -1,5 +1,9 @@
 #include "cstring.h"
 
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
+
 int isalpha(char _c)
 {
     return  _c >= 'A' &&  _c <= 'Z' ||  _c >= 'a' &&  _c <= 'z'; 
@@ -195,3 +199,12 @@ char* chartostr(char c) {
     chartostrOutput[1] = 0;
     return chartostrOutput;
 }
+
+int strlenOutput = 0;
+int strlen(char* str) {
+    for(int i = 0;str[i] != 0;i++)
+        strlenOutput = i;
+    return strlenOutput;
+}
+
+#pragma GCC diagnostic pop

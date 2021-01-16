@@ -1,5 +1,9 @@
-
 OSNAME = LLOS
+
+SRCDIR := src
+OBJDIR := lib
+BUILDDIR = bin
+BOOTEFI := $(GNUEFI)/x86_64/bootloader/main.efi
 
 GNUEFI = ../gnu-efi
 OVMFDIR = ../OVMFbin
@@ -8,14 +12,9 @@ CC = gcc
 LD = ld
 ASM = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -O2 -s -DNDEBUG
+CFLAGS = -ffreestanding -fshort-wchar -O2 -I $(SRCDIR)/libc
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 
-
-SRCDIR := src
-OBJDIR := lib
-BUILDDIR = bin
-BOOTEFI := $(GNUEFI)/x86_64/bootloader/main.efi
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -52,7 +51,6 @@ link:
 	@ tput setaf 2
 	@ echo Lincuiesc: $(OBJS)
 	@ tput sgr0
-	@ $(shell strip --strip-unneeded $(OBJS))
 	@ $(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.elf $(OBJS)
 	
 setup:
@@ -72,7 +70,6 @@ buildimg:
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img startup.nsh ::
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img font.psf ::
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.llexec ::
-	@ tput sgr0
 
 	@ mkdir -p $(BUILDDIR)/iso
 	@ mkdir -p $(BUILDDIR)/iso/EFI
@@ -83,5 +80,6 @@ buildimg:
 	@ cp $(BUILDDIR)/kernel.llexec $(BUILDDIR)/iso/
 	@ cd $(BUILDDIR)
 	@ xorrisofs -r -J -o $(BUILDDIR)/$(OSNAME).iso $(BUILDDIR)/iso
+	@ tput sgr0
 	
 	@ rm -rf $(BUILDDIR)/iso

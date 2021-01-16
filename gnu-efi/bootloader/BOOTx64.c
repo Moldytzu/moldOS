@@ -7,6 +7,11 @@
 #define PSF1_MAGIC1 0x04
 
 typedef struct {
+	void* PowerOff;
+	void* Restart;
+} Power;
+
+typedef struct {
 	void* BaseAddr;
 	long long BufferSize;
 	unsigned int Width;
@@ -33,7 +38,7 @@ typedef struct {
 typedef struct {
 	framebuffer* framebuf;
 	PSF1_FONT* font;
-	void* PowerDownVoid;
+	Power* pwr;
 	UEFIFirmware* firm;
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	UINTN mMapSize;
@@ -42,17 +47,26 @@ typedef struct {
 
 
 const wchar_t* LLOSLogo = L"/ \\   / \\   / \\   /  _ \\/ ___\\\n\r" //
-			   "| |   | |   | |   | / \\||    \\\n\r" //
+			   	"| |   | |   | |   | / \\||    \\\n\r" //
 			   "| |_/\\| |_/\\| |_/\\| \\_/|\\___ |\n\r" //
 			   "\\____/\\____/\\____/\\____/\\____/\n\r";
-
 
 void PowerDown() {
 	ST->RuntimeServices->ResetSystem(EfiResetShutdown,0,0,NULL);
 }
 
+void PowerRestart() {
+	ST->RuntimeServices->ResetSystem(EfiResetWarm,0,0,NULL);
+}
+
 void ClearScreen() {
 	uefi_call_wrapper(ST->ConOut->ClearScreen, 1, ST->ConOut); 
+}
+
+void TriggerError(wchar_t* errstr) {
+	ClearScreen();
+	Print(errstr);
+	while(1){}
 }
 
 void InitUEFI(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
@@ -145,13 +159,6 @@ int memcmp(const void* aptr,const void* bptr,size_t n) {
 	return 0;
 }
 
-
-void TriggerError(wchar_t* errstr) {
-	ClearScreen();
-	Print(errstr);
-	while(1){}
-}
-
 EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	InitUEFI(ImageHandle, SystemTable);
 
@@ -222,10 +229,14 @@ EFI_STATUS efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	f.Vendor = SystemTable->FirmwareVendor;
 	f.Version = SystemTable->FirmwareRevision;
 
+	Power p;
+	p.PowerOff = PowerDown;
+	p.Restart = PowerRestart;
+
 	BootInfo info;
 	info.framebuf = buf;
 	info.font = newFont;
-	info.PowerDownVoid = PowerDown;
+	info.pwr = &p;
 	info.mMap = Map;
 	info.mMapSize = MapSize;
 	info.mMapDescSize = DescriptorSize;

@@ -20,13 +20,3 @@ const int WHITE = 0xffffff;
 const int ORANGE = 0xff9100;
 const int MAGENTA = 0x5a03fc;
 const int LIGHTMAGENTA = 0x7e38ff;
-
-//serial
-const char* SERIALWHITE = "\033[1;1m";
-const char* SERIALBLACK = "\033[1;30m";
-const char* SERIALRED = "\033[1;31m";
-const char* SERIALGREEN = "\033[1;32m";
-const char* SERIALYELLOW = "\033[1;33m";
-const char* SERIALBLUE = "\033[1;34m";
-const char* SERIALPINK = "\033[1;35m";
-const char* SERIALCYAN = "\033[1;36m";

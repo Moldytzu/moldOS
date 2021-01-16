@@ -27,3 +27,6 @@ int isalpha(char _c);
 
 //char to char*
 char* chartostr(char c);
+
+//string lenght
+int strlen(char* str);

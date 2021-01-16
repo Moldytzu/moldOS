@@ -1,6 +1,6 @@
 #pragma once
 #include "efiMemory.h"
-#include "../misc/bitmap.h"
+#include "../misc/bitmap/bitmap.h"
 #include <stdint.h>
 
 class PageFrameAllocator {
