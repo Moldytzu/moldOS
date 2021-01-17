@@ -35,9 +35,9 @@
 #include "intrerupts/intrerupts.h" //handlere
 
 //libc
-#include <stdio.h> //input / output
-#include <math.h> //matematica
-#include <time.h> //timp
+#include "libc/stdio.h" //input / output
+#include "libc/math.h" //matematica
+#include "libc/time.h" //timp
 
 struct BootInfo {
 	//display
@@ -78,17 +78,15 @@ IDTR idtr;
 Keyboard kb;
 
 void EnablePaging(BootInfo* bootInfo) {
-	uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
+    uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
+
     GlobalAllocator = PageFrameAllocator();
-	GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
+    GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
     uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
     uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
-    GlobalAllocator.LockPages(&_KernelStart, kernelPages);
 
-    uint64_t fbBase = (uint64_t)bootInfo->GOPFrameBuffer->BaseAddr;
-    uint64_t fbSize = (uint64_t)bootInfo->GOPFrameBuffer->BufferSize + 0x1000;
-    GlobalAllocator.LockPages((void*)fbBase, fbSize/ 0x1000 + 1);
+    GlobalAllocator.LockPages(&_KernelStart, kernelPages);
 
     PageTable* PML4 = (PageTable*)GlobalAllocator.RequestPage();
     memset(PML4, 0, 0x1000);
@@ -98,11 +96,15 @@ void EnablePaging(BootInfo* bootInfo) {
     for (uint64_t t = 0; t < GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize); t+= 0x1000){
         pageTableManager.MapMemory((void*)t, (void*)t);
     }
+
+    uint64_t fbBase = (uint64_t)bootInfo->GOPFrameBuffer->BaseAddr;
+    uint64_t fbSize = (uint64_t)bootInfo->GOPFrameBuffer->BufferSize + 0x1000;
+    GlobalAllocator.LockPages((void*)fbBase, fbSize/ 0x1000 + 1);
     for (uint64_t t = fbBase; t < fbBase + fbSize; t += 4096){
         pageTableManager.MapMemory((void*)t, (void*)t);
     }
 
-    asm volatile ("mov %0, %%cr3" : : "r" (PML4));
+    asm ("mov %0, %%cr3" : : "r" (PML4));
 }
 
 void LoadGDT() {
@@ -112,44 +114,38 @@ void LoadGDT() {
 	LoadGDT(&gdtDescriptor);
 }
 
-void SetUpIntreruptHandler(int vector, uint64_t handler) {
-    IDTDescriptorEntry* int_PageFault = (IDTDescriptorEntry*)(idtr.Offset + vector * sizeof(IDTDescriptorEntry));
-    int_PageFault->setOffset(handler);
-    int_PageFault->Type_Attributes = IDT_TA_IntreruptGate;
-    int_PageFault->Selector = 0x08;
-}
-
 void InitIntrerupts() {
 	idtr.Limit = 0x0fff;
 	idtr.Offset = (uint64_t)GlobalAllocator.RequestPage();
 
     IDTDescriptorEntry* int_PageFault = (IDTDescriptorEntry*)(idtr.Offset + 0xE * sizeof(IDTDescriptorEntry));
     int_PageFault->setOffset((uint64_t)PageFaultHandler);
-    int_PageFault->Type_Attributes = IDT_TA_IntreruptGate;
+    int_PageFault->Type_Attributes = IDT_TA_InterruptGate;
     int_PageFault->Selector = 0x08;
 
     IDTDescriptorEntry* int_DoubleFault = (IDTDescriptorEntry*)(idtr.Offset + 0x8 * sizeof(IDTDescriptorEntry));
     int_DoubleFault->setOffset((uint64_t)DoubleFaultHandler);
-    int_DoubleFault->Type_Attributes = IDT_TA_IntreruptGate;
+    int_DoubleFault->Type_Attributes = IDT_TA_InterruptGate;
     int_DoubleFault->Selector = 0x08;
 
     IDTDescriptorEntry* int_GPFault = (IDTDescriptorEntry*)(idtr.Offset + 0xD * sizeof(IDTDescriptorEntry));
     int_GPFault->setOffset((uint64_t)GeneralProtectionFaultHandler);
-    int_GPFault->Type_Attributes = IDT_TA_IntreruptGate;
+    int_GPFault->Type_Attributes = IDT_TA_InterruptGate;
     int_GPFault->Selector = 0x08;
 
     IDTDescriptorEntry* int_Keyboard = (IDTDescriptorEntry*)(idtr.Offset + 0x21 * sizeof(IDTDescriptorEntry));
     int_Keyboard->setOffset((uint64_t)KBHandler);
-    int_Keyboard->Type_Attributes = IDT_TA_IntreruptGate;
+    int_Keyboard->Type_Attributes = IDT_TA_InterruptGate;
     int_Keyboard->Selector = 0x08;
 
-	asm volatile("lidt %0" : : "m" (idtr));
+	asm ("lidt %0" : : "m" (idtr));
 
-	RemapPIC();
+    RemapPIC();
 
-	outportb(PIC1_DATA,0b11111101);
-	outportb(PIC2_DATA,0b11111111);
-	asm ("sti");
+    outportb(PIC1_DATA, 0b11111101);
+    outportb(PIC2_DATA, 0b11111111);
+
+    asm ("sti");
 }
 
 void DetectHardware() {
@@ -182,13 +178,12 @@ void InitCOM1() {
 
 void InitDrivers(BootInfo* bootInfo) {
 	GlobalKeyboard = &kb;
-	com1.Init();
-	GlobalCOM1 = &com1;
-	com1.ClearMonitor();
+	LoadGDT();
+	InitIntrerupts();
+	EnablePaging(bootInfo);
+	
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
 	GlobalDisplay = &display;
-	LoadGDT();
-	EnablePaging(bootInfo);
 	doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
 	doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;
 	doubleBuffer->Height = display.globalFrameBuffer->Height;
@@ -199,13 +194,16 @@ void InitDrivers(BootInfo* bootInfo) {
         pageTableManager.MapMemory((void*)t, (void*)t);
     }
 	display.InitDoubleBuffer(doubleBuffer);
-	InitIntrerupts();
+
 	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
 	pci.detectDevices();
 	CPUFeatures = cpu.getFeatures();
 	display.setColour(WHITE);
 	display.clearScreen(0);
 	display.update();
+	com1.Init();
+	GlobalCOM1 = &com1;
+	com1.ClearMonitor();
 }
 
 

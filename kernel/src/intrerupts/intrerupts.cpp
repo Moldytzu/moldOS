@@ -1,39 +1,26 @@
 #include "intrerupts.h"
-#include "../libc/stdio.h"
-#include "../drivers/keyboard/keyboarddriver.h"
-
-void trigger(const char* Message) {
-	GlobalDisplay->clearScreen(LIGHTRED);
-	GlobalDisplay->setCursorPos(0,0);
-	GlobalDisplay->setColour(WHITE);
-	GlobalDisplay->puts("Kernel Panic!\nMessage: ");
-	GlobalDisplay->puts(Message);
-    GlobalDisplay->update();
-	while(1);
-}
 
 __attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFrame* frame) {
-    trigger("General Protection Fault detected!");
+    KernelPanic("General Protection Fault");
 }
 __attribute__((interrupt)) void PageFaultHandler(struct IntreruptFrame* frame) {
-    trigger("Page Fault detected!");
+    KernelPanic("Page Fault");
 }
-
 __attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame) {
-    trigger("Double Fault detected!");
+    KernelPanic("Double Fault");
 }
 
 __attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame) {
     uint8_t keycode = inportb(0x60);
     GlobalKeyboard->Handle(keycode);
-    EndMaster();
+    PIC_EndMaster();
 }
 
-void EndMaster(){
+void PIC_EndMaster(){
     outportb(PIC1_COMMAND, PIC_EOI);
 }
 
-void EndSlave(){
+void PIC_EndSlave(){
     outportb(PIC2_COMMAND, PIC_EOI);
     outportb(PIC1_COMMAND, PIC_EOI);
 }

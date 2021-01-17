@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "../display/displaydriver.h"
+#include "../../io/ports.h"
 class Keyboard {
     public:
         char buffer[0xFFFF];

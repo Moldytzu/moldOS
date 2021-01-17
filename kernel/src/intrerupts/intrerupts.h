@@ -1,8 +1,7 @@
 #pragma once
-#include "../drivers/display/displaydriver.h"
-#include "../io/serial.h"
-#include "../misc/colors.h"
 #include "../io/ports.h"
+#include "../drivers/keyboard/keyboarddriver.h"
+#include "../panic.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21
@@ -21,5 +20,5 @@ __attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame)
 __attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame);
 
 void RemapPIC();
-void EndMaster();
-void EndSlave();
+void PIC_EndMaster();
+void PIC_EndSlave();

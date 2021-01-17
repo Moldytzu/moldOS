@@ -12,7 +12,7 @@ CC = gcc
 LD = ld
 ASM = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -O2 -I $(SRCDIR)/libc
+CFLAGS = -ffreestanding -fshort-wchar -O2
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 
 
