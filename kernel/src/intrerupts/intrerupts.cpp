@@ -10,6 +10,10 @@ __attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame)
     KernelPanic("Double Fault");
 }
 
+__attribute__((interrupt)) void InvalideOpcodeHandler(struct IntreruptFrame* frame) {
+    GlobalCOM1->Write("Warning! Invalid Opcode Detected!");
+}
+
 __attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame) {
     uint8_t keycode = inportb(0x60);
     GlobalKeyboard->Handle(keycode);

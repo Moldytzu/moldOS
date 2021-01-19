@@ -1,6 +1,7 @@
 #pragma once
 #include "../io/ports.h"
 #include "../drivers/keyboard/keyboarddriver.h"
+#include "../io/serial.h"
 #include "../panic.h"
 
 #define PIC1_COMMAND 0x20
@@ -14,6 +15,7 @@
 #define ICW4_8086 0x01
 
 struct IntreruptFrame;
+__attribute__((interrupt)) void InvalideOpcodeHandler(struct IntreruptFrame* frame);//6
 __attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFrame* frame);//13
 __attribute__((interrupt)) void PageFaultHandler(struct IntreruptFrame* frame); //14
 __attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame);

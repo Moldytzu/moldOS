@@ -1,5 +1,11 @@
 #include "kernelInit.h"
 
+/*
+Special Thanks to:
+- @borrrden - he fixed my buggy keyboard handler
+- @AbsurdPoncho - if he didn't do a osdev series i won't started this project
+*/
+
 void displayLogo() {
 	printf("%co%s%co",LIGHTRED,LLOSLogo,WHITE);
 }
@@ -61,9 +67,6 @@ void displayKeyboard() {
 
 extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
-	display.setColour(WHITE);
-	display.clearScreen(0);
-	display.update();
 	srand(rtc.readTime());
 
 	while(1){

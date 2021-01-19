@@ -17,6 +17,7 @@
 #include "misc/cpu/cpu.h" //cpu
 #include "misc/colors.h" //culori
 #include "misc/uefi.h" //uefi
+#include "misc/logging/log.h" //logging
 
 //io
 #include "io/serial.h" //serial port
@@ -28,6 +29,7 @@
 #include "memory/pagemapindexer.h" //pmi
 #include "memory/paging.h" //paging
 #include "memory/pagetablemanager.h" //ptm
+#include "memory/dynamic.h" //malloc free calloc
 
 //intrerupturi
 #include "intrerupts/gdt.h" //gdt
@@ -73,9 +75,10 @@ RealTimeClock rtc;
 SerialPort com1;
 Parallel paralel;
 DisplayDriver::DisplayBuffer* doubleBuffer;
-PageTableManager pageTableManager = PageTableManager((PageTable*)0);
+PageTableManager pageTableManager = NULL;
 IDTR idtr;
 Keyboard kb;
+Logging log;
 
 void EnablePaging(BootInfo* bootInfo) {
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -91,7 +94,9 @@ void EnablePaging(BootInfo* bootInfo) {
     PageTable* PML4 = (PageTable*)GlobalAllocator.RequestPage();
     memset(PML4, 0, 0x1000);
 
+	//problem
     pageTableManager = PageTableManager(PML4);
+	//end of problem
 
     for (uint64_t t = 0; t < GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize); t+= 0x1000){
         pageTableManager.MapMemory((void*)t, (void*)t);
@@ -133,6 +138,11 @@ void InitIntrerupts() {
     int_GPFault->Type_Attributes = IDT_TA_InterruptGate;
     int_GPFault->Selector = 0x08;
 
+    IDTDescriptorEntry* int_InvalidOpcode = (IDTDescriptorEntry*)(idtr.Offset + 0x6 * sizeof(IDTDescriptorEntry));
+    int_InvalidOpcode->setOffset((uint64_t)InvalideOpcodeHandler);
+    int_InvalidOpcode->Type_Attributes = IDT_TA_InterruptGate;
+    int_InvalidOpcode->Selector = 0x08;	
+
     IDTDescriptorEntry* int_Keyboard = (IDTDescriptorEntry*)(idtr.Offset + 0x21 * sizeof(IDTDescriptorEntry));
     int_Keyboard->setOffset((uint64_t)KBHandler);
     int_Keyboard->Type_Attributes = IDT_TA_InterruptGate;
@@ -151,23 +161,6 @@ void InitIntrerupts() {
 void DetectHardware() {
 	pci.detectDevices();
 	CPUFeatures = cpu.getFeatures();
-}
-
-void InitDoubleBuffering() {
-	doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
-	doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;
-	doubleBuffer->Height = display.globalFrameBuffer->Height;
-	doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
-	doubleBuffer->Width = display.globalFrameBuffer->Width;
-	GlobalAllocator.LockPages(doubleBuffer->BaseAddr, ((uint64_t)doubleBuffer->BufferSize / 4096) + 1);
-
-    for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < (uint64_t)doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096){
-        pageTableManager.MapMemory((void*)t, (void*)t);
-    }
-}
-void InitDisplay(BootInfo* bootInfo) {
-	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
-	GlobalDisplay = &display;
 }
 
 void InitCOM1() {
@@ -194,16 +187,23 @@ void InitDrivers(BootInfo* bootInfo) {
         pageTableManager.MapMemory((void*)t, (void*)t);
     }
 	display.InitDoubleBuffer(doubleBuffer);
-
-	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
-	pci.detectDevices();
-	CPUFeatures = cpu.getFeatures();
 	display.setColour(WHITE);
 	display.clearScreen(0);
 	display.update();
+
+	log.info("Initialized Paging, Intrerupts, Display!");
+
+	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
+	log.info("Initialized Power!");
+
+	pci.detectDevices();
+	CPUFeatures = cpu.getFeatures();
+	log.info("Detected  Hardware!");
+
 	com1.Init();
 	GlobalCOM1 = &com1;
 	com1.ClearMonitor();
+	log.info("Initialized Serial!");
 }
 
 
