@@ -2,22 +2,33 @@
 
 __attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFrame* frame) {
     KernelPanic("General Protection Fault");
+    while(1);
 }
 __attribute__((interrupt)) void PageFaultHandler(struct IntreruptFrame* frame) {
     KernelPanic("Page Fault");
+    while(1);
 }
 __attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame) {
     KernelPanic("Double Fault");
+    while(1);
 }
 
 __attribute__((interrupt)) void InvalideOpcodeHandler(struct IntreruptFrame* frame) {
     GlobalCOM1->Write("Warning! Invalid Opcode Detected!");
+    //while(1);
 }
 
 __attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame) {
     uint8_t keycode = inportb(0x60);
     GlobalKeyboard->Handle(keycode);
     PIC_EndMaster();
+}
+
+__attribute__((interrupt)) void MSHandler(struct IntreruptFrame* frame) {
+    uint8_t data = inportb(0x60);
+    GlobalMouse->Handle(data);
+    PIC_EndMaster();
+    PIC_EndSlave();
 }
 
 void PIC_EndMaster(){

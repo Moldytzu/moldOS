@@ -1,7 +1,7 @@
 @echo -off
 cls
 if exist .\efi\boot\BOOTx64.efi then
- .\efi\boot\main.efi
+ .\efi\boot\BOOTx64.efi
  goto END
 endif
 

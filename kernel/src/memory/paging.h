@@ -7,12 +7,12 @@ enum PT_Flag {
     UserSuper = 2,
     WriteThrough = 3,
     CacheDisabled = 4,
-    Accesed = 5,
-    LargePages = 7,
+    Accessed = 5,
+    LargerPages = 7,
     Custom0 = 9,
     Custom1 = 10,
     Custom2 = 11,
-    NX = 63
+    NX = 63 // only if supported
 };
 
 struct PageDirectoryEntry {

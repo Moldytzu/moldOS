@@ -10,6 +10,7 @@
 #include "drivers/pci/pci.h" //pci
 #include "drivers/rtc/rtc.h" //realtimeclock
 #include "drivers/keyboard/keyboarddriver.h" // claviatura
+#include "drivers/mouse/mouse.h"
 
 //misc
 #include "misc/power/power.h" //power
@@ -22,13 +23,14 @@
 //io
 #include "io/serial.h" //serial port
 #include "io/parallel.h" //parallel port
+#include "io/ps2.h"
 
 //memorie
 #include "memory/efiMemory.h" //memorie
-#include "memory/pagefileallocator.h" //pfa
-#include "memory/pagemapindexer.h" //pmi
+#include "memory/PageFrameAllocator.h" //pfa
+#include "memory/PageMapIndexer.h" //pmi
 #include "memory/paging.h" //paging
-#include "memory/pagetablemanager.h" //ptm
+#include "memory/PageTableManager.h" //ptm
 #include "memory/dynamic.h" //malloc free calloc
 
 //intrerupturi
@@ -54,6 +56,9 @@ struct BootInfo {
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	uint64_t mMapSize;
 	uint64_t mMapDescSize;
+
+    //verify
+    uint64_t Key;
 };
 
 extern uint64_t _KernelStart;
@@ -61,10 +66,11 @@ extern uint64_t _KernelEnd;
 
 char** CPUFeatures;
 
-const char* LLOSLogo = "/ \\   / \\   / \\   /  _ \\/ ___\\\n" //
-					   "| |   | |   | |   | / \\||    \\\n" //
-					   "| |_/\\| |_/\\| |_/\\| \\_/|\\___ |\n" //
-					   "\\____/\\____/\\____/\\____/\\____/\n";
+//todo fix typo in logo
+const char* LLOSLogo =  "/ \\   / \\   /  _ \\/ ___\\\n"
+						"| |   | |   | / \\||    \\\n"
+						"| |_/\\| |_/\\| \\_/|\\___ |\n"
+						"\\____/\\____/\\____/\\____/\n";
 
 DisplayDriver display;
 Power power;
@@ -79,24 +85,16 @@ PageTableManager pageTableManager = NULL;
 IDTR idtr;
 Keyboard kb;
 Logging log;
+Mouse mouse;
+PS2Controller ps2;
 
 void EnablePaging(BootInfo* bootInfo) {
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
-    GlobalAllocator = PageFrameAllocator();
-    GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
-
-    uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
-    uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
-
-    GlobalAllocator.LockPages(&_KernelStart, kernelPages);
-
     PageTable* PML4 = (PageTable*)GlobalAllocator.RequestPage();
     memset(PML4, 0, 0x1000);
 
-	//problem
     pageTableManager = PageTableManager(PML4);
-	//end of problem
 
     for (uint64_t t = 0; t < GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize); t+= 0x1000){
         pageTableManager.MapMemory((void*)t, (void*)t);
@@ -119,99 +117,107 @@ void LoadGDT() {
 	LoadGDT(&gdtDescriptor);
 }
 
+void CreateIntrerupt(void* handler,uint8_t offset,uint8_t t_a,uint8_t selector) {
+    IDTDescriptorEntry* int_NewInt = (IDTDescriptorEntry*)(idtr.Offset + offset * sizeof(IDTDescriptorEntry));
+    int_NewInt->setOffset((uint64_t)handler);
+    int_NewInt->Type_Attributes = t_a;
+    int_NewInt->Selector = selector;
+}
+
 void InitIntrerupts() {
 	idtr.Limit = 0x0fff;
 	idtr.Offset = (uint64_t)GlobalAllocator.RequestPage();
 
-    IDTDescriptorEntry* int_PageFault = (IDTDescriptorEntry*)(idtr.Offset + 0xE * sizeof(IDTDescriptorEntry));
-    int_PageFault->setOffset((uint64_t)PageFaultHandler);
-    int_PageFault->Type_Attributes = IDT_TA_InterruptGate;
-    int_PageFault->Selector = 0x08;
+    CreateIntrerupt((void*)PageFaultHandler,0xE,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)DoubleFaultHandler,0x8,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)GeneralProtectionFaultHandler,0xD,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)InvalideOpcodeHandler,0x6,IDT_TA_InterruptGate,0x08);
 
-    IDTDescriptorEntry* int_DoubleFault = (IDTDescriptorEntry*)(idtr.Offset + 0x8 * sizeof(IDTDescriptorEntry));
-    int_DoubleFault->setOffset((uint64_t)DoubleFaultHandler);
-    int_DoubleFault->Type_Attributes = IDT_TA_InterruptGate;
-    int_DoubleFault->Selector = 0x08;
-
-    IDTDescriptorEntry* int_GPFault = (IDTDescriptorEntry*)(idtr.Offset + 0xD * sizeof(IDTDescriptorEntry));
-    int_GPFault->setOffset((uint64_t)GeneralProtectionFaultHandler);
-    int_GPFault->Type_Attributes = IDT_TA_InterruptGate;
-    int_GPFault->Selector = 0x08;
-
-    IDTDescriptorEntry* int_InvalidOpcode = (IDTDescriptorEntry*)(idtr.Offset + 0x6 * sizeof(IDTDescriptorEntry));
-    int_InvalidOpcode->setOffset((uint64_t)InvalideOpcodeHandler);
-    int_InvalidOpcode->Type_Attributes = IDT_TA_InterruptGate;
-    int_InvalidOpcode->Selector = 0x08;	
-
-    IDTDescriptorEntry* int_Keyboard = (IDTDescriptorEntry*)(idtr.Offset + 0x21 * sizeof(IDTDescriptorEntry));
-    int_Keyboard->setOffset((uint64_t)KBHandler);
-    int_Keyboard->Type_Attributes = IDT_TA_InterruptGate;
-    int_Keyboard->Selector = 0x08;
+    CreateIntrerupt((void*)KBHandler,0x21,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)MSHandler,0x2C,IDT_TA_InterruptGate,0x08);
 
 	asm ("lidt %0" : : "m" (idtr));
 
     RemapPIC();
 
-    outportb(PIC1_DATA, 0b11111101);
-    outportb(PIC2_DATA, 0b11111111);
+    outportb(PIC1_DATA, 0b11111001);
+    outportb(PIC2_DATA, 0b11101111);
 
     asm ("sti");
 }
 
-void DetectHardware() {
-	pci.detectDevices();
-	CPUFeatures = cpu.getFeatures();
-}
-
-void InitCOM1() {
-	com1.Init();
-	GlobalCOM1 = &com1;
-	com1.ClearMonitor();
-}
-
 void InitDrivers(BootInfo* bootInfo) {
-	GlobalKeyboard = &kb;
-	LoadGDT();
+    uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
+
+    GlobalAllocator = PageFrameAllocator();
+    GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
+
+    GlobalAllocator.LockPages((void*)0,256);
+
+    uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
+    uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
+
+    GlobalAllocator.LockPages(&_KernelStart, kernelPages);
+
+    LoadGDT();
 	InitIntrerupts();
-	EnablePaging(bootInfo);
-	
+    
+	//EnablePaging(bootInfo);
+
+    //ps2.Init();
+
+    GlobalKeyboard = &kb;
+    mouse.Init();
+    GlobalMouse = &mouse;
+
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
-	GlobalDisplay = &display;
-	doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
+	
+    doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
 	doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;
 	doubleBuffer->Height = display.globalFrameBuffer->Height;
 	doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
 	doubleBuffer->Width = display.globalFrameBuffer->Width;
-	GlobalAllocator.LockPages(doubleBuffer->BaseAddr, ((uint64_t)doubleBuffer->BufferSize / 4096) + 1);
-    for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < (uint64_t)doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096){
+	GlobalAllocator.LockPages(doubleBuffer->BaseAddr, (doubleBuffer->BufferSize / 4096) + 6);
+    for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096){
         pageTableManager.MapMemory((void*)t, (void*)t);
     }
 	display.InitDoubleBuffer(doubleBuffer);
+
 	display.setColour(WHITE);
 	display.clearScreen(0);
 	display.update();
 
-	log.info("Initialized Paging, Intrerupts, Display!");
+	GlobalDisplay = &display;
+
+	log.info("Initialized PS/2, Intrerupts, Display!");
+
 
 	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
 	log.info("Initialized Power!");
 
 	pci.detectDevices();
+    log.info("Detected PCI devices!");
 	CPUFeatures = cpu.getFeatures();
-	log.info("Detected  Hardware!");
-
+	log.info("Detected CPU features!");
+	
 	com1.Init();
 	GlobalCOM1 = &com1;
 	com1.ClearMonitor();
-	log.info("Initialized Serial!");
-}
+    log.info("Initialized Serial!");
 
+    log.info("Initialized Everything!");
+    
+    if(bootInfo->Key*2048+2047 != 0xFFFFFF) {
+        log.error("Key verification failed!");
+        while(1);
+    }
 
-void Panic(const char* mesaj) {
-	display.clearScreen(LIGHTRED);
-	display.setCursorPos(0,0);
-	display.setColour(WHITE);
-	display.puts("Kernel Panic!\nMessage: ");
-	display.puts(mesaj);
-	while(1);
+    log.info("");
+    log.info("Welcome to LowLevelOS!");
+    log.info("By Moldu' (Nov. 2020 - Jan. 2021)");
+    log.info("Build date & time:");
+    log.info(__DATE__);
+    log.info(__TIME__);
+    rtc.waitSeconds(3);
+
 }

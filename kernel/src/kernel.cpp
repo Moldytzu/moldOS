@@ -1,10 +1,65 @@
 #include "kernelInit.h"
-
 /*
 Special Thanks to:
 - @borrrden - he fixed my buggy keyboard handler
 - @AbsurdPoncho - if he didn't do a osdev series i won't started this project
 */
+
+int MousePointer[16*25] = {
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,
+1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,
+1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,
+1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,
+1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,
+1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,
+1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,
+1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,
+1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,
+1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,
+1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,
+1,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,
+1,0,0,0,1,1,1,0,0,0,1,0,0,0,0,0,
+1,0,0,1,1,0,1,0,0,0,1,0,0,0,0,0,
+1,1,1,1,0,0,1,1,0,0,1,1,0,0,0,0,
+0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,
+0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,
+0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,
+};
+
+int MousePointerFilled[16*25] = {
+1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,
+1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,
+1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,
+1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,
+1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,
+1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
+1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
+1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
+1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
+1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
+1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
+1,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,
+1,1,1,1,0,0,1,1,1,1,1,1,0,0,0,0,
+0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,
+0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,
+0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,
+};
 
 void displayLogo() {
 	printf("%co%s%co",LIGHTRED,LLOSLogo,WHITE);
@@ -19,7 +74,7 @@ void displayCPU() {
 }
 
 void displayRAM(BootInfo* bootInfo) {
-	printf("\n\nTotal RAM: %co%d MB%co",YELLOW,GetMemorySize(bootInfo->mMap, bootInfo->mMapSize / bootInfo->mMapDescSize, bootInfo->mMapDescSize)/1024/1024,WHITE);
+	printf("\n\nTotal RAM: %co%d MB%co",YELLOW,(GlobalAllocator.GetFreeRAM()+GlobalAllocator.GetUsedRAM()+GlobalAllocator.GetReservedRAM())/1024/1024,WHITE);
 	printf("\nFree RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetFreeRAM()/1024/1024,WHITE);
 	printf("\nUsed RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetUsedRAM()/1024/1024,WHITE);
 	printf("\nReserved RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetReservedRAM()/1024/1024,WHITE);
@@ -65,6 +120,34 @@ void displayKeyboard() {
 	printf("%s_",kb.buffer);
 }
 
+void drawPointer() {
+	int x = 0;
+	int y = 0;
+	for(int i = 0;i< 16*25;i++) {
+		if(MousePointer[i])
+			display.putpix((x+mouse.state.X)*4,y+mouse.state.Y,WHITE);
+		x++;
+		if(x > 15) {
+			x = 0;
+			y++;
+		}
+	}
+}
+
+void doMouse() {
+	printf("\n\nClick to shutdown!");
+
+	mouse.HandlePacket();
+	
+	drawPointer();
+
+	//display.putrect(mouse.state.X,mouse.state.Y,25,12,WHITE);
+
+	if(mouse.state.ButtonLeft || mouse.state.ButtonRight || mouse.state.ButtonMiddle) {
+		power.Shutdown();
+	}
+}
+
 extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
 	srand(rtc.readTime());
@@ -75,12 +158,9 @@ extern "C" int kernelMain(BootInfo* binfo) {
 		displayLogo();
 		displayCPU();
 		displayRAM(binfo);
-		displayScreen();
-		displayPCI();
 		displayTime();
 		displayDate();
-		displayFirmware(binfo);
-		displayRandomNumber();
+		doMouse();
 		displayKeyboard();
 
 		display.update();

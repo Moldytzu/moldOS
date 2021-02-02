@@ -1,6 +1,7 @@
 #include "panic.h"
 
 void KernelPanic(const char* Message) {
+    GlobalCOM1->Write(Message);
     GlobalDisplay->clearScreen(0xff0000);
     GlobalDisplay->setCursorPos(0,0);
     GlobalDisplay->setColour(0xffffff);

@@ -3,6 +3,8 @@
 #include "../drivers/keyboard/keyboarddriver.h"
 #include "../io/serial.h"
 #include "../panic.h"
+#include "../drivers/display/displaydriver.h"
+#include "../drivers/mouse/mouse.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21
@@ -20,6 +22,8 @@ __attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFr
 __attribute__((interrupt)) void PageFaultHandler(struct IntreruptFrame* frame); //14
 __attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame);
 __attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame);
+__attribute__((interrupt)) void MSHandler(struct IntreruptFrame* frame);
+
 
 void RemapPIC();
 void PIC_EndMaster();

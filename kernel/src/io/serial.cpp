@@ -42,10 +42,10 @@ void SerialPort::Write(const char* chr) {
 }
 
 void SerialPort::ClearMonitor() {
-	for(int i = 0;i<50;i++) {
-		Write('\n');
-        Write('\r');
-	}
+    Write(27);
+    Write("[2J");
+    Write(27);
+    Write("[H");
 }
 
 void SerialPort::Write(const char* chr,const char* chr2) {

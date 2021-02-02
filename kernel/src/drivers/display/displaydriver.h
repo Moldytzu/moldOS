@@ -4,7 +4,7 @@
 #include "../../libc/stdio.h"
 #include "../../libc/math.h"
 #include "../../memory/efiMemory.h"
-#include "../../memory/pagefileallocator.h"
+#include "../../memory/PageFrameAllocator.h"
 #include "../../misc/psf1.h"
 
 class DisplayDriver {

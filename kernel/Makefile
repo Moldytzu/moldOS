@@ -12,7 +12,7 @@ CC = gcc
 LD = ld
 ASM = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -O2
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -O2 -march=nocona
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 
 
@@ -31,7 +31,7 @@ $(OBJDIR)/intrerupts/intrerupts.o: $(SRCDIR)/intrerupts/intrerupts.cpp
 	@ echo Compilez: $^
 	@ tput sgr0
 	@ mkdir -p $(@D)
-	@ $(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -c $^ -o $@
+	@ $(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -g -c $^ -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ tput setaf 3
@@ -47,7 +47,7 @@ $(OBJDIR)/%_nasm.o: $(SRCDIR)/%.asm
 	@ mkdir -p $(@D)
 	@ $(ASM) $(ASMFLAGS) $^ -f elf64 -o $@
 
-link:
+link: $(OBJS)
 	@ tput setaf 2
 	@ echo Lincuiesc: $(OBJS)
 	@ tput sgr0
@@ -58,26 +58,28 @@ setup:
 	@mkdir $(SRCDIR)
 	@mkdir $(OBJDIR)
 
-buildimg:
+buildimg: $(BUILDDIR)/kernel.elf
 	@ tput setaf 14
 	@ mv $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.llexec
 
 	@ dd if=/dev/zero of=$(BUILDDIR)/$(OSNAME).img bs=1024 count=32768
 	@ mkfs.vfat $(BUILDDIR)/$(OSNAME).img
 	@ mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI
+	@ mmd -i $(BUILDDIR)/$(OSNAME).img ::/LLOS
 	@ mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI/BOOT
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(GNUEFI)/x86_64/bootloader/BOOTx64.efi ::/EFI/BOOT
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img startup.nsh ::
-	@ mcopy -i $(BUILDDIR)/$(OSNAME).img font.psf ::
-	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.llexec ::
+	@ mcopy -i $(BUILDDIR)/$(OSNAME).img font.psf ::/LLOS
+	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.llexec ::/LLOS
 
 	@ mkdir -p $(BUILDDIR)/iso
+	@ mkdir -p $(BUILDDIR)/iso/LLOS
 	@ mkdir -p $(BUILDDIR)/iso/EFI
 	@ mkdir -p $(BUILDDIR)/iso/EFI/BOOT
 	@ cp $(GNUEFI)/x86_64/bootloader/BOOTx64.efi $(BUILDDIR)/iso/EFI/BOOT
 	@ cp startup.nsh $(BUILDDIR)/iso/
-	@ cp font.psf $(BUILDDIR)/iso/
-	@ cp $(BUILDDIR)/kernel.llexec $(BUILDDIR)/iso/
+	@ cp font.psf $(BUILDDIR)/iso/LLOS/
+	@ cp $(BUILDDIR)/kernel.llexec $(BUILDDIR)/iso/LLOS/
 	@ cd $(BUILDDIR)
 	@ xorrisofs -r -J -o $(BUILDDIR)/$(OSNAME).iso $(BUILDDIR)/iso
 	@ tput sgr0

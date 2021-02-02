@@ -1,5 +1,5 @@
 #pragma once
-#include "pagefileallocator.h"
+#include "PageFrameAllocator.h"
 #include <stdint.h>
 
 void* malloc(size_t size);

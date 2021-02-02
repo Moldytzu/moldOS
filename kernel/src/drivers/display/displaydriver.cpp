@@ -43,11 +43,11 @@ void DisplayDriver::checkScroll() {
 
 void DisplayDriver::puts(const char* ch)
 {
-	checkScroll();
+	//checkScroll();
 	for(int i = 0;ch[i] != '\0';i++) {
 		if(ch[i] == '\n') {
 			cursorNewLine();
-			checkScroll();
+			//checkScroll();
 			continue;
 		}
 		putc(ch[i],CursorPos.X,CursorPos.Y);
@@ -162,7 +162,7 @@ void DisplayDriver::advanceCursor() {
 	if(CursorPos.X + 8 > secondFrameBuffer->Width) {
 		CursorPos.X = 0;
 		CursorPos.Y += 16;
-		checkScroll();
+		//checkScroll();
 	}
 }
 
