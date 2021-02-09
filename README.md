@@ -9,6 +9,7 @@ LLOS is a W.I.P operating system writen in C and C++ that targets x86_64 hardwar
          - PSF1 Font
          - 32-bit Colours
     - RTC (Real Time Clock) 
+    - PS/2 Mouse&Keyboard
  - Hardware Communications:
     - Parallel Port (LPT1)
     - Serial Port (COM1)
@@ -19,4 +20,4 @@ LLOS is a W.I.P operating system writen in C and C++ that targets x86_64 hardwar
          - CPU Vendor
          - CPU Features
     - Paging
-    - Shutdown
+    - Shutdown&Reboot
