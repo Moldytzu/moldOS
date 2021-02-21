@@ -1,11 +1,23 @@
 #include "kernelInit.h"
+
+#define MOUSE_BORDER_COLOUR WHITE
+#define MOUSE_CONTENTS_COLOUR DARKGRAY
+
 /*
 Special Thanks to:
 - @borrrden - he fixed my buggy keyboard handler
 - @AbsurdPoncho - if he didn't do a osdev series i won't started this project
+- @nothotscott - he has a very good tutorial on debugging that helped me (https://www.youtube.com/watch?v=llP7zB8HTls)
 */
 
-int MousePointer[16*25] = {
+/*
+Bugs:
+- Mouse is buggy and crashes the entire os on real hardware with usb keyboard and mice (beacause of crappy ps/2 emulation, so, i need an usb driver....)
+- Mouse is moving kinda slow (maybe i can fix this optimizing?)
+- When i move the mouse and i type there is a chance that they interfer each other
+*/
+
+uint8_t MousePointer[16*25] = {
 1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
 1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -33,31 +45,31 @@ int MousePointer[16*25] = {
 0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,
 };
 
-int MousePointerFilled[16*25] = {
+uint8_t MousePointerFilled[16*25] = {
 1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
-1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,
-1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,
-1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,
-1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,
-1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,
-1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
-1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
-1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
-1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
-1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
-1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
-1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
-1,1,1,1,1,0,1,1,1,1,1,0,0,0,0,0,
-1,1,1,1,0,0,1,1,1,1,1,1,0,0,0,0,
-0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,
-0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,
+1,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
+1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,
+1,2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,
+1,2,2,2,2,1,0,0,0,0,0,0,0,0,0,0,
+1,2,2,2,2,2,1,0,0,0,0,0,0,0,0,0,
+1,2,2,2,2,2,2,1,0,0,0,0,0,0,0,0,
+1,2,2,2,2,2,2,2,1,0,0,0,0,0,0,0,
+1,2,2,2,2,2,2,2,2,1,0,0,0,0,0,0,
+1,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,
+1,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,
+1,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,
+1,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,
+1,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,
+1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
+1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
+1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,
+1,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,
+1,2,2,2,2,1,1,2,2,1,1,0,0,0,0,0,
+1,2,2,2,1,1,1,2,2,2,1,0,0,0,0,0,
+1,2,2,1,1,0,1,2,2,2,1,0,0,0,0,0,
+1,1,1,1,0,0,1,1,2,2,1,1,0,0,0,0,
+0,0,0,0,0,0,1,1,2,2,2,1,0,0,0,0,
+0,0,0,0,0,0,0,1,2,2,2,1,0,0,0,0,
 0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,
 };
 
@@ -86,25 +98,20 @@ void displayScreen() {
 }
 
 void displayPCI() {
-	printf("\nDetected %co%d%co PCI devices: \n",LIGHTTURQOISE,pci.DeviceCount,WHITE);
+	printf("\n\nDetected %co%d%co PCI devices: \n",LIGHTTURQOISE,pci.DevicesIndex,WHITE);
 
-	for(int i = 0;i<pci.DeviceCount;i++) {
+	for(int i = 0;i<pci.DevicesIndex;i++) {
 		printf("\nPCI Device %d:\n",i);
-		printf(" Vendor: %co0x%x%co",LIGHTTURQOISE,pci.Devices[i].VendorID,WHITE);
-		printf(" Device: %co0x%x%co",LIGHTTURQOISE,pci.Devices[i].DeviceID,WHITE);
-		printf(" Class: %co%s%co",LIGHTTURQOISE,pci.Devices[i].Class,WHITE);
-		printf(" Function: %co%d%co",LIGHTTURQOISE,pci.Devices[i].Function,WHITE);
-		printf(" Bus: %co%d%co",LIGHTTURQOISE,pci.Devices[i].Bus,WHITE);
-		printf(" Slot: %co%d%co",LIGHTTURQOISE,pci.Devices[i].Slot,WHITE);
+		printf(" Vendor: %co%s%co",LIGHTTURQOISE,pcitranslate.TranslateVendor(pci.Devices[i]->VendorID),WHITE);
+		printf(" Device: %co%s%co",LIGHTTURQOISE,pcitranslate.TranslateDeviceID(pci.Devices[i]->VendorID,pci.Devices[i]->DeviceID),WHITE);
+		printf(" Class: %co%s%co",LIGHTTURQOISE,pcitranslate.TranslateClass(pci.Devices[i]->Class),WHITE);
+		printf(" SubClass: %co%s%co",LIGHTTURQOISE,pcitranslate.TranslateSubClass(pci.Devices[i]->Class,pci.Devices[i]->Subclass),WHITE);
 	}
 }
 
-void displayTime() {
+void displayDateTime() {
 	printf("\n\nTime: %co%d:%d:%d%co",LIGHTMAGENTA,rtc.readHours(),rtc.readMinutes(),rtc.readSeconds(),WHITE);
-}
-
-void displayDate() {
-	printf("\n\nDate: %co%d/%d/20%d%co",MAGENTA,rtc.readDay(),rtc.readMonth(),rtc.readYear(),WHITE);
+	printf("\nDate: %co%d/%d/20%d%co",MAGENTA,rtc.readDay(),rtc.readMonth(),rtc.readYear(),WHITE);
 }
 
 void displayFirmware(BootInfo* binfo) {
@@ -117,15 +124,20 @@ void displayRandomNumber() {
 }
 
 void displayKeyboard() {
-	printf("%s_",kb.buffer);
+	printf("\n\nKey pressed: ");
+	if(kbhit())
+		printf("%c",getch());
+	printf("\nKeyboard buffer: %s_",kb.buffer);
 }
 
 void drawPointer() {
 	int x = 0;
 	int y = 0;
 	for(int i = 0;i< 16*25;i++) {
-		if(MousePointer[i])
-			display.putpix((x+mouse.state.X)*4,y+mouse.state.Y,WHITE);
+		if(MousePointerFilled[i] == 1)
+			display.putpix((x+mouse.state.X)*4,y+mouse.state.Y,MOUSE_BORDER_COLOUR);
+		else if (MousePointerFilled[i] == 2)
+			display.putpix((x+mouse.state.X)*4,y+mouse.state.Y,MOUSE_CONTENTS_COLOUR);
 		x++;
 		if(x > 15) {
 			x = 0;
@@ -135,38 +147,44 @@ void drawPointer() {
 }
 
 void doMouse() {
-	printf("\n\nClick to shutdown!");
-
 	mouse.HandlePacket();
 	
 	drawPointer();
 
-	//display.putrect(mouse.state.X,mouse.state.Y,25,12,WHITE);
-
-	if(mouse.state.ButtonLeft || mouse.state.ButtonRight || mouse.state.ButtonMiddle) {
+	if(mouse.state.ButtonLeft || mouse.state.ButtonRight || mouse.state.ButtonMiddle) {		
 		power.Shutdown();
 	}
+}
+
+void displayRSDP() {
+	printf("\n\nRSDP Address: %x",(uint64_t)GlobalInfo->RSDP);
+	printf("\nRSDP Signature: %c%c%c%c%c%c%c%c",*(uint8_t*)GlobalInfo->RSDP,*((uint8_t*)GlobalInfo->RSDP+1),*((uint8_t*)GlobalInfo->RSDP+2),*((uint8_t*)GlobalInfo->RSDP+3),*((uint8_t*)GlobalInfo->RSDP+4),*((uint8_t*)GlobalInfo->RSDP+5),*((uint8_t*)GlobalInfo->RSDP+6),*((uint8_t*)GlobalInfo->RSDP+7));
 }
 
 extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
 	srand(rtc.readTime());
+	display.clearScreen(BLACK);
 
-	while(1){
+	LOOP {
 		display.clearScreen(BLACK);
-		
+
 		displayLogo();
-		displayCPU();
-		displayRAM(binfo);
-		displayTime();
-		displayDate();
-		doMouse();
+		displayDateTime();
+
+		displayRSDP();
+		displayPCI();
+
 		displayKeyboard();
+
+		printf("\n\nClick to shutdown!");
+
+		doMouse();
 
 		display.update();
 	}
 
-	while(1);
+	LOOP;
 
 	return 0;
 } 

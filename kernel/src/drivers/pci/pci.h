@@ -1,27 +1,29 @@
 #pragma once
-#include "../../io/ports.h"
-#include "stdint.h"
-#include "../../libc/stdio.h"
+#include <stdint.h>
+#include "../../misc/power/acpi.h"
 
 struct PCIDevice {
     uint16_t VendorID;
     uint16_t DeviceID;
-    uint16_t Function;
-    char* Class;
-    uint16_t Bus;
-    uint16_t Slot;
+    uint16_t Command;
+    uint16_t Status;
+    uint8_t RevisionID;
+    uint8_t ProgramInterface;
+    uint8_t Subclass;
+    uint8_t Class;
+    uint8_t CacheLineSize;
+    uint8_t LatencyTimer;
+    uint8_t HeaderType;
+    uint8_t BIST;
 };
 
-class PCI
-{
+class PCI {
 private:
-    uint16_t pciConfigReadWord (uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
-    uint16_t getVendorID(uint16_t bus, uint16_t device, uint16_t function);
-    uint16_t getDeviceID(uint16_t bus, uint16_t device, uint16_t function);
-    uint16_t getClassId(uint16_t bus, uint16_t device, uint16_t function);
-    uint16_t getSubClassId(uint16_t bus, uint16_t device, uint16_t function);
+    void EnumFunc(uint64_t addr,uint64_t function);
+    void EnumDevice(uint64_t addr, uint64_t device);
+    void EnumBus(uint64_t addr, uint64_t bus);
 public:
-    PCIDevice Devices[0xFFFF];
-    uint16_t DeviceCount;
-    void detectDevices();
+    PCIDevice* Devices[0x2000];
+    int DevicesIndex = 0;
+    void EnumeratePCI(MCFG* mcfg);
 };

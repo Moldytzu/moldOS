@@ -38,48 +38,40 @@ int Mouse::Read() {
 void Mouse::HandlePacket() {
     if(!PacketReady) return;
     PacketReady = false;
-    bool xN,yN,xO,yO;
+    bool xN=false,yN=false,xO=false,yO=false;
 
-    if(Packet[0] & X_SIGN) {
+    if(Packet[0] & X_SIGN) 
         xN = true;
-    } else xN = false;
 
-    if(Packet[0] & Y_SIGN) {
+    if(Packet[0] & Y_SIGN) 
         yN = true;
-    } else yN = false;
 
-    if(Packet[0] & X_OVER) {
+    if(Packet[0] & X_OVER) 
         xO = true;
-    } else xO = false;
 
-    if(Packet[0] & Y_OVER) {
+    if(Packet[0] & Y_OVER) 
         yO = true;
-    } else yO = false;
 
     if(!xN) {
-        state.X += Packet[1] * SPEED;
-        if(xO) {
+        state.X += Packet[1];
+        if(xO)
             state.X += 255;
-        }
     } else {
         Packet[1] = 256-Packet[1];
-        state.X -= Packet[1] * SPEED;
-        if(xO) {
-            state.X -= 255;
-        }       
+        state.X -= Packet[1];
+        if(xO)
+            state.X -= 255;       
     }
 
     if(!yN) {
-        state.Y -= Packet[2] * SPEED;
-        if(yO) {
+        state.Y -= Packet[2];
+        if(yO)
             state.Y -= 255;
-        }
     } else {
         Packet[2] = 256-Packet[2];
-        state.Y += Packet[2] * SPEED;
-        if(yO) {
-            state.Y += 255;
-        }       
+        state.Y += Packet[2];
+        if(yO)
+            state.Y += 255;      
     }
 
     if(state.X < 0) state.X = 0;
@@ -89,18 +81,26 @@ void Mouse::HandlePacket() {
     if(state.Y > GlobalDisplay->getHeight()-1) state.Y = GlobalDisplay->getHeight()-1;   
 
     if(Packet[0] & BTN_LEFT)
-        state.ButtonLeft = !state.ButtonLeft;
+        state.ButtonLeft = true;
+    else 
+        state.ButtonLeft = false;
+
     if(Packet[0] & BTN_MIDDLE)
-        state.ButtonMiddle = !state.ButtonMiddle;
+        state.ButtonMiddle = true;
+    else 
+        state.ButtonMiddle = false;
+    
     if(Packet[0] & BTN_RIGHT)
-        state.ButtonRight = !state.ButtonRight;
+        state.ButtonRight = true;
+    else 
+        state.ButtonRight = false;
 }
 
 void Mouse::Handle(uint8_t data) {
     switch(Cycle){
         case 0:
             if (PacketReady) break;
-            if (data & 0b00001000 == 0) break;
+            //if (data & 0b00001000 == 0) break;
             Packet[0] = data;
             Cycle++;
             break;

@@ -8,8 +8,7 @@ void KernelPanic(const char* Message) {
     GlobalDisplay->puts("Something didn't work as intended and I needed to stop everything. I'm sorry! :(\nMessage: ");
     GlobalDisplay->puts(Message);
     GlobalDisplay->update();
-    GlobalDisplay->update();
-    GlobalDisplay->update();
-    GlobalDisplay->update();
-    while(1);    
+    while(1) {
+        asm volatile ("hlt");
+    }
 }

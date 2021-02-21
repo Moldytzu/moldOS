@@ -5,6 +5,7 @@ class RealTimeClock {
     private:
         unsigned char getRegister(int reg);
         int getUpdateInProgress();
+        void waitUpdate();
     public:
         void waitSeconds(uint32_t secs);
         uint32_t readHours();

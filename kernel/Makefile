@@ -12,7 +12,10 @@ CC = gcc
 LD = ld
 ASM = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -O2 -march=nocona
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -O2 -msse3
+# uncomment for debugging
+CFLAGS += -g
+
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 
 
@@ -68,7 +71,6 @@ buildimg: $(BUILDDIR)/kernel.elf
 	@ mmd -i $(BUILDDIR)/$(OSNAME).img ::/LLOS
 	@ mmd -i $(BUILDDIR)/$(OSNAME).img ::/EFI/BOOT
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(GNUEFI)/x86_64/bootloader/BOOTx64.efi ::/EFI/BOOT
-	@ mcopy -i $(BUILDDIR)/$(OSNAME).img startup.nsh ::
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img font.psf ::/LLOS
 	@ mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.llexec ::/LLOS
 
@@ -77,7 +79,6 @@ buildimg: $(BUILDDIR)/kernel.elf
 	@ mkdir -p $(BUILDDIR)/iso/EFI
 	@ mkdir -p $(BUILDDIR)/iso/EFI/BOOT
 	@ cp $(GNUEFI)/x86_64/bootloader/BOOTx64.efi $(BUILDDIR)/iso/EFI/BOOT
-	@ cp startup.nsh $(BUILDDIR)/iso/
 	@ cp font.psf $(BUILDDIR)/iso/LLOS/
 	@ cp $(BUILDDIR)/kernel.llexec $(BUILDDIR)/iso/LLOS/
 	@ cd $(BUILDDIR)

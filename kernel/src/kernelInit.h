@@ -8,6 +8,7 @@
 #include "drivers/display/displaydriver.h" //display
 #include "drivers/sound/sounddriver.h" //sunet
 #include "drivers/pci/pci.h" //pci
+#include "drivers/pci/pcitranslate.h" //translate pci things
 #include "drivers/rtc/rtc.h" //realtimeclock
 #include "drivers/keyboard/keyboarddriver.h" // claviatura
 #include "drivers/mouse/mouse.h"
@@ -19,6 +20,7 @@
 #include "misc/colors.h" //culori
 #include "misc/uefi.h" //uefi
 #include "misc/logging/log.h" //logging
+#include "misc/power/acpi.h" //acpi
 
 //io
 #include "io/serial.h" //serial port
@@ -43,9 +45,13 @@
 #include "libc/math.h" //matematica
 #include "libc/time.h" //timp
 
+#define LOOP while(1)
+
+#define DoubleBuffer
+
 struct BootInfo {
 	//display
-	DisplayDriver::DisplayBuffer* GOPFrameBuffer;
+	DisplayBuffer* GOPFrameBuffer;
 	PSF1_FONT* Font;
 
 	//misc
@@ -59,6 +65,9 @@ struct BootInfo {
 
     //verify
     uint64_t Key;
+
+    //acpi
+    RSDP2* RSDP;
 };
 
 extern uint64_t _KernelStart;
@@ -72,6 +81,8 @@ const char* LLOSLogo =  "/ \\   / \\   /  _ \\/ ___\\\n"
 						"| |_/\\| |_/\\| \\_/|\\___ |\n"
 						"\\____/\\____/\\____/\\____/\n";
 
+BootInfo* GlobalInfo;
+
 DisplayDriver display;
 Power power;
 Sound sound;
@@ -80,13 +91,14 @@ PCI pci;
 RealTimeClock rtc;
 SerialPort com1;
 Parallel paralel;
-DisplayDriver::DisplayBuffer* doubleBuffer;
-PageTableManager pageTableManager = NULL;
+DisplayBuffer* doubleBuffer;
 IDTR idtr;
 Keyboard kb;
 Logging log;
 Mouse mouse;
 PS2Controller ps2;
+ACPI acpi;
+PCITranslate pcitranslate;
 
 void EnablePaging(BootInfo* bootInfo) {
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -94,17 +106,17 @@ void EnablePaging(BootInfo* bootInfo) {
     PageTable* PML4 = (PageTable*)GlobalAllocator.RequestPage();
     memset(PML4, 0, 0x1000);
 
-    pageTableManager = PageTableManager(PML4);
+    GlobalTableManager = PageTableManager(PML4);
 
     for (uint64_t t = 0; t < GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize); t+= 0x1000){
-        pageTableManager.MapMemory((void*)t, (void*)t);
+        GlobalTableManager.MapMemory((void*)t, (void*)t);
     }
 
     uint64_t fbBase = (uint64_t)bootInfo->GOPFrameBuffer->BaseAddr;
     uint64_t fbSize = (uint64_t)bootInfo->GOPFrameBuffer->BufferSize + 0x1000;
     GlobalAllocator.LockPages((void*)fbBase, fbSize/ 0x1000 + 1);
     for (uint64_t t = fbBase; t < fbBase + fbSize; t += 4096){
-        pageTableManager.MapMemory((void*)t, (void*)t);
+        GlobalTableManager.MapMemory((void*)t, (void*)t);
     }
 
     asm ("mov %0, %%cr3" : : "r" (PML4));
@@ -143,10 +155,18 @@ void InitIntrerupts() {
     outportb(PIC1_DATA, 0b11111001);
     outportb(PIC2_DATA, 0b11101111);
 
-    asm ("sti");
+    asm volatile("sti");
+}
+
+void InitACPI(BootInfo* bootInfo) {
+    SDT* xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
+    MCFG* mcfg = (MCFG*)acpi.FindTable(xsdt,(char*)"MCFG");
+
+    pci.EnumeratePCI(mcfg);
 }
 
 void InitDrivers(BootInfo* bootInfo) {
+    GlobalInfo = bootInfo;
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
     GlobalAllocator = PageFrameAllocator();
@@ -162,16 +182,15 @@ void InitDrivers(BootInfo* bootInfo) {
     LoadGDT();
 	InitIntrerupts();
     
-	//EnablePaging(bootInfo);
-
-    //ps2.Init();
+	EnablePaging(bootInfo);
 
     GlobalKeyboard = &kb;
     mouse.Init();
     GlobalMouse = &mouse;
 
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
-	
+
+#ifdef DoubleBuffer
     doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
 	doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;
 	doubleBuffer->Height = display.globalFrameBuffer->Height;
@@ -179,9 +198,12 @@ void InitDrivers(BootInfo* bootInfo) {
 	doubleBuffer->Width = display.globalFrameBuffer->Width;
 	GlobalAllocator.LockPages(doubleBuffer->BaseAddr, (doubleBuffer->BufferSize / 4096) + 6);
     for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096){
-        pageTableManager.MapMemory((void*)t, (void*)t);
+        GlobalTableManager.MapMemory((void*)t, (void*)t);
     }
 	display.InitDoubleBuffer(doubleBuffer);
+#else
+    display.InitDoubleBuffer(bootInfo->GOPFrameBuffer);
+#endif
 
 	display.setColour(WHITE);
 	display.clearScreen(0);
@@ -191,12 +213,9 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	log.info("Initialized PS/2, Intrerupts, Display!");
 
-
 	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
 	log.info("Initialized Power!");
 
-	pci.detectDevices();
-    log.info("Detected PCI devices!");
 	CPUFeatures = cpu.getFeatures();
 	log.info("Detected CPU features!");
 	
@@ -204,6 +223,9 @@ void InitDrivers(BootInfo* bootInfo) {
 	GlobalCOM1 = &com1;
 	com1.ClearMonitor();
     log.info("Initialized Serial!");
+
+    InitACPI(bootInfo);
+    log.info("Initialized ACPI!");
 
     log.info("Initialized Everything!");
     
@@ -214,10 +236,9 @@ void InitDrivers(BootInfo* bootInfo) {
 
     log.info("");
     log.info("Welcome to LowLevelOS!");
-    log.info("By Moldu' (Nov. 2020 - Jan. 2021)");
+    log.info("By Moldu' (Nov. 2020 - Feb. 2021)");
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    rtc.waitSeconds(3);
-
+    rtc.waitSeconds(1);
 }

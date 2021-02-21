@@ -3,12 +3,11 @@
 #include "stddef.h"
 #include "../../libc/stdio.h"
 #include "../../libc/math.h"
+#include "../../libc/time.h"
 #include "../../memory/efiMemory.h"
 #include "../../memory/PageFrameAllocator.h"
 #include "../../misc/psf1.h"
 
-class DisplayDriver {
-public:
 typedef struct {
 	void* BaseAddr;
 	long long BufferSize;
@@ -16,6 +15,9 @@ typedef struct {
 	unsigned int Height;
 	unsigned int PixelPerScanLine;
 } DisplayBuffer;
+
+class DisplayDriver {
+public:
 
 //drawing pixels
 void putpix(int x,int y);
@@ -42,6 +44,7 @@ void advanceCursor();
 void clearScreen(unsigned int colour);
 void setColour(unsigned int colo);
 void checkScroll();
+void fillGarbage();
 
 //initializare
 void InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font);
@@ -55,8 +58,8 @@ uint64_t getHeight();
 void update();
 
 //variabile
-DisplayDriver::DisplayBuffer* secondFrameBuffer;
-DisplayDriver::DisplayBuffer* globalFrameBuffer;
+DisplayBuffer* secondFrameBuffer;
+DisplayBuffer* globalFrameBuffer;
 PSF1_FONT* globalFont;
 Point CursorPos;
 uint64_t colour;

@@ -27,7 +27,6 @@ __attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame) {
 __attribute__((interrupt)) void MSHandler(struct IntreruptFrame* frame) {
     uint8_t data = inportb(0x60);
     GlobalMouse->Handle(data);
-    PIC_EndMaster();
     PIC_EndSlave();
 }
 

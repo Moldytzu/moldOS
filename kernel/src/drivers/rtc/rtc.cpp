@@ -1,5 +1,10 @@
 #include "rtc.h"
 
+void RealTimeClock::waitUpdate() {
+    int old = getRegister(0x0);
+    while(getRegister(0x0)==old);
+}
+
 int RealTimeClock::getUpdateInProgress() {
     outportb(0x70, 0x0A);
     return (inportb(0x71) & 0x80);
@@ -51,6 +56,7 @@ uint32_t RealTimeClock::readTime() {
 }
 
 void RealTimeClock::waitSeconds(uint32_t secs) {
+    waitUpdate();
     int lastsec = readTime()+secs;
     while(lastsec != readTime()){}
 }

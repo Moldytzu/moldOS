@@ -1,116 +1,22 @@
-#include <efi.h>
-#include <efilib.h>
-#include <elf.h>
-#include <stddef.h>
-
-#define PSF1_MAGIC0 0x36
-#define PSF1_MAGIC1 0x04
-
-typedef struct
-{
-	void *PowerOff;
-	void *Restart;
-} Power;
-
-typedef struct
-{
-	void *BaseAddr;
-	long long BufferSize;
-	unsigned int Width;
-	unsigned int Height;
-	unsigned int PixelPerScanLine;
-} framebuffer;
-
-typedef struct
-{
-	CHAR16 *Vendor;
-	uint32_t Version;
-} UEFIFirmware;
-
-typedef struct
-{
-	unsigned char magic[2];
-	unsigned char mode;
-	unsigned char charsize;
-} PSF1_HEADER;
-
-typedef struct
-{
-	PSF1_HEADER *psf1_Header;
-	void *glyphBuffer;
-} PSF1_FONT;
-
-typedef struct
-{
-	framebuffer *framebuf;
-	PSF1_FONT *font;
-	Power *pwr;
-	UEFIFirmware *firm;
-	EFI_MEMORY_DESCRIPTOR *mMap;
-	UINTN mMapSize;
-	UINTN mMapDescSize;
-	uint64_t Key;
-} BootInfo;
+#include "def.h"
 
 framebuffer frambuf;
 
 const wchar_t *LLOSLogo = L"/ \\   / \\   /  _ \\/ ___\\\n\r"
-						"| |   | |   | / \\||    \\\n\r"
-						"| |_/\\| |_/\\| \\_/|\\___ |\n\r"
-						"\\____/\\____/\\____/\\____/\n\r";
+						   "| |   | |   | / \\||    \\\n\r"
+						   "| |_/\\| |_/\\| \\_/|\\___ |\n\r"
+						   "\\____/\\____/\\____/\\____/\n\r";
 
-void PowerDown()
-{
-	ST->RuntimeServices->ResetSystem(EfiResetShutdown, 0, 0, NULL);
-}
-
-void PowerRestart()
-{
-	ST->RuntimeServices->ResetSystem(EfiResetWarm, 0, 0, NULL);
-}
-
-void ClearScreen()
-{
-	uefi_call_wrapper(ST->ConOut->ClearScreen, 1, ST->ConOut);
-}
+const wchar_t* LogoI =   L"/ \\   / \\   /  _ \\/ ___\\\n\r";
+const wchar_t* LogoII =  L"| |   | |   | / \\||    \\\n\r";
+const wchar_t* LogoIII = L"| |_/\\| |_/\\| \\_/|\\___ |\n\r";
+const wchar_t* LogoIV =  L"\\____/\\____/\\____/\\____/\n\r";
 
 void TriggerError(wchar_t *errstr)
 {
 	ClearScreen();
 	Print(errstr);
-	while (1)
-	{
-	}
-}
-
-void InitUEFI(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
-{
-	ST = SystemTable; //Ceva initializare
-	InitializeLib(ImageHandle, SystemTable);
-	SystemTable->BootServices->SetWatchdogTimer(0, 0, 0, NULL); //dezactivare blocare dupa 5 minuturi
-}
-
-EFI_FILE *ReadFile(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
-{
-	EFI_FILE *LoadedFile;
-
-	EFI_LOADED_IMAGE_PROTOCOL *LoadedImage;
-	SystemTable->BootServices->HandleProtocol(ImageHandle, &gEfiLoadedImageProtocolGuid, (void **)&LoadedImage);
-
-	EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *FileSystem;
-	SystemTable->BootServices->HandleProtocol(LoadedImage->DeviceHandle, &gEfiSimpleFileSystemProtocolGuid, (void **)&FileSystem);
-
-	if (Directory == NULL)
-	{
-		FileSystem->OpenVolume(FileSystem, &Directory);
-	}
-
-	EFI_STATUS s = Directory->Open(Directory, &LoadedFile, Path, EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY);
-	if (s != EFI_SUCCESS)
-	{
-		return NULL;
-	}
-	return LoadedFile;
+	while (1);
 }
 
 framebuffer *InitGOP()
@@ -119,14 +25,12 @@ framebuffer *InitGOP()
 	EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
 	EFI_STATUS stat;
 
-	stat = uefi_call_wrapper(BS->LocateProtocol, 3, &gopGuid, NULL, (void **)&gop);
+	stat = BS->LocateProtocol(&gopGuid, ((void *)0), (void **)&gop);
 	if (EFI_ERROR(stat))
 	{
 		ClearScreen();
 		Print(L"Cannot init GOP!\n\r");
-		while (1)
-		{
-		}
+		while (1);
 	}
 	else
 	{
@@ -175,59 +79,24 @@ PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, E
 	return finishedFont;
 }
 
-int memcmp(const void *aptr, const void *bptr, size_t n)
-{
-	const unsigned char *a = aptr, *b = bptr;
-	for (size_t i = 0; i < n; i++)
-	{
-		if (a[i] < b[i])
-			return -1;
-		else if (a[i] > b[i])
-			return 1;
-	}
-	return 0;
-}
-
-int strlen(char *s)
-{
-	int z = 0;
-	for (int i = 0; s[i] != 0; i++)
-		z = i;
-	return z;
-}
-
-wchar_t *CSTRTOWCHAR(char *cstr, EFI_SYSTEM_TABLE *SystemTable)
-{
-	wchar_t *toret;
-	SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(wchar_t) * strlen(cstr), (void **)&toret);
-	for (int i = 0; cstr[i] != 0; i++)
-	{
-		toret[i] = (wchar_t)cstr[i];
-		toret[i + 1] = 0;
-	}
-	return toret;
-}
-
-char *ReadText(wchar_t *filename, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
-{
-	EFI_FILE *f = ReadFile(NULL, filename, ImageHandle, SystemTable);
-	if (f == NULL)
-		return 0;
-	char *buf;
-	SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(char) * 2048, (void **)&buf);
-	UINTN size = sizeof(char) * 2048;
-	buf = "";
-	f->Read(f, &size, buf);
-	buf[2048] = 0;
-	return buf;
-}
-
 void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
+	ST->ConOut->SetMode(ST->ConOut,0);
+	SetColour(EFI_BACKGROUND_LIGHTGRAY | EFI_YELLOW);
+	ShowCursor(FALSE);
 	ClearScreen();
-	uefi_call_wrapper(SystemTable->ConOut->SetAttribute, 1, SystemTable->ConOut, EFI_YELLOW);
-	Print(LLOSLogo);
-	Print(L"===[Loading Kernel..]===");
+	SetCursorPos(27,8);
+	
+	Print(LogoI);
+	SetCursorPos(27,9);
+	Print(LogoII);
+	SetCursorPos(27,10);
+	Print(LogoIII);
+	SetCursorPos(27,11);
+	Print(LogoIV);
+	
+	SetCursorPos(27,12);
+	Print(L"[-----------------------]");
 
 	EFI_FILE* llosFolder = ReadFile(NULL,L"LLOS",ImageHandle,SystemTable);
 	if(llosFolder == NULL)
@@ -236,6 +105,9 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	EFI_FILE *monkernel = ReadFile(llosFolder, L"kernel.llexec", ImageHandle, SystemTable);
 	if (monkernel == NULL)
 		TriggerError(L"Cannot find \"kernel.llexec\"!");
+
+	SetCursorPos(27,12);
+	Print(L"[####-------------------]");
 
 	Elf64_Ehdr header;
 	{
@@ -249,8 +121,14 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		monkernel->Read(monkernel, &size, &header);
 	}
 
+	SetCursorPos(27,12);
+	Print(L"[######----------------]");
+
 	if (memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 || header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64 || header.e_version != EV_CURRENT)
 		TriggerError(L"Cannot verify the kernel!");
+
+	SetCursorPos(27,12);
+	Print(L"[#######---------------]");
 
 	Elf64_Phdr *phdrs;
 	{
@@ -259,6 +137,9 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		SystemTable->BootServices->AllocatePool(EfiLoaderData, size, (void **)&phdrs);
 		monkernel->Read(monkernel, &size, phdrs);
 	}
+
+	SetCursorPos(27,12);
+	Print(L"[########--------------]");
 
 	for (Elf64_Phdr *phdr = phdrs; (char *)phdr < (char *)phdrs + header.e_phnum * header.e_phentsize; phdr = (Elf64_Phdr *)((char *)phdr + header.e_phentsize))
 	{
@@ -278,11 +159,20 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		}
 	}
 
+	SetCursorPos(27,12);
+	Print(L"[###########-----------]");
+
 	PSF1_FONT *newFont = LoadFont(llosFolder, L"font.psf", ImageHandle, SystemTable);
 	if (newFont == NULL)
 		TriggerError(L"Cannot load \"font.psf\"!");
 
-	framebuffer *buf = InitGOP();
+	SetCursorPos(27,12);
+	Print(L"[############----------]");
+
+	InitGOP();
+
+	SetCursorPos(27,12);
+	Print(L"[#############---------]");
 
 	EFI_MEMORY_DESCRIPTOR *Map = NULL;
 	UINTN MapSize, MapKey;
@@ -293,6 +183,25 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
 		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
 	}
+
+	SetCursorPos(27,12);
+	Print(L"[################------]");
+
+	EFI_CONFIGURATION_TABLE* configTable = SystemTable->ConfigurationTable;
+	void* RSDP = NULL;
+	EFI_GUID ACPITABLEGUID = ACPI_20_TABLE_GUID;
+
+	for(UINTN i = 0;i < SystemTable->NumberOfTableEntries;i++) {
+		if(CompareGuid(&configTable[i].VendorGuid, &ACPITABLEGUID)) {
+			if(strcmp((CHAR8*)"RSD PTR ", (CHAR8*)configTable->VendorTable,8)) {
+				RSDP = (void*)configTable->VendorTable;
+			}
+		}
+		configTable++;
+	}
+
+	SetCursorPos(27,12);
+	Print(L"[###################---]");
 
 	int (*EntryPoint)(BootInfo *) = ((__attribute__((sysv_abi)) int (*)(BootInfo *))header.e_entry);
 
@@ -305,7 +214,7 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	p.Restart = PowerRestart;
 
 	BootInfo info;
-	info.framebuf = buf;
+	info.framebuf = &frambuf;
 	info.font = newFont;
 	info.pwr = &p;
 	info.mMap = Map;
@@ -313,43 +222,63 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	info.mMapDescSize = DescriptorSize;
 	info.firm = &f;
 	info.Key = 0xFFFFFF/0x800;
+	info.RSDP = RSDP;
+
+	SetCursorPos(27,12);
+	Print(L"[####################--]");
 
 	SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
 
-	EntryPoint(&info);
-	TriggerError(L"Cannot run the kernel!");
-}
+	SetCursorPos(27,12);
+	Print(L"[#######################]");
 
-EFI_INPUT_KEY GetKey(EFI_SYSTEM_TABLE *SystemTable)
-{
-	SystemTable->ConIn->Reset(SystemTable->ConIn, 1);
-	EFI_INPUT_KEY Key;
-	while((SystemTable->ConIn->ReadKeyStroke(SystemTable->ConIn, &Key)) == EFI_NOT_READY);
-	return Key;
+	EntryPoint(&info);
+
+	TriggerError(L"Cannot run the kernel!");
 }
 
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
 	InitUEFI(ImageHandle, SystemTable);
-	uefi_call_wrapper(SystemTable->ConOut->SetAttribute, 1, SystemTable->ConOut, EFI_CYAN);
+	ST->ConOut->SetMode(ST->ConOut,0);
+	SetColour(EFI_BACKGROUND_LIGHTGRAY | EFI_LIGHTCYAN);
+	ShowCursor(FALSE);
 	int selection = 0;
+	ClearScreen();
+	SetCursorPos(27,8);
+	Print(LogoI);
+	SetCursorPos(27,9);
+	Print(LogoII);
+	SetCursorPos(27,10);
+	Print(LogoIII);
+	SetCursorPos(27,11);
+	Print(LogoIV);
+	SetCursorPos(17,13);
+	Print(L"Use A and D to navigate and ENTER to select!\n\r");
+
 	while(1) {
-		ClearScreen();
-		Print(LLOSLogo);
-		Print(L"LLOS Bootloader\n\rUse W and S to navigate!\n\r");
-		if(!selection) {
-			Print(L"[*] Run LLOS\n\r[ ] Reboot\n\r[ ] Shutdown\n\r");
-		} else if (selection == 1) {
-			Print(L"[ ] Run LLOS\n\r[*] Reboot\n\r[ ] Shutdown\n\r");
-		} else {
-			Print(L"[ ] Run LLOS\n\r[ ] Reboot\n\r[*] Shutdown\n\r");
+		SetCursorPos(20,14);
+		
+		switch (selection)
+		{
+		case 0:
+			Print(L"[*] Run LLOS  [ ] Reboot  [ ] Shutdown\n\r");
+			break;
+		case 1:
+			Print(L"[ ] Run LLOS  [*] Reboot  [ ] Shutdown\n\r");
+			break;
+		case 2:
+			Print(L"[ ] Run LLOS  [ ] Reboot  [*] Shutdown\n\r");
+			break;
 		}
+
 		EFI_INPUT_KEY k = GetKey(SystemTable);
-		if((k.UnicodeChar == L's' || k.UnicodeChar == L'S') && selection != 2) selection++;
-		if((k.UnicodeChar == L'w' || k.UnicodeChar == L'W') && selection != 0) selection--;
+		if((k.UnicodeChar == L'd' || k.UnicodeChar == L'D') && selection != 2) selection++;
+		if((k.UnicodeChar == L'a' || k.UnicodeChar == L'A') && selection != 0) selection--;
 		if(k.UnicodeChar == L'\r' && selection == 2) PowerDown();
 		if(k.UnicodeChar == L'\r' && selection == 1) PowerRestart();
 		if(k.UnicodeChar == L'\r' && selection == 0) RunKernel(ImageHandle,SystemTable);
 	}
+	efi_main(ImageHandle,SystemTable);
 	return 1;
 }

@@ -154,7 +154,7 @@ void DisplayDriver::setColour(unsigned int colo) {
 }
 
 void DisplayDriver::update() {
-	memcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
+	ssememcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
 }
 
 void DisplayDriver::advanceCursor() {
@@ -163,6 +163,12 @@ void DisplayDriver::advanceCursor() {
 		CursorPos.X = 0;
 		CursorPos.Y += 16;
 		//checkScroll();
+	}
+}
+
+void DisplayDriver::fillGarbage() {
+	for(uint64_t i = 0;i<secondFrameBuffer->BufferSize;i+=4) {
+		*(uint64_t*)(i+secondFrameBuffer->BaseAddr) = rand();
 	}
 }
 

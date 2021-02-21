@@ -30,7 +30,7 @@ void printf(const char* str, ...) {
             GlobalDisplay->puts(chartostr(va_arg (args, int))); //char
             index++;
         } else if (str[index] == '%' && str[index+1] == 's') {
-            GlobalDisplay->puts(va_arg (args, char*)); //string
+            GlobalDisplay->puts(va_arg (args, const char*)); //string
             index++;
         } else if (str[index] == '%' && str[index+1] == 'p') {
             GlobalDisplay->puts(inttostr((uint64_t)va_arg (args, void*))); //address

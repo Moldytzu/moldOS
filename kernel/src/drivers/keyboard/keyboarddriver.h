@@ -13,7 +13,10 @@
 
 #define KEYUP_OFFSET 0x80
 
-#define ASCII_UPPERCASE_OFFSET 32
+#define ASCII_UPPERCASE_OFFSET 0x20
+
+static bool ReceivedIntrerupt = false;
+static int LastKeycode = 0;
 
 enum KeyState {
     UP,
@@ -24,13 +27,17 @@ class Keyboard {
     public:
         char buffer[0xFFFF];
         int bufferIndex = 0;
-        
+
         KeyState LeftShift = UP;
         KeyState RightShift = UP;
         KeyState CapsLock = UP;
         
-        char Translate(uint8_t keycode,KeyState isUpperCase);
+        char Translate(uint8_t keycode,KeyState isUpperCase,KeyState isCaps);
         void Handle(uint8_t keycode);
+        
 };
+
+int kbhit();
+int getch();
 
 extern Keyboard* GlobalKeyboard;

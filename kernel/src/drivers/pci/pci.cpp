@@ -1,119 +1,61 @@
 #include "pci.h"
+#include "../../memory/PageTableManager.h"
+#include "../../drivers/display/displaydriver.h"
+#include "../../libc/stdio.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wwrite-strings"
+void PCI::EnumFunc(uint64_t addr,uint64_t function) {
+    uint64_t offset = function << 12;
+    
+    uint64_t busAddress = addr + offset;
+    GlobalTableManager.MapMemory((void*)busAddress,(void*)busAddress);
 
-uint16_t PCI::pciConfigReadWord (uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
-    uint32_t address;
-    uint32_t lbus  = (uint32_t)bus;
-    uint32_t lslot = (uint32_t)slot;
-    uint32_t lfunc = (uint32_t)func;
-    uint16_t tmp = 0;
-    address = (uint32_t)((lbus << 16) | (lslot << 11) | (lfunc << 8) | (offset & 0xfc) | ((uint32_t)0x80000000));
-    outportl(0xCF8, address);
-    tmp = (uint16_t)((inportl(0xCFC) >> ((offset & 2) * 8)) & 0xffff);
-    return (tmp);
+    PCIDevice* deviceZ = (PCIDevice*)busAddress;
+
+    if(deviceZ->DeviceID == 0) return;
+    if(deviceZ->DeviceID == 0xFFFF) return;
+    
+    Devices[DevicesIndex] = deviceZ;
+    DevicesIndex++;
 }
 
-uint16_t PCI::getVendorID(uint16_t bus, uint16_t device, uint16_t function) {
-    return pciConfigReadWord(bus,device,function,0);
+void PCI::EnumDevice(uint64_t addr, uint64_t device) {
+    uint64_t offset = device << 15;
+    
+    uint64_t busAddress = addr + offset;
+    GlobalTableManager.MapMemory((void*)busAddress,(void*)busAddress);
+
+    PCIDevice* deviceZ = (PCIDevice*)busAddress;
+
+    if(deviceZ->DeviceID == 0) return;
+    if(deviceZ->DeviceID == 0xFFFF) return;
+
+    for(uint64_t device = 0; device < 8;device++) {
+        EnumFunc(busAddress,device);
+    }
 }
 
-uint16_t PCI::getDeviceID(uint16_t bus, uint16_t device, uint16_t function) {
-    return pciConfigReadWord(bus,device,function,2);
+void PCI::EnumBus(uint64_t addr, uint64_t bus) {
+    uint64_t offset = bus << 20;
+    
+    uint64_t busAddress = addr + offset;
+    GlobalTableManager.MapMemory((void*)busAddress,(void*)busAddress);
+
+    PCIDevice* device = (PCIDevice*)busAddress;
+
+    if(device->DeviceID == 0) return;
+    if(device->DeviceID == 0xFFFF) return;
+
+    for(uint64_t device = 0; device < 32;device++) {
+        EnumDevice(busAddress,device);
+    }
 }
 
-uint16_t PCI::getClassId(uint16_t bus, uint16_t device, uint16_t function)
-{
-        return (pciConfigReadWord(bus,device,function,0xA) & ~0x00FF) >> 8;
-}
-
-uint16_t PCI::getSubClassId(uint16_t bus, uint16_t device, uint16_t function)
-{
-        return (pciConfigReadWord(bus,device,function,0xA) & ~0xFF00);
-}
-
-void PCI::detectDevices() {
-    int index = 0;
-	for(uint32_t bus = 0; bus < 256; bus++)
-    {
-        for(uint32_t slot = 0; slot < 32; slot++)
-        {
-            for(uint32_t function = 0; function < 8; function++)
-            {
-                    uint16_t vendor = getVendorID(bus, slot, function);
-                    if(vendor == 0xffff) continue;
-                    uint16_t device = getDeviceID(bus, slot, function);
-                    uint16_t classid = getClassId(bus, slot, function);
-                    PCIDevice pcidevice;
-                    pcidevice.VendorID = vendor;
-                    pcidevice.DeviceID = device;
-                    pcidevice.Function = function;
-
-                    switch (classid)
-                    {
-                    case 1:
-                        pcidevice.Class = "Mass Storage Controller";
-                        break;
-                    case 2:
-                        pcidevice.Class = "Network Controller";
-                        break;
-                    case 3:
-                        pcidevice.Class = "Display Controller";
-                        break;
-                    case 4:
-                        pcidevice.Class = "Multimedia Controller";
-                        break;
-                    case 5:
-                        pcidevice.Class = "Memory Controller";
-                        break;
-                    case 6:
-                        pcidevice.Class = "Bridge Device";
-                        break;
-                    case 7:
-                        pcidevice.Class = "Simple Communication Controller";
-                        break;
-                    case 8:
-                        pcidevice.Class = "Base System Peripheral";
-                        break;
-                    case 9:
-                        pcidevice.Class = "Input Device Controller";
-                        break;
-                    case 10:
-                        pcidevice.Class = "Docking Station";
-                        break;
-                    case 11:
-                        pcidevice.Class = "Processor";
-                        break;
-                    case 12:
-                        pcidevice.Class = "Serial Bus Controller";
-                        break;
-                    case 13:
-                        pcidevice.Class = "Wireless Controller";
-                        break;
-                    case 14:
-                        pcidevice.Class = "Intelligent Controller";
-                        break;
-                    case 15:
-                        pcidevice.Class = "Satellite Communication Controller";
-                        break;
-                    case 16:
-                        pcidevice.Class = "Encryption Controller";
-                        break;
-                    case 17:
-                        pcidevice.Class = "Signal Processing Controller";
-                        break;
-                    default:
-                        pcidevice.Class = "Unclassified";
-                        break;
-                    }
-                    pcidevice.Bus = bus;
-                    pcidevice.Slot = slot;
-                    Devices[index] = pcidevice;
-                    index++;
-            }
+void PCI::EnumeratePCI(MCFG* mcfg) {
+    int entries = ((mcfg->Header.Lenght) - sizeof(MCFG)) / sizeof(DeviceConfig);
+    for(int t = 0; t < entries;t++) {
+        DeviceConfig* conf = (DeviceConfig*)((uint64_t)mcfg + sizeof(MCFG) + (sizeof(DeviceConfig) * t));
+        for(uint64_t bus = conf->StartBus; bus < conf->EndBus;bus++) {
+            EnumBus(conf->BaseAddress,bus);
         }
     }
-    DeviceCount = index;
 }
-#pragma GCC diagnostic pop
