@@ -96,11 +96,13 @@ void Mouse::HandlePacket() {
         state.ButtonRight = false;
 }
 
+bool skipPacket = true;
 void Mouse::Handle(uint8_t data) {
+    HandlePacket();
+    if(skipPacket) {skipPacket = false;return;}
     switch(Cycle){
         case 0:
             if (PacketReady) break;
-            //if (data & 0b00001000 == 0) break;
             Packet[0] = data;
             Cycle++;
             break;
@@ -119,17 +121,17 @@ void Mouse::Handle(uint8_t data) {
 }
 
 void Mouse::Init() {
-    outb(0x64, 0xA8); //enabling the auxiliary device - mouse
+    outb(0x64, 0xA8);
 
     Wait();
-    outb(0x64, 0x20); //tells the keyboard controller that we want to send a command to the mouse
+    outb(0x64, 0x20);
     WaitInput();
     uint8_t status = inb(0x60);
     status |= 0b10;
     Wait();
     outb(0x64, 0x60);
     Wait();
-    outb(0x60, status); // setting the correct bit is the "compaq" status byte
+    outb(0x60, status);
 
     Send(0xF6);
     Read();

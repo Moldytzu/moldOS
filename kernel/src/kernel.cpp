@@ -86,7 +86,8 @@ void displayCPU() {
 }
 
 void displayRAM(BootInfo* bootInfo) {
-	printf("\n\nTotal RAM: %co%d MB%co",YELLOW,(GlobalAllocator.GetFreeRAM()+GlobalAllocator.GetUsedRAM()+GlobalAllocator.GetReservedRAM())/1024/1024,WHITE);
+	printf("\n\nPhysical RAM: %co%d MB%co",YELLOW,(GlobalAllocator.GetFreeRAM()+GlobalAllocator.GetUsedRAM())/1024/1024,WHITE);
+	printf("\nTotal RAM: %co%d MB%co",YELLOW,(GlobalAllocator.GetFreeRAM()+GlobalAllocator.GetUsedRAM()+GlobalAllocator.GetReservedRAM())/1024/1024,WHITE);
 	printf("\nFree RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetFreeRAM()/1024/1024,WHITE);
 	printf("\nUsed RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetUsedRAM()/1024/1024,WHITE);
 	printf("\nReserved RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetReservedRAM()/1024/1024,WHITE);
@@ -101,11 +102,12 @@ void displayPCI() {
 	printf("\n\nDetected %co%d%co PCI devices: \n",LIGHTTURQOISE,pci.DevicesIndex,WHITE);
 
 	for(int i = 0;i<pci.DevicesIndex;i++) {
+		TranslatedPCIDevice device = pci.Devices[i];
 		printf("\nPCI Device %d:\n",i);
-		printf(" Vendor: %co%s%co",LIGHTTURQOISE,pcitranslate.TranslateVendor(pci.Devices[i]->VendorID),WHITE);
-		printf(" Device: %co%s%co",LIGHTTURQOISE,pcitranslate.TranslateDeviceID(pci.Devices[i]->VendorID,pci.Devices[i]->DeviceID),WHITE);
-		printf(" Class: %co%s%co",LIGHTTURQOISE,pcitranslate.TranslateClass(pci.Devices[i]->Class),WHITE);
-		printf(" SubClass: %co%s%co",LIGHTTURQOISE,pcitranslate.TranslateSubClass(pci.Devices[i]->Class,pci.Devices[i]->Subclass),WHITE);
+		printf(" Vendor: %co%s%co",LIGHTTURQOISE,device.VendorID,WHITE);
+		printf(" Device: %co%s%co",LIGHTTURQOISE,device.DeviceID,WHITE);
+		printf(" Class: %co%s%co",LIGHTTURQOISE,device.Class,WHITE);
+		printf(" SubClass: %co%s%co",LIGHTTURQOISE,device.Subclass,WHITE);
 	}
 }
 
@@ -147,8 +149,6 @@ void drawPointer() {
 }
 
 void doMouse() {
-	mouse.HandlePacket();
-	
 	drawPointer();
 
 	if(mouse.state.ButtonLeft || mouse.state.ButtonRight || mouse.state.ButtonMiddle) {		
@@ -172,7 +172,6 @@ extern "C" int kernelMain(BootInfo* binfo) {
 		displayLogo();
 		displayDateTime();
 
-		displayRSDP();
 		displayPCI();
 
 		displayKeyboard();

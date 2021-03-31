@@ -11,7 +11,8 @@
 #include "drivers/pci/pcitranslate.h" //translate pci things
 #include "drivers/rtc/rtc.h" //realtimeclock
 #include "drivers/keyboard/keyboarddriver.h" // claviatura
-#include "drivers/mouse/mouse.h"
+#include "drivers/mouse/mouse.h" //ps/2 mouse
+#include "drivers/ahci/ahci.h" //disk
 
 //misc
 #include "misc/power/power.h" //power
@@ -33,7 +34,7 @@
 #include "memory/PageMapIndexer.h" //pmi
 #include "memory/paging.h" //paging
 #include "memory/PageTableManager.h" //ptm
-#include "memory/dynamic.h" //malloc free calloc
+#include "memory/heap.h" //heap
 
 //intrerupturi
 #include "intrerupts/gdt.h" //gdt
@@ -44,6 +45,9 @@
 #include "libc/stdio.h" //input / output
 #include "libc/math.h" //matematica
 #include "libc/time.h" //timp
+
+//scheduling
+#include "scheduling/pit.h" //pit
 
 #define LOOP while(1)
 
@@ -147,12 +151,13 @@ void InitIntrerupts() {
 
     CreateIntrerupt((void*)KBHandler,0x21,IDT_TA_InterruptGate,0x08);
     CreateIntrerupt((void*)MSHandler,0x2C,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)PITHandler,0x20,IDT_TA_InterruptGate,0x08);
 
 	asm ("lidt %0" : : "m" (idtr));
 
     RemapPIC();
 
-    outportb(PIC1_DATA, 0b11111001);
+    outportb(PIC1_DATA, 0b11111000);
     outportb(PIC2_DATA, 0b11101111);
 
     asm volatile("sti");
@@ -179,6 +184,8 @@ void InitDrivers(BootInfo* bootInfo) {
 
     GlobalAllocator.LockPages(&_KernelStart, kernelPages);
 
+    GlobalAllocator.LockPages(bootInfo,sizeof(BootInfo)/4096+1);
+
     LoadGDT();
 	InitIntrerupts();
     
@@ -196,10 +203,13 @@ void InitDrivers(BootInfo* bootInfo) {
 	doubleBuffer->Height = display.globalFrameBuffer->Height;
 	doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
 	doubleBuffer->Width = display.globalFrameBuffer->Width;
-	GlobalAllocator.LockPages(doubleBuffer->BaseAddr, (doubleBuffer->BufferSize / 4096) + 6);
+
+    GlobalAllocator.LockPages(doubleBuffer->BaseAddr, (display.globalFrameBuffer->BufferSize / 4096) + 100);
+
     for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096){
         GlobalTableManager.MapMemory((void*)t, (void*)t);
     }
+
 	display.InitDoubleBuffer(doubleBuffer);
 #else
     display.InitDoubleBuffer(bootInfo->GOPFrameBuffer);
@@ -211,7 +221,11 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	GlobalDisplay = &display;
 
-	log.info("Initialized PS/2, Intrerupts, Display!");
+    InitializeHeap((void*)0x0000100000000000, 0x10);
+
+	log.info("Initialized PS/2, Intrerupts, Display, Heap!");
+
+    PITSetDivisor(20000);
 
 	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
 	log.info("Initialized Power!");
@@ -236,9 +250,9 @@ void InitDrivers(BootInfo* bootInfo) {
 
     log.info("");
     log.info("Welcome to LowLevelOS!");
-    log.info("By Moldu' (Nov. 2020 - Feb. 2021)");
+    log.info("By Moldu' (Nov. 2020 - March. 2021)");
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    rtc.waitSeconds(1);
+    rtc.waitSeconds(2);
 }

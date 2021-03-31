@@ -71,9 +71,13 @@ void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font) 
 }
 
 void DisplayDriver::clearScreen(unsigned int colour) {
-	for(uint64_t y = 0;y<=getHeight();y++) {
-		for(uint64_t x = 0;x<=getWidth()*4;x+=4) {
-			putpix(x,y,colour);
+	if(colour == 0) {
+		memset(secondFrameBuffer->BaseAddr,0,secondFrameBuffer->BufferSize);
+	} else {
+		for(uint64_t y = 0;y<=getHeight();y++) {
+			for(uint64_t x = 0;x<=getWidth()*4;x+=4) {
+				putpix(x,y,colour);
+			}
 		}
 	}
 	setCursorPos(0,0);
@@ -142,11 +146,11 @@ void DisplayDriver::cursorNewLine() {
 }
 
 uint64_t DisplayDriver::getWidth() {
-	return secondFrameBuffer->Width;
+	return globalFrameBuffer->Width;
 }
 
 uint64_t DisplayDriver::getHeight() {
-	return secondFrameBuffer->Height;
+	return globalFrameBuffer->Height;
 }
 
 void DisplayDriver::setColour(unsigned int colo) {
@@ -159,7 +163,7 @@ void DisplayDriver::update() {
 
 void DisplayDriver::advanceCursor() {
 	CursorPos.X+=8;
-	if(CursorPos.X + 8 > secondFrameBuffer->Width) {
+	if(CursorPos.X + 8 > globalFrameBuffer->Width) {
 		CursorPos.X = 0;
 		CursorPos.Y += 16;
 		//checkScroll();
@@ -169,6 +173,15 @@ void DisplayDriver::advanceCursor() {
 void DisplayDriver::fillGarbage() {
 	for(uint64_t i = 0;i<secondFrameBuffer->BufferSize;i+=4) {
 		*(uint64_t*)(i+secondFrameBuffer->BaseAddr) = rand();
+	}
+}
+
+void DisplayDriver::fillRainbow() {
+	uint64_t colour = 0;
+	for(uint64_t i = 0;i<secondFrameBuffer->BufferSize;i+=4) {
+		*(uint64_t*)(i+secondFrameBuffer->BaseAddr) = colour;
+		colour+=0xFFFF;
+		if(colour > 0xFFFFFFFF) colour = 0;
 	}
 }
 

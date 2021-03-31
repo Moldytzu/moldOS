@@ -2,16 +2,6 @@
 
 framebuffer frambuf;
 
-const wchar_t *LLOSLogo = L"/ \\   / \\   /  _ \\/ ___\\\n\r"
-						   "| |   | |   | / \\||    \\\n\r"
-						   "| |_/\\| |_/\\| \\_/|\\___ |\n\r"
-						   "\\____/\\____/\\____/\\____/\n\r";
-
-const wchar_t* LogoI =   L"/ \\   / \\   /  _ \\/ ___\\\n\r";
-const wchar_t* LogoII =  L"| |   | |   | / \\||    \\\n\r";
-const wchar_t* LogoIII = L"| |_/\\| |_/\\| \\_/|\\___ |\n\r";
-const wchar_t* LogoIV =  L"\\____/\\____/\\____/\\____/\n\r";
-
 void TriggerError(wchar_t *errstr)
 {
 	ClearScreen();
@@ -81,23 +71,7 @@ PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, E
 
 void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
-	ST->ConOut->SetMode(ST->ConOut,0);
-	SetColour(EFI_BACKGROUND_LIGHTGRAY | EFI_YELLOW);
-	ShowCursor(FALSE);
-	ClearScreen();
-	SetCursorPos(27,8);
-	
-	Print(LogoI);
-	SetCursorPos(27,9);
-	Print(LogoII);
-	SetCursorPos(27,10);
-	Print(LogoIII);
-	SetCursorPos(27,11);
-	Print(LogoIV);
-	
-	SetCursorPos(27,12);
-	Print(L"[-----------------------]");
-
+	Print(L"Starting LLOS...");
 	EFI_FILE* llosFolder = ReadFile(NULL,L"LLOS",ImageHandle,SystemTable);
 	if(llosFolder == NULL)
 		TriggerError(L"Cannot find \"LLOS\" folder!");
@@ -105,9 +79,6 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	EFI_FILE *monkernel = ReadFile(llosFolder, L"kernel.llexec", ImageHandle, SystemTable);
 	if (monkernel == NULL)
 		TriggerError(L"Cannot find \"kernel.llexec\"!");
-
-	SetCursorPos(27,12);
-	Print(L"[####-------------------]");
 
 	Elf64_Ehdr header;
 	{
@@ -121,14 +92,8 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		monkernel->Read(monkernel, &size, &header);
 	}
 
-	SetCursorPos(27,12);
-	Print(L"[######----------------]");
-
 	if (memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 || header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64 || header.e_version != EV_CURRENT)
 		TriggerError(L"Cannot verify the kernel!");
-
-	SetCursorPos(27,12);
-	Print(L"[#######---------------]");
 
 	Elf64_Phdr *phdrs;
 	{
@@ -137,9 +102,6 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		SystemTable->BootServices->AllocatePool(EfiLoaderData, size, (void **)&phdrs);
 		monkernel->Read(monkernel, &size, phdrs);
 	}
-
-	SetCursorPos(27,12);
-	Print(L"[########--------------]");
 
 	for (Elf64_Phdr *phdr = phdrs; (char *)phdr < (char *)phdrs + header.e_phnum * header.e_phentsize; phdr = (Elf64_Phdr *)((char *)phdr + header.e_phentsize))
 	{
@@ -159,20 +121,11 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		}
 	}
 
-	SetCursorPos(27,12);
-	Print(L"[###########-----------]");
-
 	PSF1_FONT *newFont = LoadFont(llosFolder, L"font.psf", ImageHandle, SystemTable);
 	if (newFont == NULL)
 		TriggerError(L"Cannot load \"font.psf\"!");
 
-	SetCursorPos(27,12);
-	Print(L"[############----------]");
-
 	InitGOP();
-
-	SetCursorPos(27,12);
-	Print(L"[#############---------]");
 
 	EFI_MEMORY_DESCRIPTOR *Map = NULL;
 	UINTN MapSize, MapKey;
@@ -181,11 +134,9 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	{
 		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
 		SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
-		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+		for(int i = 0;i<8;i++)
+			SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
 	}
-
-	SetCursorPos(27,12);
-	Print(L"[################------]");
 
 	EFI_CONFIGURATION_TABLE* configTable = SystemTable->ConfigurationTable;
 	void* RSDP = NULL;
@@ -199,9 +150,6 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		}
 		configTable++;
 	}
-
-	SetCursorPos(27,12);
-	Print(L"[###################---]");
 
 	int (*EntryPoint)(BootInfo *) = ((__attribute__((sysv_abi)) int (*)(BootInfo *))header.e_entry);
 
@@ -224,13 +172,7 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	info.Key = 0xFFFFFF/0x800;
 	info.RSDP = RSDP;
 
-	SetCursorPos(27,12);
-	Print(L"[####################--]");
-
 	SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
-
-	SetCursorPos(27,12);
-	Print(L"[#######################]");
 
 	EntryPoint(&info);
 
@@ -240,45 +182,7 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 {
 	InitUEFI(ImageHandle, SystemTable);
-	ST->ConOut->SetMode(ST->ConOut,0);
-	SetColour(EFI_BACKGROUND_LIGHTGRAY | EFI_LIGHTCYAN);
-	ShowCursor(FALSE);
-	int selection = 0;
-	ClearScreen();
-	SetCursorPos(27,8);
-	Print(LogoI);
-	SetCursorPos(27,9);
-	Print(LogoII);
-	SetCursorPos(27,10);
-	Print(LogoIII);
-	SetCursorPos(27,11);
-	Print(LogoIV);
-	SetCursorPos(17,13);
-	Print(L"Use A and D to navigate and ENTER to select!\n\r");
-
-	while(1) {
-		SetCursorPos(20,14);
-		
-		switch (selection)
-		{
-		case 0:
-			Print(L"[*] Run LLOS  [ ] Reboot  [ ] Shutdown\n\r");
-			break;
-		case 1:
-			Print(L"[ ] Run LLOS  [*] Reboot  [ ] Shutdown\n\r");
-			break;
-		case 2:
-			Print(L"[ ] Run LLOS  [ ] Reboot  [*] Shutdown\n\r");
-			break;
-		}
-
-		EFI_INPUT_KEY k = GetKey(SystemTable);
-		if((k.UnicodeChar == L'd' || k.UnicodeChar == L'D') && selection != 2) selection++;
-		if((k.UnicodeChar == L'a' || k.UnicodeChar == L'A') && selection != 0) selection--;
-		if(k.UnicodeChar == L'\r' && selection == 2) PowerDown();
-		if(k.UnicodeChar == L'\r' && selection == 1) PowerRestart();
-		if(k.UnicodeChar == L'\r' && selection == 0) RunKernel(ImageHandle,SystemTable);
-	}
-	efi_main(ImageHandle,SystemTable);
+	RunKernel(ImageHandle,SystemTable);
+	
 	return 1;
 }

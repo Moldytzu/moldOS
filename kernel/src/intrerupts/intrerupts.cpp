@@ -1,21 +1,21 @@
 #include "intrerupts.h"
 
 __attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFrame* frame) {
-    KernelPanic("General Protection Fault");
+    KernelPanic("General Protection Fault",frame);
     while(1);
 }
 __attribute__((interrupt)) void PageFaultHandler(struct IntreruptFrame* frame) {
-    KernelPanic("Page Fault");
+    KernelPanic("Page Fault",frame);
     while(1);
 }
 __attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame) {
-    KernelPanic("Double Fault");
+    KernelPanic("Double Fault",frame);
     while(1);
 }
 
 __attribute__((interrupt)) void InvalideOpcodeHandler(struct IntreruptFrame* frame) {
-    GlobalCOM1->Write("Warning! Invalid Opcode Detected!");
-    //while(1);
+    KernelPanic("Invalid Opcode",frame);
+    while(1);
 }
 
 __attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame) {
@@ -28,6 +28,11 @@ __attribute__((interrupt)) void MSHandler(struct IntreruptFrame* frame) {
     uint8_t data = inportb(0x60);
     GlobalMouse->Handle(data);
     PIC_EndSlave();
+}
+
+__attribute__((interrupt)) void PITHandler(struct IntreruptFrame* frame) {
+    PITTick();
+    PIC_EndMaster();
 }
 
 void PIC_EndMaster(){

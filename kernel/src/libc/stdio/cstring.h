@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "../../memory/efiMemory.h"
 
 //int
 char* inttostr(uint64_t val);

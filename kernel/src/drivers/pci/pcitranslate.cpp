@@ -1,6 +1,23 @@
 #include "pcitranslate.h"
 #include "../../libc/stdio/cstring.h"
 
+TranslatedPCIDevice PCITranslate::TranslateDevice(PCIDevice* device) {
+    TranslatedPCIDevice newDevice;
+    newDevice.BIST = device->BIST;
+    newDevice.CacheLineSize = device->CacheLineSize;
+    newDevice.Class = TranslateClass(device->Class);
+    newDevice.Command = device->Command;
+    newDevice.DeviceID = TranslateDeviceID(device->VendorID,device->DeviceID);
+    newDevice.HeaderType = device->HeaderType;
+    newDevice.LatencyTimer = device->LatencyTimer;
+    newDevice.ProgramInterface = device->ProgramInterface;
+    newDevice.RevisionID = device->RevisionID;
+    newDevice.Status = device->Status;
+    newDevice.Subclass = TranslateSubClass(device->Class,device->Subclass);
+    newDevice.VendorID = TranslateVendor(device->VendorID); 
+    return newDevice;
+}
+
 const char* PCITranslate::TranslateClass(uint8_t classid) {
     switch (classid)
     {
@@ -498,6 +515,7 @@ const char* PCITranslate::TranslateSubClass(uint8_t classid,uint8_t subclassid) 
     default:
         break;
     }
+    return "";
 }
 const char* PCITranslate::TranslateVendor(uint16_t vendorid) {
     switch (vendorid)
@@ -507,6 +525,9 @@ const char* PCITranslate::TranslateVendor(uint16_t vendorid) {
         break;
     case 0x1234:
         return "Brain Actuated Technologies";
+        break;
+    case 0x10DE:
+        return "NVIDIA Corp.";
         break;
     default:
         return inttohstr(vendorid);

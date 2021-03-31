@@ -2,6 +2,10 @@
 #include "../../memory/PageTableManager.h"
 #include "../../drivers/display/displaydriver.h"
 #include "../../libc/stdio.h"
+#include "../ahci/ahci.h"
+#include "../../memory/heap.h"
+
+PCITranslate translate;
 
 void PCI::EnumFunc(uint64_t addr,uint64_t function) {
     uint64_t offset = function << 12;
@@ -14,8 +18,18 @@ void PCI::EnumFunc(uint64_t addr,uint64_t function) {
     if(deviceZ->DeviceID == 0) return;
     if(deviceZ->DeviceID == 0xFFFF) return;
     
-    Devices[DevicesIndex] = deviceZ;
+    Devices[DevicesIndex] = translate.TranslateDevice(deviceZ);
     DevicesIndex++;
+    switch (deviceZ->Class){
+        case 0x01:
+            switch (deviceZ->Subclass){
+                case 0x06:
+                    switch (deviceZ->ProgramInterface){
+                        case 0x01:
+                            new AHCIDriver(deviceZ);
+                    }
+            }
+        }
 }
 
 void PCI::EnumDevice(uint64_t addr, uint64_t device) {

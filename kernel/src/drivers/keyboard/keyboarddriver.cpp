@@ -28,7 +28,7 @@ void Keyboard::Handle(uint8_t keycode) {
     switch (keycode)
     {
         case KEY_BACKSPACE:
-            if(bufferIndex > 0)
+            if(bufferIndex)
                 buffer[--bufferIndex] = 0; 
             break;
         case KEY_LEFTSHIFT:

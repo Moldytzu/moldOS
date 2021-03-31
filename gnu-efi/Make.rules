@@ -49,7 +49,7 @@
 	@ tput setaf 3
 	@ echo Compilez: $^
 	@ tput sgr0
-	@ $(LD) $(LDFLAGS) $^ -o $@ $(LOADLIBES)
+	$(LD) $(LDFLAGS) $^ -o $@ $(LOADLIBES)
 
 %.o: %.c
 	@ $(CC) $(INCDIR) $(CFLAGS) $(CPPFLAGS) -c $< -o $@

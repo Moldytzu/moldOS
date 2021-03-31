@@ -1,5 +1,26 @@
 #include "cpu.h"
 
+CPURegisters DumpRegisters() {
+    CPURegisters regs;
+    register uint64_t rax asm("rax");
+    register uint64_t rbx asm("rbx");
+    register uint64_t rcx asm("rcx");
+    register uint64_t rdx asm("rdx");
+    register uint64_t rsi asm("rsi");
+    register uint64_t rsp asm("rsp");
+    register uint64_t rbp asm("rbp");
+    register uint64_t r8 asm("r8");
+    register uint64_t r9 asm("r9");
+    register uint64_t r10 asm("r10");
+    register uint64_t r11 asm("r11");
+    register uint64_t r12 asm("r12");
+    register uint64_t r13 asm("r13");
+    register uint64_t r14 asm("r14");
+    register uint64_t r15 asm("r15");
+    regs = {rax,rbx,rcx,rdx,rsi,rsp,rbp,r8,r9,r10,r11,r12,r13,r14,r15};
+    return regs;
+}
+
 inline void CPU::cpuid(uint32_t reg, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)
 {
     __asm__ volatile("cpuid"

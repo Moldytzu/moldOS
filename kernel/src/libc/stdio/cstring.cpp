@@ -11,6 +11,7 @@ int isalpha(char _c)
 
 char str[1025]; 
 char* shorttostr(unsigned short* sh) {
+    memset(str,0,1025);
 	int strIndex = 0;
 	for(int i = 0;i<1024;i++) {
 		str[strIndex] = sh[i];
@@ -22,6 +23,7 @@ char* shorttostr(unsigned short* sh) {
 
 char uintTo_StringOutput[128];
 char* inttostr(uint64_t val) {
+    memset(uintTo_StringOutput,0,128);
     uint8_t size;
     uint64_t sizeTest = val;
     while (sizeTest / 10 > 0){
@@ -58,6 +60,7 @@ char* inttostr(int val) {
 
 char intTo_StringOutput[128];
 char* inttostr(int64_t val) {
+    memset(intTo_StringOutput,0,128);
     uint8_t isNegative = 0;
     if(val < 0) {
         isNegative = 1;
@@ -87,6 +90,7 @@ char* inttostr(int64_t val) {
 
 char doubleTo_StringOutput[128];
 char* inttostr(double val,uint8_t decimalPlaces) {
+    memset(doubleTo_StringOutput,0,128);
     if(decimalPlaces > 10) decimalPlaces = 10;
     char* intPtr = (char*)inttostr((int64_t)val);
     char* doublePtr = doubleTo_StringOutput;
@@ -123,6 +127,7 @@ char* inttostr(double val) {
 
 char hexTo_StringOutput[128];
 char* inttohstr(uint64_t val) {
+    memset(hexTo_StringOutput,0,128);
     uint64_t* valPtr = &val;
     uint8_t* ptr;
     uint8_t tmp;
@@ -141,6 +146,7 @@ char* inttohstr(uint64_t val) {
 
 char hexTo_StringOutput32[128];
 char* inttohstr(uint32_t val) {
+    memset(hexTo_StringOutput32,0,128);
     uint32_t* valPtr = &val;
     uint8_t* ptr;
     uint8_t tmp;
@@ -159,6 +165,7 @@ char* inttohstr(uint32_t val) {
 
 char hexTo_StringOutput16[128];
 char* inttohstr(uint16_t val) {
+    memset(hexTo_StringOutput16,0,128);
     uint16_t* valPtr = &val;
     uint8_t* ptr;
     uint8_t tmp;
@@ -177,6 +184,7 @@ char* inttohstr(uint16_t val) {
 
 char hexTo_StringOutput8[128];
 char* inttohstr(uint8_t val) {
+    memset(hexTo_StringOutput8,0,128);
     uint8_t* valPtr = &val;
     uint8_t* ptr;
     uint8_t tmp;

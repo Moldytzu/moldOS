@@ -12,9 +12,9 @@ CC = gcc
 LD = ld
 ASM = nasm
 
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -O2 -msse3
+CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -msse3
 # uncomment for debugging
-CFLAGS += -g
+#CFLAGS += -g
 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 
