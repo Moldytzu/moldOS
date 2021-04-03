@@ -9,6 +9,7 @@ void Logging::info(const char* text) {
     GlobalDisplay->puts(text);
     GlobalDisplay->cursorNewLine();
     GlobalDisplay->update();
+    GlobalCOM1->Write(SERIALBLUE,"[INFO] ",SERIALWHITE,text,"\n");
 }
 
 void Logging::warn(const char* text) {
@@ -20,6 +21,7 @@ void Logging::warn(const char* text) {
     GlobalDisplay->puts(text);
     GlobalDisplay->cursorNewLine();
     GlobalDisplay->update();
+    GlobalCOM1->Write(SERIALYELLOW,"[WARN] ",SERIALWHITE,text,"\n");
 }
 
 void Logging::error(const char* text) {
@@ -31,4 +33,5 @@ void Logging::error(const char* text) {
     GlobalDisplay->puts(text);
     GlobalDisplay->cursorNewLine();
     GlobalDisplay->update();  
+    GlobalCOM1->Write(SERIALRED,"[ERROR] ",SERIALRED,text,"\n");
 }

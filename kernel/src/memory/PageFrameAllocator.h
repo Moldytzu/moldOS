@@ -2,6 +2,7 @@
 #include "efiMemory.h"
 #include <stdint.h>
 #include "../misc/bitmap/bitmap.h"
+#include "../panic.h"
 
 class PageFrameAllocator {
     public:

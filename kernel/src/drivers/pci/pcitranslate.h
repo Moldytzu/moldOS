@@ -5,7 +5,6 @@
 class PCITranslate
 {
 public:
-
     const char* TranslateClass(uint8_t classid);
     const char* TranslateSubClass(uint8_t classid,uint8_t subclassid);
     const char* TranslateVendor(uint16_t vendorid);

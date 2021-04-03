@@ -13,6 +13,7 @@
 #include "drivers/keyboard/keyboarddriver.h" // claviatura
 #include "drivers/mouse/mouse.h" //ps/2 mouse
 #include "drivers/ahci/ahci.h" //disk
+#include "drivers/fpu/fpu.h" //floating point unit
 
 //misc
 #include "misc/power/power.h" //power
@@ -166,8 +167,14 @@ void InitIntrerupts() {
 void InitACPI(BootInfo* bootInfo) {
     SDT* xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
     MCFG* mcfg = (MCFG*)acpi.FindTable(xsdt,(char*)"MCFG");
+    MADT* madt = (MADT*)acpi.FindTable(xsdt,(char*)"APIC");
 
+    //todo: parse madt
     pci.EnumeratePCI(mcfg);
+    if(pci.DevicesIndex == 0) {
+        log.warn("No MCFG found or no PCI devices!");
+        log.warn("AHCI might not work.");
+    }
 }
 
 void InitDrivers(BootInfo* bootInfo) {
@@ -220,26 +227,30 @@ void InitDrivers(BootInfo* bootInfo) {
 	display.update();
 
 	GlobalDisplay = &display;
+	
+    com1.Init();
+	GlobalCOM1 = &com1;
+	com1.ClearMonitor();
+    com1.Write("Kernel intialized the Serial Port!\n");
+    log.info("Initialized PS/2, Intrerupts, Display, Serial!");
 
     InitializeHeap((void*)0x0000100000000000, 0x10);
-
-	log.info("Initialized PS/2, Intrerupts, Display, Heap!");
+    log.info("Initialized Heap!");
 
     PITSetDivisor(20000);
+    log.info("Initialized PIT!");
 
 	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
 	log.info("Initialized Power!");
 
 	CPUFeatures = cpu.getFeatures();
 	log.info("Detected CPU features!");
-	
-	com1.Init();
-	GlobalCOM1 = &com1;
-	com1.ClearMonitor();
-    log.info("Initialized Serial!");
 
     InitACPI(bootInfo);
     log.info("Initialized ACPI!");
+
+    FPUInit();
+    log.info("Intialized FPU!");
 
     log.info("Initialized Everything!");
     
@@ -250,7 +261,7 @@ void InitDrivers(BootInfo* bootInfo) {
 
     log.info("");
     log.info("Welcome to LowLevelOS!");
-    log.info("By Moldu' (Nov. 2020 - March. 2021)");
+    log.info("By Moldu' (Nov. 2020 - Apr. 2021)");
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);

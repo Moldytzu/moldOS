@@ -60,8 +60,11 @@ void* PageFrameAllocator::RequestPage(){
         LockPage((void*)(pageBitmapIndex * 4096));
         return (void*)(pageBitmapIndex * 4096);
     }
+    //panic because we don't have free pages
+    IntreruptFrame f = {0};
+    KernelPanic("Out of memory",&f);
 
-    return NULL; // Page Frame Swap to file
+    return NULL;
 }
 
 void PageFrameAllocator::FreePage(void* address){

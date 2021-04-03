@@ -1,1 +1,1 @@
-qemu-system-x86_64 -soundhw pcspk -display gtk -drive format=raw,file=kernel/bin/LLOS.img -drive if=pflash,format=raw,unit=0,file=OVMFbin/OVMF_CODE-pure-efi_old.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=OVMFbin/OVMF_VARS-pure-efi.fd -m 256M -cpu core2duo -smp 4 -machine q35 -usb
+qemu-system-x86_64 -drive format=raw,file=kernel/bin/disk.img -drive if=pflash,format=raw,unit=0,file=OVMFbin/OVMF_CODE-pure-efi_old.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=OVMFbin/OVMF_VARS-pure-efi.fd -soundhw pcspk -m 128M -machine q35

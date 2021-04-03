@@ -38,7 +38,6 @@ struct PCIHeader0 {
     uint8_t MaxLatency;
 };
 
-
 struct TranslatedPCIDevice {
     const char* VendorID;
     const char* DeviceID;

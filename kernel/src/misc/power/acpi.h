@@ -40,11 +40,61 @@ struct DeviceConfig
     uint32_t Reserved;
 }__attribute__((packed));
 
+struct MADT {
+    SDT SDTHeader;
+    uint32_t* LocalAPICAddress;
+    uint32_t Flags;
+}__attribute__((packed));
+
+struct MADTRecord {
+	uint8_t	Type;
+	uint8_t	Length;
+} __attribute__((packed));
+
+struct LocalProcessor {
+	MADTRecord	        Record;
+	uint8_t				ProcessorID;
+	uint8_t				ApicID;
+	uint32_t			Flags;
+} __attribute__((packed));
+
+struct IoAPIC {
+	MADTRecord	        Record;
+	uint8_t				ApicID;
+	uint8_t				Reserved;
+	uint32_t		    ApicAdress;
+	uint32_t		    GlobalIntrerruptBase;
+} __attribute__((packed));
+
+struct InterruptSourceOverride {
+	MADTRecord	        Record;
+	uint8_t				Bus;		
+	uint8_t				Source;
+	uint32_t			GlobalIntrerrupt;
+	uint16_t			Flags;
+} __attribute__((packed));
+
+struct NonMaskableInterrupt {
+	MADTRecord	        Record;
+	uint8_t				ApicID;
+	uint16_t			Flags;
+	uint8_t				Lint;
+} __attribute__((packed));
+
+struct LocalAPICAddressOverride {
+	MADTRecord	        Record;
+	uint8_t				reserved[2];
+	uint64_t			LocalAPICAddress;
+} __attribute__((packed));
+
+#define MADT_LOCAL_PROCESSOR 0
+#define	MADT_IOAPIC 1
+#define	MADT_INTERRUPT_SOURCE_OVERRIDE	2
+#define	MADT_NONMASKABLE_INTERRUPT	4
+#define	MADT_LOCAL_APICADDRESS_OVERRIDE 5
 
 class ACPI
 {
 public:
     void* FindTable(SDT* sdt, char* sign); 
 };
-
-

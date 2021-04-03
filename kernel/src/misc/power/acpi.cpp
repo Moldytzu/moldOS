@@ -1,4 +1,7 @@
 #include "acpi.h"
+#include "../../libc/stdio.h"
+#include "../../memory/PageTableManager.h"
+#include "../../drivers/display/displaydriver.h"
 
 void* ACPI::FindTable(SDT* sdt, char* sign) {
     int entries = (sdt->Lenght - sizeof(SDT)) / 8;

@@ -2,39 +2,30 @@
 
 framebuffer frambuf;
 
-void TriggerError(wchar_t *errstr)
-{
+void TriggerError(wchar_t *errstr) {
 	ClearScreen();
 	Print(errstr);
 	while (1);
 }
 
-framebuffer *InitGOP()
-{
+framebuffer *InitGOP() {
 	EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 	EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
 	EFI_STATUS stat;
 
 	stat = BS->LocateProtocol(&gopGuid, ((void *)0), (void **)&gop);
 	if (EFI_ERROR(stat))
-	{
-		ClearScreen();
-		Print(L"Cannot init GOP!\n\r");
-		while (1);
-	}
-	else
-	{
-		frambuf.BaseAddr = (void *)gop->Mode->FrameBufferBase;
-		frambuf.BufferSize = gop->Mode->FrameBufferSize;
-		frambuf.Width = gop->Mode->Info->HorizontalResolution;
-		frambuf.Height = gop->Mode->Info->VerticalResolution;
-		frambuf.PixelPerScanLine = gop->Mode->Info->PixelsPerScanLine;
-		return &frambuf;
-	}
+		TriggerError(L"Cannot init GOP!\n\r");
+	
+	frambuf.BaseAddr = (void *)gop->Mode->FrameBufferBase;
+	frambuf.BufferSize = gop->Mode->FrameBufferSize;
+	frambuf.Width = gop->Mode->Info->HorizontalResolution;
+	frambuf.Height = gop->Mode->Info->VerticalResolution;
+	frambuf.PixelPerScanLine = gop->Mode->Info->PixelsPerScanLine;
+	return &frambuf;
 }
 
-PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
-{
+PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	EFI_FILE *font = ReadFile(Directory, Path, ImageHandle, SystemTable);
 	if (font == NULL)
 		return NULL;
@@ -45,15 +36,11 @@ PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, E
 	font->Read(font, &size, fontHeader);
 
 	if (fontHeader->magic[0] != PSF1_MAGIC0 || fontHeader->magic[1] != PSF1_MAGIC1)
-	{
 		return NULL;
-	}
 
 	UINTN glyphBufferSize = fontHeader->charsize * 256;
 	if (fontHeader->mode == 1)
-	{ //512 glyph mode
 		glyphBufferSize = fontHeader->charsize * 512;
-	}
 
 	void *glyphBuffer;
 	{
@@ -69,8 +56,7 @@ PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, E
 	return finishedFont;
 }
 
-void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
-{
+void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	Print(L"Starting LLOS...");
 	EFI_FILE* llosFolder = ReadFile(NULL,L"LLOS",ImageHandle,SystemTable);
 	if(llosFolder == NULL)
@@ -103,21 +89,18 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 		monkernel->Read(monkernel, &size, phdrs);
 	}
 
-	for (Elf64_Phdr *phdr = phdrs; (char *)phdr < (char *)phdrs + header.e_phnum * header.e_phentsize; phdr = (Elf64_Phdr *)((char *)phdr + header.e_phentsize))
-	{
-		switch (phdr->p_type)
-		{
-		case PT_LOAD:
-		{
-			int pages = (phdr->p_memsz + 0x1000 - 1) / 0x1000;
-			Elf64_Addr segment = phdr->p_paddr;
-			SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, pages, &segment);
+	for (Elf64_Phdr *phdr = phdrs; (char *)phdr < (char *)phdrs + header.e_phnum * header.e_phentsize; phdr = (Elf64_Phdr *)((char *)phdr + header.e_phentsize)) {
+		switch (phdr->p_type) {
+		case PT_LOAD: {
+				int pages = (phdr->p_memsz + 0x1000 - 1) / 0x1000;
+				Elf64_Addr segment = phdr->p_paddr;
+				SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, pages, &segment);
 
-			monkernel->SetPosition(monkernel, phdr->p_offset);
-			UINTN size = phdr->p_filesz;
-			monkernel->Read(monkernel, &size, (void *)segment);
-			break;
-		}
+				monkernel->SetPosition(monkernel, phdr->p_offset);
+				UINTN size = phdr->p_filesz;
+				monkernel->Read(monkernel, &size, (void *)segment);
+				break;
+			}
 		}
 	}
 
@@ -134,8 +117,10 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	{
 		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
 		SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
-		for(int i = 0;i<8;i++)
-			SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+		EFI_STATUS st;
+		do {
+			st = SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+		} while(st != EFI_SUCCESS);
 	}
 
 	EFI_CONFIGURATION_TABLE* configTable = SystemTable->ConfigurationTable;
@@ -143,11 +128,9 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	EFI_GUID ACPITABLEGUID = ACPI_20_TABLE_GUID;
 
 	for(UINTN i = 0;i < SystemTable->NumberOfTableEntries;i++) {
-		if(CompareGuid(&configTable[i].VendorGuid, &ACPITABLEGUID)) {
-			if(strcmp((CHAR8*)"RSD PTR ", (CHAR8*)configTable->VendorTable,8)) {
+		if(CompareGuid(&configTable[i].VendorGuid, &ACPITABLEGUID))
+			if(strcmp((CHAR8*)"RSD PTR ", (CHAR8*)configTable->VendorTable,8))
 				RSDP = (void*)configTable->VendorTable;
-			}
-		}
 		configTable++;
 	}
 
@@ -179,10 +162,8 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 	TriggerError(L"Cannot run the kernel!");
 }
 
-EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
-{
+EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	InitUEFI(ImageHandle, SystemTable);
 	RunKernel(ImageHandle,SystemTable);
-	
 	return 1;
 }

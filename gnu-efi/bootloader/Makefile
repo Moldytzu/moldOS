@@ -81,7 +81,7 @@ endif
 
 TARGETS = $(TARGET_APPS) $(TARGET_BSDRIVERS) $(TARGET_RTDRIVERS)
 
-CFLAGS += -Wno-error=unused-parameter -Wno-error=unused-variable -Wno-missing-braces -Werror=unused-value
+CFLAGS += -Wno-error=unused-parameter -Wno-error=unused-variable -Wno-missing-braces -Werror=unused-value -Wno-error=unused-but-set-variable
 
 all:	$(TARGETS)
 

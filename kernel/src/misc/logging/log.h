@@ -1,6 +1,7 @@
 #pragma once
 #include "../../drivers/display/displaydriver.h"
 #include "../colors.h"
+#include "../../io/serial.h"
 
 class Logging {
 public:

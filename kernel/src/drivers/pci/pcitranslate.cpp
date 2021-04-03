@@ -545,13 +545,49 @@ const char* PCITranslate::TranslateDeviceID(uint16_t vendorid,uint16_t deviceid)
             break;
         
         default:
-            return inttohstr(vendorid);
+            return inttohstr(deviceid);
             break;
         }
         break;
     case 0x8086:
         switch (deviceid)
         {
+        case 0x9b63:
+            return "H410 Host Bridge";
+            break;
+        case 0xa3af:
+            return "H410 USB 3 Controller";
+            break;
+        case 0xa3b1:
+            return "H410 Signal Processing Controller";
+            break;
+        case 0xa3ba:
+            return "H410 Communication Controller";
+            break;
+        case 0xa382:
+            return "H410 SATA Controller";
+            break;
+        case 0xa3da:
+            return "H410 ISA Bridge";
+            break;
+        case 0xa3a1:
+            return "H410 Memory Controller";
+            break;
+        case 0xa3f0:
+            return "H410 Audio Device";
+            break;
+        case 0xa3a3:
+            return "H410 System Management Bus";
+            break;
+        case 0x1911:
+            return "Xeon E3-1200 v5/v6 / E3-1500 v5 / 6th/7th Gen Core Processor Gaussian Mixture Model";
+            break;
+        case 0x1901:
+            return "Xeon E3-1200 v5/E3-1500 v5/6th Gen Core Processor PCIe Controller (x16)";
+            break;
+        case 0x0D55:
+            return "Ethernet Connection (12) I219-V";
+            break;
         case 0x29c0:
             return "82G33/G31/P35/P31 Express DRAM Controller";
             break;
@@ -579,9 +615,22 @@ const char* PCITranslate::TranslateDeviceID(uint16_t vendorid,uint16_t deviceid)
         case 0x2930:
             return "82801I (ICH9 Family) SMBus Controller";
             break; 
-
         default:
-            return inttohstr(vendorid);
+            return inttohstr(deviceid);
+            break;
+        }
+        break;
+    case 0x10DE:
+        switch (deviceid)
+        {
+        case 0x1C82:
+            return "GP107 [Geforce GTX 1050 Ti]";
+            break;
+        case 0x0FB9:
+            return "GP107GL High Definition Audio Controller";
+            break;
+        default:
+            return inttohstr(deviceid);
             break;
         }
         break;

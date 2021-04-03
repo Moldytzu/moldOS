@@ -58,3 +58,18 @@ void SerialPort::Write(const char* chr,const char* chr2,const char* chr3) {
     Write(chr2);
     Write(chr3);
 }
+
+void SerialPort::Write(const char* chr,const char* chr2,const char* chr3,const char* chr4) {
+    Write(chr);
+    Write(chr2);
+    Write(chr3);
+    Write(chr4);
+}
+
+void SerialPort::Write(const char* chr,const char* chr2,const char* chr3,const char* chr4,const char* chr5) {
+    Write(chr);
+    Write(chr2);
+    Write(chr3);
+    Write(chr4);
+    Write(chr5);
+}

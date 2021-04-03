@@ -161,12 +161,17 @@ void displayRSDP() {
 	printf("\nRSDP Signature: %c%c%c%c%c%c%c%c",*(uint8_t*)GlobalInfo->RSDP,*((uint8_t*)GlobalInfo->RSDP+1),*((uint8_t*)GlobalInfo->RSDP+2),*((uint8_t*)GlobalInfo->RSDP+3),*((uint8_t*)GlobalInfo->RSDP+4),*((uint8_t*)GlobalInfo->RSDP+5),*((uint8_t*)GlobalInfo->RSDP+6),*((uint8_t*)GlobalInfo->RSDP+7));
 }
 
+float frametime = 0.0;
+float fps = (1.0f/frametime);
+
 extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
 	srand(rtc.readTime());
 	display.clearScreen(BLACK);
+	com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
 
 	LOOP {
+		float timea = TimeSinceBoot;
 		display.clearScreen(BLACK);
 
 		displayLogo();
@@ -174,13 +179,21 @@ extern "C" int kernelMain(BootInfo* binfo) {
 
 		displayPCI();
 
+		displayRAM(binfo);
+
 		displayKeyboard();
+		
+		printf("\n\nFPS: %f",fps);
+		printf("\n\nTime since boot: %f seconds",TimeSinceBoot);
 
 		printf("\n\nClick to shutdown!");
 
 		doMouse();
 
 		display.update();
+		float timeb = TimeSinceBoot;
+		frametime = timeb-timea;
+		fps = (1.0f/frametime);
 	}
 
 	LOOP;
