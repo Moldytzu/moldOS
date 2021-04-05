@@ -57,6 +57,7 @@ PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, E
 }
 
 void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
+	ClearScreen();
 	Print(L"Starting LLOS...");
 	EFI_FILE* llosFolder = ReadFile(NULL,L"LLOS",ImageHandle,SystemTable);
 	if(llosFolder == NULL)
@@ -106,7 +107,7 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 	PSF1_FONT *newFont = LoadFont(llosFolder, L"font.psf", ImageHandle, SystemTable);
 	if (newFont == NULL)
-		TriggerError(L"Cannot load \"font.psf\"!");
+		TriggerError(L"Cannot find \"font.psf\"!");
 
 	InitGOP();
 

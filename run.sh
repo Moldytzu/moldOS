@@ -1,1 +1,1 @@
-qemu-system-x86_64 -drive format=raw,file=kernel/bin/disk.img -drive if=pflash,format=raw,unit=0,file=OVMFbin/OVMF_CODE-pure-efi_old.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=OVMFbin/OVMF_VARS-pure-efi.fd -soundhw pcspk -m 128M -machine q35
+qemu-system-x86_64 -drive format=raw,file=kernel/bin/disk.img -drive if=pflash,format=raw,unit=0,file=OVMFbin/OVMF_CODE-pure-efi_old.fd,readonly=on -usb -drive if=pflash,format=raw,unit=1,file=OVMFbin/OVMF_VARS-pure-efi.fd -soundhw pcspk -m 256M -machine q35

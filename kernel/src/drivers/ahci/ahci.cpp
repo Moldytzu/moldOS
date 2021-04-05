@@ -45,6 +45,66 @@ void AHCIDriver::ProbePorts() {
         }
 }
 
+bool Port::Read(uint64_t sector,uint32_t sectorCount,void* buffer) {
+        uint32_t sectorL = (uint32_t) sector;
+        uint32_t sectorH = (uint32_t) (sector >> 32);
+
+        hbaport->interruptStatus = (uint32_t)-1; // Clear pending interrupt bits
+
+        HBACommandHeader* cmdHeader = (HBACommandHeader*)hbaport->commandListBase;
+        cmdHeader->commandFISLength = sizeof(FIS_REG_H2D)/ sizeof(uint32_t); //command FIS size;
+        cmdHeader->write = 0; //this is a read
+        cmdHeader->prdtLength = 1;
+
+        HBACommandTable* commandTable = (HBACommandTable*)(cmdHeader->commandTableBaseAddress);
+        memset(commandTable, 0, sizeof(HBACommandTable) + (cmdHeader->prdtLength-1)*sizeof(HBAPRDTEntry));
+
+        commandTable->prdtEntry[0].dataBaseAdress = (uint32_t)(uint64_t)buffer;
+        commandTable->prdtEntry[0].dataBaseAdressUpper = (uint32_t)((uint64_t)buffer >> 32);
+        commandTable->prdtEntry[0].byteCount = (sectorCount<<9)-1; // 512 bytes per sector
+        commandTable->prdtEntry[0].intrerruptOnCompletion = 1;
+
+        FIS_REG_H2D* cmdFIS = (FIS_REG_H2D*)(&commandTable->commandFIS);
+
+        cmdFIS->fisType = FIS_TYPE_REG_H2D;
+        cmdFIS->commandControl = 1; // command
+        cmdFIS->command = ATA_CMD_READ_DMA_EX;
+
+        cmdFIS->lba0 = (uint8_t)sectorL;
+        cmdFIS->lba1 = (uint8_t)(sectorL >> 8);
+        cmdFIS->lba2 = (uint8_t)(sectorL >> 16);
+        cmdFIS->lba3 = (uint8_t)sectorH;
+        cmdFIS->lba4 = (uint8_t)(sectorH >> 8);
+        cmdFIS->lba4 = (uint8_t)(sectorH >> 16);
+
+        cmdFIS->deviceRegister = 1<<6; //LBA mode
+
+        cmdFIS->countLow = sectorCount & 0xFF;
+        cmdFIS->coutHigh = (sectorCount >> 8) & 0xFF;
+
+        uint64_t spin = 0;
+
+        while ((hbaport->taskFileData & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000){
+            spin ++;
+        }
+        if (spin == 1000000) {
+            return false;
+        }
+
+        hbaport->commandIssue = 1;
+
+        while (true){
+
+            if((hbaport->commandIssue == 0)) break;
+            if(hbaport->interruptStatus & HBA_PxIS_TFES)
+            {
+                return false;
+            }
+        }
+
+        return true;
+}
+
 void Port::Configure() {
     Stop();
     void* base = GlobalAllocator.RequestPage();
@@ -98,12 +158,28 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
     GlobalTableManager.MapMemory(ABAR,ABAR);
     ProbePorts();
 
-    printf("Connected AHCI Drives: \n");
+    printf("Configuring ports...\n");
     for(int i=0;i < PortCount;i++) {
         Port* port = Ports[i];
-        port->Configure();
+        port->Configure();       
+    }
+    printf("Detected drives:\n");
+    for(int i=0;i<PortCount;i++) {
+        Port* port = Ports[i];
+            
         if(port->portType == PortType::SATA) printf("SATA Drive\n");
         if(port->portType == PortType::SATAPI) printf("SATAPI Drive\n");
+
+        port->buffer = (uint8_t*)GlobalAllocator.RequestPage();
+        memset(port->buffer,0,4096);
+        port->Read(0,8,port->buffer);
+        
+        for(int i = 0;i<3072;i++) {
+            GlobalDisplay->putc(port->buffer[i]);
+        }
+        
+        GlobalDisplay->cursorNewLine();
+        GlobalDisplay->update();
     }
 }
 

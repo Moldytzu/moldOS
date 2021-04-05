@@ -24,6 +24,7 @@ __attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame)
 __attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame);
 __attribute__((interrupt)) void MSHandler(struct IntreruptFrame* frame);
 __attribute__((interrupt)) void PITHandler(struct IntreruptFrame* frame);
+__attribute__((interrupt)) void USBHandler(struct IntreruptFrame* frame);
 
 
 void RemapPIC();

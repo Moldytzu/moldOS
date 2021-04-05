@@ -153,6 +153,7 @@ void InitIntrerupts() {
     CreateIntrerupt((void*)KBHandler,0x21,IDT_TA_InterruptGate,0x08);
     CreateIntrerupt((void*)MSHandler,0x2C,IDT_TA_InterruptGate,0x08);
     CreateIntrerupt((void*)PITHandler,0x20,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)USBHandler,0xC4,IDT_TA_InterruptGate,0x08);
 
 	asm ("lidt %0" : : "m" (idtr));
 
@@ -265,5 +266,5 @@ void InitDrivers(BootInfo* bootInfo) {
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    rtc.waitSeconds(2);
+    rtc.waitSeconds(5);
 }

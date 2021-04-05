@@ -35,6 +35,12 @@ __attribute__((interrupt)) void PITHandler(struct IntreruptFrame* frame) {
     PIC_EndMaster();
 }
 
+__attribute__((interrupt)) void USBHandler(struct IntreruptFrame* frame) {
+    KernelPanic("USB",frame);
+    PIC_EndMaster();
+}
+
+
 void PIC_EndMaster(){
     outportb(PIC1_COMMAND, PIC_EOI);
 }

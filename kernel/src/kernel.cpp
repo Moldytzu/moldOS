@@ -3,6 +3,11 @@
 #define MOUSE_BORDER_COLOUR WHITE
 #define MOUSE_CONTENTS_COLOUR DARKGRAY
 
+float frametime = 0.0;
+float fps = (1.0f/frametime);
+
+BootInfo* bInfo;
+
 /*
 Special Thanks to:
 - @borrrden - he fixed my buggy keyboard handler
@@ -12,9 +17,7 @@ Special Thanks to:
 
 /*
 Bugs:
-- Mouse is buggy and crashes the entire os on real hardware with usb keyboard and mice (beacause of crappy ps/2 emulation, so, i need an usb driver....)
-- Mouse is moving kinda slow (maybe i can fix this optimizing?)
-- When i move the mouse and i type there is a chance that they interfer each other
+none discovered lol
 */
 
 uint8_t MousePointer[16*25] = {
@@ -85,7 +88,7 @@ void displayCPU() {
 	printf("%co",WHITE);
 }
 
-void displayRAM(BootInfo* bootInfo) {
+void displayRAM() {
 	printf("\n\nPhysical RAM: %co%d MB%co",YELLOW,(GlobalAllocator.GetFreeRAM()+GlobalAllocator.GetUsedRAM())/1024/1024,WHITE);
 	printf("\nTotal RAM: %co%d MB%co",YELLOW,(GlobalAllocator.GetFreeRAM()+GlobalAllocator.GetUsedRAM()+GlobalAllocator.GetReservedRAM())/1024/1024,WHITE);
 	printf("\nFree RAM: %co%d MB%co",YELLOW,GlobalAllocator.GetFreeRAM()/1024/1024,WHITE);
@@ -136,9 +139,9 @@ void drawPointer() {
 	int x = 0;
 	int y = 0;
 	for(int i = 0;i< 16*25;i++) {
-		if(MousePointerFilled[i] == 1)
+		if(MousePointerFilled[i] == 1 && display.getWidth() > x+mouse.state.X)
 			display.putpix((x+mouse.state.X)*4,y+mouse.state.Y,MOUSE_BORDER_COLOUR);
-		else if (MousePointerFilled[i] == 2)
+		else if (MousePointerFilled[i] == 2 && display.getWidth() > x+mouse.state.X)
 			display.putpix((x+mouse.state.X)*4,y+mouse.state.Y,MOUSE_CONTENTS_COLOUR);
 		x++;
 		if(x > 15) {
@@ -161,10 +164,30 @@ void displayRSDP() {
 	printf("\nRSDP Signature: %c%c%c%c%c%c%c%c",*(uint8_t*)GlobalInfo->RSDP,*((uint8_t*)GlobalInfo->RSDP+1),*((uint8_t*)GlobalInfo->RSDP+2),*((uint8_t*)GlobalInfo->RSDP+3),*((uint8_t*)GlobalInfo->RSDP+4),*((uint8_t*)GlobalInfo->RSDP+5),*((uint8_t*)GlobalInfo->RSDP+6),*((uint8_t*)GlobalInfo->RSDP+7));
 }
 
-float frametime = 0.0;
-float fps = (1.0f/frametime);
+void kernelLoop() {
+	display.clearScreen(BLACK);
+
+	displayLogo();
+	displayDateTime();
+
+	displayPCI();
+
+	displayRAM();
+
+	displayKeyboard();
+		
+	printf("\n\nFPS: %f",fps);
+	printf("\n\nTime since boot: %f seconds",TimeSinceBoot);
+
+	printf("\n\nClick to shutdown!");
+
+	doMouse();
+
+	display.update();
+}
 
 extern "C" int kernelMain(BootInfo* binfo) {
+	bInfo = binfo;
 	InitDrivers(binfo);
 	srand(rtc.readTime());
 	display.clearScreen(BLACK);
@@ -172,31 +195,16 @@ extern "C" int kernelMain(BootInfo* binfo) {
 
 	LOOP {
 		float timea = TimeSinceBoot;
-		display.clearScreen(BLACK);
 
-		displayLogo();
-		displayDateTime();
-
-		displayPCI();
-
-		displayRAM(binfo);
-
-		displayKeyboard();
+		kernelLoop();
 		
-		printf("\n\nFPS: %f",fps);
-		printf("\n\nTime since boot: %f seconds",TimeSinceBoot);
-
-		printf("\n\nClick to shutdown!");
-
-		doMouse();
-
-		display.update();
 		float timeb = TimeSinceBoot;
 		frametime = timeb-timea;
 		fps = (1.0f/frametime);
 	}
 
-	LOOP;
+	IntreruptFrame f={0};
+	KernelPanic("You shouldn't be out of the kernelLoop",&f);
 
 	return 0;
 } 
