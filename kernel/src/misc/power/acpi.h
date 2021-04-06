@@ -42,7 +42,7 @@ struct DeviceConfig
 
 struct MADT {
     SDT SDTHeader;
-    uint32_t* LocalAPICAddress;
+    uint32_t LocalAPICAddress; //moldu' you're an idiot!!! it isn't a pointer...
     uint32_t Flags;
 }__attribute__((packed));
 
@@ -96,5 +96,13 @@ struct LocalAPICAddressOverride {
 class ACPI
 {
 public:
+    LocalProcessor* CPUCores[1024]; int CPUCoreCount = 0;
+    IoAPIC* IOApics[1024]; int IOApicsCount = 0;
+    InterruptSourceOverride* IntreruptSourceOverrides[1024]; int IntreruptSourceOverridesCount = 0;
+    NonMaskableInterrupt* NMIs[1024]; int NMIsCount = 0;
+    LocalAPICAddressOverride* APICAddressOverrides[1024]; int APICAddressOverridesCount = 0;
+
     void* FindTable(SDT* sdt, char* sign); 
+    void ParseMADT(MADT* madt);
+    
 };

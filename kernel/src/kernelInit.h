@@ -167,10 +167,12 @@ void InitIntrerupts() {
 
 void InitACPI(BootInfo* bootInfo) {
     SDT* xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
+
     MCFG* mcfg = (MCFG*)acpi.FindTable(xsdt,(char*)"MCFG");
     MADT* madt = (MADT*)acpi.FindTable(xsdt,(char*)"APIC");
 
-    //todo: parse madt
+    acpi.ParseMADT(madt);
+    
     pci.EnumeratePCI(mcfg);
     if(pci.DevicesIndex == 0) {
         log.warn("No MCFG found or no PCI devices!");

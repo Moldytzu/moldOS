@@ -75,7 +75,7 @@ bool Port::Read(uint64_t sector,uint32_t sectorCount,void* buffer) {
         cmdFIS->lba2 = (uint8_t)(sectorL >> 16);
         cmdFIS->lba3 = (uint8_t)sectorH;
         cmdFIS->lba4 = (uint8_t)(sectorH >> 8);
-        cmdFIS->lba4 = (uint8_t)(sectorH >> 16);
+        cmdFIS->lba5 = (uint8_t)(sectorH >> 16);
 
         cmdFIS->deviceRegister = 1<<6; //LBA mode
 
@@ -172,9 +172,9 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
 
         port->buffer = (uint8_t*)GlobalAllocator.RequestPage();
         memset(port->buffer,0,4096);
-        port->Read(0,8,port->buffer);
+        port->Read(0,1,port->buffer);
         
-        for(int i = 0;i<3072;i++) {
+        for(int i = 0;i<512;i++) {
             GlobalDisplay->putc(port->buffer[i]);
         }
         

@@ -29,4 +29,5 @@ void UHCIInit(PCIDevice* device) {
     printf("Configured UHCI USB Controller!\n");GlobalDisplay->update();
 
     //printf("Registers:\n USBCMD:%x\n USBSTS:%x\n USBINTR:%x\n FRNUM:%x\n FRBASEADD:%x\n SOFMOD:%x\n PORTSC1:%x\n PORTSC2:%x\n",UHCIRegisters->USBCMD,UHCIRegisters->USBSTS,UHCIRegisters->USBINTR,UHCIRegisters->FRNUM,UHCIRegisters->FRBASEADD,UHCIRegisters->SOFMOD,UHCIRegisters->PORTSC1,UHCIRegisters->PORTSC2);
+    
 }
