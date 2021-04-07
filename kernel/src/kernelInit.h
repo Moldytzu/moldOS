@@ -268,5 +268,5 @@ void InitDrivers(BootInfo* bootInfo) {
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    rtc.waitSeconds(5);
+    rtc.waitSeconds(10);
 }

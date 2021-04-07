@@ -172,9 +172,9 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
 
         port->buffer = (uint8_t*)GlobalAllocator.RequestPage();
         memset(port->buffer,0,4096);
-        port->Read(0,1,port->buffer);
+        port->Read(0,6,port->buffer);
         
-        for(int i = 0;i<512;i++) {
+        for(int i = 0;i<3072;i++) {
             GlobalDisplay->putc(port->buffer[i]);
         }
         

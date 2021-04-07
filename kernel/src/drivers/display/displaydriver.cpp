@@ -24,13 +24,8 @@ void DisplayDriver::putc(char ch) {
 }
 
 void DisplayDriver::scroll() {
-	for(int j = 0; j<=8;j++) {
-		for(int i = 0;i<getHeight();i++) {
-			for(int m = 0;m<getWidth()*4;m++) {
-				*(unsigned int*)(secondFrameBuffer->BaseAddr+(i*getWidth()+m)*4) = *(unsigned int*)(secondFrameBuffer->BaseAddr+((i + 1) * getWidth() + m)*4); //cod scris de la 12 la 2 noaptea
-			}
-		}
-	}
+	ssememcpy(secondFrameBuffer->BaseAddr-((uint64_t)secondFrameBuffer->BufferSize%4),(void*)((uint64_t)secondFrameBuffer->BaseAddr+((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4)),globalFrameBuffer->BufferSize-((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4));
+	memset(secondFrameBuffer->BaseAddr+globalFrameBuffer->BufferSize-((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4),0,(getWidth()*4*16)-((uint64_t)secondFrameBuffer->BufferSize%4));
 }
 
 void DisplayDriver::checkScroll() {
@@ -43,11 +38,11 @@ void DisplayDriver::checkScroll() {
 
 void DisplayDriver::puts(const char* ch)
 {
-	//checkScroll();
+	checkScroll();
 	for(int i = 0;ch[i] != '\0';i++) {
 		if(ch[i] == '\n') {
 			cursorNewLine();
-			//checkScroll();
+			checkScroll();
 			continue;
 		}
 		putc(ch[i],CursorPos.X,CursorPos.Y);
@@ -166,7 +161,7 @@ void DisplayDriver::advanceCursor() {
 	if(CursorPos.X + 8 > globalFrameBuffer->Width) {
 		CursorPos.X = 0;
 		CursorPos.Y += 16;
-		//checkScroll();
+		checkScroll();
 	}
 }
 

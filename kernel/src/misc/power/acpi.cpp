@@ -25,28 +25,44 @@ void ACPI::ParseMADT(MADT* madt) {
     for(uint64_t i = 0;i<entries;) {
         MADTRecord* currentRecord = (MADTRecord*)((uint64_t)madt + sizeof(MADT) + i);
         GlobalTableManager.MapMemory(currentRecord,currentRecord);
-        //printf("Record %u: Type: %u Lenght: %u\n",i,currentRecord->Type,currentRecord->Length);GlobalDisplay->update();
+        //printf("Record %u: Type: %u Lenght: %u\n",i,currentRecord->Type,currentRecord->Length);
         i += currentRecord->Length; //every type of record has another lenght so we increment by that length
         switch (currentRecord->Type)
         {
-        case 0:
-            printf("Found a CPU core!\n");GlobalDisplay->update();
+        case 0:{
+            LocalProcessor* a = (LocalProcessor*)currentRecord;
+            CPUCores[CPUCoreCount++] = a;
+            printf("Found a CPU core! Processor ID: %u APIC ID: %u Flags: %u\n",a->ProcessorID,a->ApicID,a->Flags);
+        }
             break;
-        case 1:
-            printf("Found an I/O APIC!\n");GlobalDisplay->update();
+        case 1:{
+            IoAPIC* a = (IoAPIC*)currentRecord;
+            IOApics[IOApicsCount++] = a;
+            printf("Found an I/O APIC! Address: %x APIC ID: %u Global Intrerrupt Base: %u\n",a->ApicAdress,a->ApicID,a->GlobalIntrerruptBase);
+        }
             break;
-        case 2:
-            printf("Found an Interrupt Source Override!\n");GlobalDisplay->update();
+        case 2: {
+            InterruptSourceOverride* a = (InterruptSourceOverride*)currentRecord;
+            IntreruptSourceOverrides[IntreruptSourceOverridesCount++] = a;
+            printf("Found an Interrupt Source Override! Bus: %u Flags: %u Global Intrerrupt: %u\n",a->Bus,a->Flags,a->GlobalIntrerrupt);
+        }
             break;
-        case 4:
-            printf("Found a Non-maskable interrupts!\n");GlobalDisplay->update();
+        case 4:{
+            NonMaskableInterrupt* a = (NonMaskableInterrupt*)currentRecord;
+            NMIs[NMIsCount++] = a;
+            printf("Found a Non-maskable interrupts! APIC ID: %u Flags: %u Lint: %u\n",a->ApicID,a->Flags,a->Lint);
+        }
             break;    
-        case 5:
-            printf("Found a Local APIC Address Override!\n");GlobalDisplay->update();
+        case 5:{
+            LocalAPICAddressOverride* a = (LocalAPICAddressOverride*)currentRecord;
+            APICAddressOverrides[APICAddressOverridesCount++] = a;
+            printf("Found a Local APIC Address Override! Local APIC Address: %x\n",a->LocalAPICAddress);
+        }
             break;
     
         default:
             break;
         }
+        GlobalDisplay->update();
     }
 }
