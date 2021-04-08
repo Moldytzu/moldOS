@@ -28,6 +28,7 @@
 #include "io/serial.h" //serial port
 #include "io/parallel.h" //parallel port
 #include "io/ps2.h"
+#include "io/msr.h" //model specific registers
 
 //memorie
 #include "memory/efiMemory.h" //memorie
@@ -268,5 +269,5 @@ void InitDrivers(BootInfo* bootInfo) {
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    rtc.waitSeconds(10);
+    rtc.waitSeconds(5);
 }

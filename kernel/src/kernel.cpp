@@ -170,12 +170,13 @@ void kernelLoop() {
 	displayLogo();
 	displayDateTime();
 
-	displayPCI();
-
 	displayRAM();
+	displayCPU();
 
 	displayKeyboard();
-		
+
+	printf("\n\nCPU Temp: %u C*",GetCPUTemp());
+
 	printf("\n\nFPS: %f",fps);
 	printf("\n\nTime since boot: %f seconds",TimeSinceBoot);
 
