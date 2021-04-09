@@ -16,8 +16,8 @@ Special Thanks to:
 */
 
 /*
-Bugs:
-none discovered lol
+Todo:
+moldule fa tss ca nu mere codu pt ca nu ai tss idiotule
 */
 
 uint8_t MousePointer[16*25] = {
@@ -163,6 +163,7 @@ void displayRSDP() {
 	printf("\n\nRSDP Address: %x",(uint64_t)GlobalInfo->RSDP);
 	printf("\nRSDP Signature: %c%c%c%c%c%c%c%c",*(uint8_t*)GlobalInfo->RSDP,*((uint8_t*)GlobalInfo->RSDP+1),*((uint8_t*)GlobalInfo->RSDP+2),*((uint8_t*)GlobalInfo->RSDP+3),*((uint8_t*)GlobalInfo->RSDP+4),*((uint8_t*)GlobalInfo->RSDP+5),*((uint8_t*)GlobalInfo->RSDP+6),*((uint8_t*)GlobalInfo->RSDP+7));
 }
+
 
 void kernelLoop() {
 	display.clearScreen(BLACK);

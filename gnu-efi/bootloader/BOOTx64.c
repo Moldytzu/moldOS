@@ -8,9 +8,9 @@ void TriggerError(wchar_t *errstr) {
 	while (1);
 }
 
+EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
 framebuffer *InitGOP() {
 	EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
-	EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
 	EFI_STATUS stat;
 
 	stat = BS->LocateProtocol(&gopGuid, ((void *)0), (void **)&gop);
@@ -111,6 +111,10 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 	InitGOP();
 
+    EFI_EDID_ACTIVE_PROTOCOL* edid = NULL;
+	EFI_GUID edidGUID = EFI_EDID_ACTIVE_PROTOCOL_GUID;
+    SystemTable->BootServices->HandleProtocol(gop, &edidGUID, (void**)&edid);
+
 	EFI_MEMORY_DESCRIPTOR *Map = NULL;
 	UINTN MapSize, MapKey;
 	UINTN DescriptorSize;
@@ -151,11 +155,11 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	info.pwr = &p;
 	info.mMap = Map;
 	info.mMapSize = MapSize;
+	
 	info.mMapDescSize = DescriptorSize;
 	info.firm = &f;
 	info.Key = 0xFFFFFF/0x800;
 	info.RSDP = RSDP;
-
 	SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
 
 	EntryPoint(&info);

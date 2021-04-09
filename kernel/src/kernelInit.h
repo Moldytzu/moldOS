@@ -23,6 +23,7 @@
 #include "misc/uefi.h" //uefi
 #include "misc/logging/log.h" //logging
 #include "misc/power/acpi.h" //acpi
+#include "misc/edid.h" //edid (monitor info)
 
 //io
 #include "io/serial.h" //serial port
@@ -51,6 +52,9 @@
 //scheduling
 #include "scheduling/pit.h" //pit
 
+//userspace
+#include "userspace/userspace.h" //userspace
+
 #define LOOP while(1)
 
 #define DoubleBuffer
@@ -74,6 +78,7 @@ struct BootInfo {
 
     //acpi
     RSDP2* RSDP;
+
 };
 
 extern uint64_t _KernelStart;
@@ -106,6 +111,12 @@ PS2Controller ps2;
 ACPI acpi;
 PCITranslate pcitranslate;
 
+//userspace stuff
+uint64_t UserspaceStack[1024];
+void UserSpaceFunc() {
+    for(;;);
+}
+
 void EnablePaging(BootInfo* bootInfo) {
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
@@ -132,6 +143,7 @@ void LoadGDT() {
 	GDTDescriptor gdtDescriptor;
 	gdtDescriptor.Size = sizeof(GDT)-1;
 	gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
+    TSSInit((void*)UserspaceStack);
 	LoadGDT(&gdtDescriptor);
 }
 
@@ -256,6 +268,11 @@ void InitDrivers(BootInfo* bootInfo) {
     FPUInit();
     log.info("Intialized FPU!");
 
+    EnableSCE();
+    log.info("Prepared Userspace!");
+
+    RunInUserspace((void*)UserSpaceFunc,(void*)UserspaceStack);
+
     log.info("Initialized Everything!");
     
     if(bootInfo->Key*2048+2047 != 0xFFFFFF) {
@@ -269,5 +286,5 @@ void InitDrivers(BootInfo* bootInfo) {
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    rtc.waitSeconds(5);
+    rtc.waitSeconds(2);
 }
