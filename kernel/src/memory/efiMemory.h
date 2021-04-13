@@ -20,3 +20,5 @@ void ssememcpy(void* dst, void* src, size_t size);
 
 void slowmemset(void* start, uint8_t value, uint64_t num);
 void asmmemcpy(void *d, const void *s, size_t n);
+
+int memcmp(const void *aptr, const void *bptr, size_t n);

@@ -25,10 +25,6 @@ struct GDT {
     GDTEntry UserNull;
     GDTEntry UserCode;
     GDTEntry UserData;
-    GDTEntry OVMFCode;
-    GDTEntry OVMFData;
-    GDTEntry TSSLow;
-    GDTEntry TSSHigh;
 } __attribute__((packed)) 
 __attribute((aligned(0x1000)));
 

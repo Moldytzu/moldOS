@@ -6,6 +6,8 @@
     #define ATA_DEV_BUSY 0x80
     #define ATA_DEV_DRQ 0x08
     #define ATA_CMD_READ_DMA_EX 0x25
+    #define ATA_CMD_MEDIA_EJECT 0xED
+    #define ATA_CMD_IDENTIFY 0xEC
 
     #define HBA_PxIS_TFES (1 << 30)
 

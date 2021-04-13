@@ -166,7 +166,7 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
     printf("Detected drives:\n");
     for(int i=0;i<PortCount;i++) {
         Port* port = Ports[i];
-            
+
         if(port->portType == PortType::SATA) printf("SATA Drive\n");
         if(port->portType == PortType::SATAPI) printf("SATAPI Drive\n");
 

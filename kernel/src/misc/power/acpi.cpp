@@ -8,6 +8,7 @@ void* ACPI::FindTable(SDT* sdt, char* sign) {
     for(int t = 0;t<entries;t++) {
         SDT* h = (SDT*)*(uint64_t*)((uint64_t)sdt + sizeof(SDT) + (t*8));
         //printf("%c%c%c%c\n",h->Signature[0],h->Signature[1],h->Signature[2],h->Signature[3]);GlobalDisplay->update();
+        
         for(int i = 0;i<4;i++) {
             if(h->Signature[i] != sign[i])
                 break;
@@ -17,7 +18,29 @@ void* ACPI::FindTable(SDT* sdt, char* sign) {
     return 0;
 }
 
+void ACPI::DoACPIReboot() {
+    outportb(fadt->ResetReg.Address,fadt->ResetValue); //if that fails, we use uefi runtime services
+    ((void(*)())RebootBackup)();
+}
 
+void ACPI::DoACPIShutdown() {
+    if(ShutdownPossible) {
+        outportw(fadt->PM1aControlBlock,SLP_TYPa | SLP_EN);
+        outportw(fadt->PM1bControlBlock,SLP_TYPb | SLP_EN);
+    } // if that fails, we try emulator specific metods
+    
+    outportw(0xB004,0x2000);
+    outportw(0x604,0x2000);
+    outportw(0x4004,0x3400);
+    outportw(0x4004,(((5 & 7) << 10) | (1 << 13)));
+
+    //if that fails we use uefi runtime services
+    ((void(*)())ShutdownBackup)();
+
+    //it that fails too we panic 'cause we have nothing left to do to shutdown :(
+    IntreruptFrame f = {0};
+    KernelPanic("Shutdown failed",&f); 
+}
 
 void ACPI::ParseMADT(MADT* madt) {
     uint64_t entries = (madt->SDTHeader.Lenght - sizeof(MADT));

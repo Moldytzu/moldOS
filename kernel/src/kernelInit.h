@@ -24,6 +24,7 @@
 #include "misc/logging/log.h" //logging
 #include "misc/power/acpi.h" //acpi
 #include "misc/edid.h" //edid (monitor info)
+#include "misc/bmp.h" //bitmap image
 
 //io
 #include "io/serial.h" //serial port
@@ -53,7 +54,7 @@
 #include "scheduling/pit.h" //pit
 
 //userspace
-#include "userspace/userspace.h" //userspace
+//#include "userspace/userspace.h" //userspace
 
 #define LOOP while(1)
 
@@ -114,7 +115,9 @@ PCITranslate pcitranslate;
 //userspace stuff
 uint64_t UserspaceStack[1024];
 void UserSpaceFunc() {
+    //asm("rdmsr");
     for(;;);
+    LOOP;
 }
 
 void EnablePaging(BootInfo* bootInfo) {
@@ -143,7 +146,7 @@ void LoadGDT() {
 	GDTDescriptor gdtDescriptor;
 	gdtDescriptor.Size = sizeof(GDT)-1;
 	gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
-    TSSInit((void*)UserspaceStack);
+    //TSSInit((void*)UserspaceStack);
 	LoadGDT(&gdtDescriptor);
 }
 
@@ -168,6 +171,8 @@ void InitIntrerupts() {
     CreateIntrerupt((void*)PITHandler,0x20,IDT_TA_InterruptGate,0x08);
     CreateIntrerupt((void*)USBHandler,0xC4,IDT_TA_InterruptGate,0x08);
 
+    CreateIntrerupt((void*)SYSHandler,0xFF,IDT_TA_InterruptGate,0x08);
+
 	asm ("lidt %0" : : "m" (idtr));
 
     RemapPIC();
@@ -178,14 +183,47 @@ void InitIntrerupts() {
     asm volatile("sti");
 }
 
+SDT* xsdt;
+BMPHeader* bootImg;
 void InitACPI(BootInfo* bootInfo) {
-    SDT* xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
+    xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
 
     MCFG* mcfg = (MCFG*)acpi.FindTable(xsdt,(char*)"MCFG");
     MADT* madt = (MADT*)acpi.FindTable(xsdt,(char*)"APIC");
+    FADT* fadt = (FADT*)acpi.FindTable(xsdt,(char*)"FACP");
+    BGRT* bgrt = (BGRT*)acpi.FindTable(xsdt,(char*)"BGRT");
 
+    bootImg = (BMPHeader*)(void*)bgrt->ImageAddress;
+    acpi.fadt = fadt;
     acpi.ParseMADT(madt);
-    
+
+    char *S5Addr = (char *) fadt->Dsdt +36;
+    int dsdtLength = fadt->Dsdt+1-36;
+
+    while(dsdtLength > 0) {
+        if(memcmp(S5Addr,"_S5_",4) == 0)
+            break;
+        dsdtLength--;
+        S5Addr++;
+    }
+
+    if(dsdtLength > 0) {
+        S5Addr+=5;
+        S5Addr += ((*S5Addr &0xC0)>>6) +2;
+        if(*S5Addr == 0x0A)
+            S5Addr++;
+        acpi.SLP_TYPa = *(S5Addr)<<10;
+        S5Addr++;
+        if(*S5Addr == 0x0A)
+            S5Addr++;
+        acpi.SLP_TYPb = *(S5Addr)<<10;
+        acpi.SLP_EN = 1<<13;
+        acpi.ShutdownPossible = 1;
+    }
+
+    acpi.ShutdownBackup = bootInfo->Power->PowerOff;
+    acpi.RebootBackup = bootInfo->Power->Restart;
+
     pci.EnumeratePCI(mcfg);
     if(pci.DevicesIndex == 0) {
         log.warn("No MCFG found or no PCI devices!");
@@ -268,10 +306,13 @@ void InitDrivers(BootInfo* bootInfo) {
     FPUInit();
     log.info("Intialized FPU!");
 
-    EnableSCE();
-    log.info("Prepared Userspace!");
+    //EnableSCE();
+    //log.info("Prepared Userspace!");
 
-    RunInUserspace((void*)UserSpaceFunc,(void*)UserspaceStack);
+    //RunInUserspace((void*)UserAPP);
+    //no userspace 'cause i'm dumb and i can't implement it :(
+
+    //UserAPP();
 
     log.info("Initialized Everything!");
     
@@ -286,5 +327,5 @@ void InitDrivers(BootInfo* bootInfo) {
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    rtc.waitSeconds(2);
+    //rtc.waitSeconds(2);
 }

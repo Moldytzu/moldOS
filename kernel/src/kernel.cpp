@@ -15,11 +15,6 @@ Special Thanks to:
 - @nothotscott - he has a very good tutorial on debugging that helped me (https://www.youtube.com/watch?v=llP7zB8HTls)
 */
 
-/*
-Todo:
-moldule fa tss ca nu mere codu pt ca nu ai tss idiotule
-*/
-
 uint8_t MousePointer[16*25] = {
 1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -85,7 +80,8 @@ void displayCPU() {
 	printf("CPU Vendor: %co%s%co\n",ORANGE,cpu.getVendor(),WHITE);
 	printf("CPU Features: %co",ORANGE);
 	for(int i = 0;i<cpu.cpuFeatures;i++) printf("%s ",CPUFeatures[i]);
-	printf("%co",WHITE);
+	printf("%co\n",WHITE);
+	printf("CPU Cores: %co%u%co",ORANGE,acpi.CPUCoreCount,WHITE);
 }
 
 void displayRAM() {
@@ -155,7 +151,7 @@ void doMouse() {
 	drawPointer();
 
 	if(mouse.state.ButtonLeft || mouse.state.ButtonRight || mouse.state.ButtonMiddle) {		
-		power.Shutdown();
+		acpi.DoACPIShutdown();
 	}
 }
 
@@ -164,6 +160,15 @@ void displayRSDP() {
 	printf("\nRSDP Signature: %c%c%c%c%c%c%c%c",*(uint8_t*)GlobalInfo->RSDP,*((uint8_t*)GlobalInfo->RSDP+1),*((uint8_t*)GlobalInfo->RSDP+2),*((uint8_t*)GlobalInfo->RSDP+3),*((uint8_t*)GlobalInfo->RSDP+4),*((uint8_t*)GlobalInfo->RSDP+5),*((uint8_t*)GlobalInfo->RSDP+6),*((uint8_t*)GlobalInfo->RSDP+7));
 }
 
+struct uint24 {
+	unsigned uint24 : 24;
+} __attribute__((packed));
+
+void displaybgrt(){
+	uint24 *img_ptr = (uint24 *)(bootImg + bootImg->HeaderSize);
+	for (size_t dy = bootImg->Height - 1; dy > 0; dy--)
+		memcpy(display.secondFrameBuffer->BaseAddr+dy*display.getWidth()*4,img_ptr,bootImg->Width); //copy line by line, it's very fast compared to ploting pixels one by one
+}
 
 void kernelLoop() {
 	display.clearScreen(BLACK);
@@ -175,6 +180,7 @@ void kernelLoop() {
 	displayCPU();
 
 	displayKeyboard();
+	displaybgrt();
 
 	printf("\n\nCPU Temp: %u C*",GetCPUTemp());
 

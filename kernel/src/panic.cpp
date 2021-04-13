@@ -2,7 +2,7 @@
 
 void KernelPanic(const char* Message,IntreruptFrame* frame) {
     CPURegisters registers = DumpRegisters();
-    GlobalCOM1->Write(Message);
+    GlobalCOM1->Write(Message);    
     slowmemset(GlobalDisplay->secondFrameBuffer->BaseAddr,0xFF,GlobalDisplay->secondFrameBuffer->BufferSize);
     GlobalDisplay->setCursorPos(0,0);
     GlobalDisplay->setColour(0xffffff);

@@ -79,7 +79,7 @@ void DisplayDriver::clearScreen(unsigned int colour) {
 }
 
 void DisplayDriver::putpix(int x,int y) {
-	*(uint64_t*)(x+(y* secondFrameBuffer->PixelPerScanLine * 4) + secondFrameBuffer->BaseAddr) = colour;
+	*(uint64_t *)(x + (y * secondFrameBuffer->PixelPerScanLine * 4) + secondFrameBuffer->BaseAddr) = colour;
 }
 
 void DisplayDriver::putpix(int x,int y,unsigned int clr) {

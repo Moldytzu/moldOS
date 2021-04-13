@@ -19,6 +19,17 @@ const char* EFI_MEMORY_TYPE_STRINGS[] {
     "EfiPalCode",
 };
 
+int memcmp(const void *aptr, const void *bptr, size_t n) {
+	const unsigned char *a = (const unsigned char*)aptr, *b = (const unsigned char*)bptr;
+	for (size_t i = 0; i < n; i++) {
+		if (a[i] < b[i])
+			return -1;
+		else if (a[i] > b[i])
+			return 1;
+	}
+	return 0;
+}
+
 uint64_t GetMemorySize(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize){
     static uint64_t memorySizeBytes = 0;
     if (memorySizeBytes > 0) return memorySizeBytes;

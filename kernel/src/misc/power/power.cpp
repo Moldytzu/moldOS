@@ -8,10 +8,12 @@ void Power::InitPower(void* pdwn,void* rest) {
     PowerRestartVoid = rest;
 }
 
+//use acpi instead
 void Power::Shutdown() {
-	((void(*)())PowerDownVoid)();
+	//((void(*)())PowerDownVoid)();
 }
 
+//use acpi instead
 void Power::Restart() {
-	((void(*)())PowerRestartVoid)();
+    //((void(*)())PowerRestartVoid)();
 }
