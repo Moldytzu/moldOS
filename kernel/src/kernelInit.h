@@ -41,7 +41,8 @@
 #include "memory/heap.h" //heap
 
 //intrerupturi
-#include "intrerupts/gdt.h" //gdt
+//#include "intrerupts/gdt.h" //gdt
+#include "userspace/newgdt.h"
 #include "intrerupts/idt.h" //idt
 #include "intrerupts/intrerupts.h" //handlere
 
@@ -54,7 +55,7 @@
 #include "scheduling/pit.h" //pit
 
 //userspace
-//#include "userspace/userspace.h" //userspace
+#include "userspace/userspace.h" //userspace
 
 #define LOOP while(1)
 
@@ -79,7 +80,6 @@ struct BootInfo {
 
     //acpi
     RSDP2* RSDP;
-
 };
 
 extern uint64_t _KernelStart;
@@ -115,9 +115,7 @@ PCITranslate pcitranslate;
 //userspace stuff
 uint64_t UserspaceStack[1024];
 void UserSpaceFunc() {
-    //asm("rdmsr");
     for(;;);
-    LOOP;
 }
 
 void EnablePaging(BootInfo* bootInfo) {
@@ -143,11 +141,12 @@ void EnablePaging(BootInfo* bootInfo) {
 }
 
 void LoadGDT() {
-	GDTDescriptor gdtDescriptor;
-	gdtDescriptor.Size = sizeof(GDT)-1;
-	gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
+	//GDTDescriptor gdtDescriptor;
+	//gdtDescriptor.Size = sizeof(GDT)-1;
+	//gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
     //TSSInit((void*)UserspaceStack);
-	LoadGDT(&gdtDescriptor);
+	//LoadGDT(&gdtDescriptor);
+    setup_gdt();
 }
 
 void CreateIntrerupt(void* handler,uint8_t offset,uint8_t t_a,uint8_t selector) {
@@ -183,6 +182,23 @@ void InitIntrerupts() {
     asm volatile("sti");
 }
 
+void PrepareMelody() {
+    sound.Melody[0] = {NOTE_E5,8};
+    sound.Melody[1] = {NOTE_D5,8};
+    sound.Melody[2] = {NOTE_FS4,8};
+    sound.Melody[3] = {NOTE_GS4,8};
+    sound.Melody[4] = {NOTE_CS5,8};
+    sound.Melody[5] = {NOTE_B4,8};
+    sound.Melody[6] = {NOTE_D4,8};
+    sound.Melody[7] = {NOTE_E4,8};
+    sound.Melody[8] = {NOTE_B4,8};
+    sound.Melody[9] = {NOTE_A4,8};
+    sound.Melody[10] = {NOTE_CS4,8};
+    sound.Melody[11] = {NOTE_E4,8};
+    sound.Melody[12] = {NOTE_A4,8};
+    sound.MelodyLen = 12;
+}
+
 SDT* xsdt;
 BMPHeader* bootImg;
 void InitACPI(BootInfo* bootInfo) {
@@ -195,8 +211,11 @@ void InitACPI(BootInfo* bootInfo) {
 
     bootImg = (BMPHeader*)(void*)bgrt->ImageAddress;
     acpi.fadt = fadt;
+
+    log.info("Parsing MADT");
     acpi.ParseMADT(madt);
 
+    log.info("Decoding DSDT");
     char *S5Addr = (char *) fadt->Dsdt +36;
     int dsdtLength = fadt->Dsdt+1-36;
 
@@ -224,6 +243,7 @@ void InitACPI(BootInfo* bootInfo) {
     acpi.ShutdownBackup = bootInfo->Power->PowerOff;
     acpi.RebootBackup = bootInfo->Power->Restart;
 
+    log.info("Enumerating PCI");
     pci.EnumeratePCI(mcfg);
     if(pci.DevicesIndex == 0) {
         log.warn("No MCFG found or no PCI devices!");
@@ -257,6 +277,15 @@ void InitDrivers(BootInfo* bootInfo) {
     GlobalMouse = &mouse;
 
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
+
+    if(bootInfo->Key*2048+2047 != 0xFFFFFF) {
+        display.InitDoubleBuffer(bootInfo->GOPFrameBuffer);
+        GlobalDisplay = &display;
+        display.clearScreen(0);
+        log.error("Key verification failed!");
+        log.error("Corrupt or non-compliant bootloader!");
+        while(1);
+    }
 
 #ifdef DoubleBuffer
     doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
@@ -306,20 +335,17 @@ void InitDrivers(BootInfo* bootInfo) {
     FPUInit();
     log.info("Intialized FPU!");
 
-    //EnableSCE();
-    //log.info("Prepared Userspace!");
+    EnableSCE();
+    log.info("Prepared Userspace!");
 
-    //RunInUserspace((void*)UserAPP);
+    RunInUserspace((void*)UserAPP,(void*)&UserspaceStack[1023]);
     //no userspace 'cause i'm dumb and i can't implement it :(
 
     //UserAPP();
 
+    PrepareMelody();
+
     log.info("Initialized Everything!");
-    
-    if(bootInfo->Key*2048+2047 != 0xFFFFFF) {
-        log.error("Key verification failed!");
-        while(1);
-    }
 
     log.info("");
     log.info("Welcome to LowLevelOS!");
@@ -327,5 +353,5 @@ void InitDrivers(BootInfo* bootInfo) {
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    //rtc.waitSeconds(2);
+    rtc.waitSeconds(2);
 }

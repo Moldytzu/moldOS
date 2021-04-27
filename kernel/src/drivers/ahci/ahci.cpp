@@ -170,6 +170,7 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
         if(port->portType == PortType::SATA) printf("SATA Drive\n");
         if(port->portType == PortType::SATAPI) printf("SATAPI Drive\n");
 
+/*
         port->buffer = (uint8_t*)GlobalAllocator.RequestPage();
         memset(port->buffer,0,4096);
         port->Read(0,6,port->buffer);
@@ -179,7 +180,7 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
         }
         
         GlobalDisplay->cursorNewLine();
-        GlobalDisplay->update();
+        GlobalDisplay->update();*/
     }
 }
 

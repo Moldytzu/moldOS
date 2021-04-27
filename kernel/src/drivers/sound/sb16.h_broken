@@ -1,0 +1,26 @@
+#pragma once
+#include <stdint.h>
+#include "../../io/ports.h"
+
+#define DSPMixer 0x224
+#define DSPMixerData 0x225
+#define DSPReset 0x226
+#define DSPRead 0x22A
+#define DSPWrite 0x22C
+#define DSPReadStatus 0x22E
+#define DSPAcknowledge 0x22F
+
+#define DSPWSetTime 0x40
+#define DSPWSetSampleRate 0x41
+#define DSPWTurnSpeakerON 0xD1
+#define DSPWTurnSpeakerOFF 0xD3
+#define DSPWStop8BIT 0xD0
+#define DSPWStart8BIT 0xD4
+#define DSPWStop16BIT 0xD5
+#define DSPWStart16BIT 0xD6
+#define DSPWGetVersion 0xE1
+
+#define MXMasterVolume 0x22
+#define MXSetIRQ 0x80
+
+void InitSB16();

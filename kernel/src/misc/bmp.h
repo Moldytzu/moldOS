@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 
+struct uint24 {
+	unsigned uint24 : 24;
+} __attribute__((packed));
+
 struct BMPHeader {
     char rsrv[2];
     uint32_t Size;

@@ -1,0 +1,58 @@
+#pragma once
+#include <stdint.h>
+#include "../pci/pcidefs.h"
+#include "../../libc/stdio.h"
+
+/*
+struct NativeAudioMixer {
+    uint16_t Reset;
+    uint16_t MasterVolume;
+    uint16_t MicrophoneVolume;
+    uint16_t PCMVolume;
+    uint16_t InputDevice;
+    uint16_t InputGain;
+    uint16_t MicrophoneGain;
+    uint16_t IsExtendedFeaturesSupported;
+    uint16_t EnableExtendedFeatures;
+    uint16_t FrontSampleRate;
+}__attribute__((packed));
+
+struct NABMBox {
+    uint32_t BufferDescriptorAddress;
+    uint8_t CurrentBufferEntry;
+    uint8_t DescriptorEntries;
+    uint16_t Status;
+    uint16_t TransferedSamples;
+    uint8_t ProcessedBufferEntries;
+    uint8_t Control;
+}__attribute__((packed));
+
+struct NativeAudioBusMaster {
+    NABMBox PCMIn;
+    NABMBox PCMOut;
+    NABMBox Microphone;
+    uint32_t GlobalControl;
+    uint32_t GlobalStatus;
+}__attribute__((packed));*/
+
+struct BufferDescriptorList {
+    uint32_t Address;
+    uint32_t ControlLenght;
+}__attribute__((packed));
+
+#define NativeAudioMixer_MasterVolume 0x02
+#define NativeAudioMixer_PCMVolume 0x18
+
+#define NativeAudioBusMaster_BufferDescriptorPCM 0x10
+#define NativeAudioBusMaster_LastValidIndex 0x15
+#define NativeAudioBusMaster_ControlRegisterPCM 0x15
+#define NativeAudioBusMaster_GlobalControlRegister 0x2C
+
+#define BufferDescriptorListLength 32
+
+#define IntrerruptOnCompletion ((uint32_t)1 << 31)
+#define RunPauseMaster (1 << 0)
+
+void HandleAC97();
+
+void InitAC97(PCIDevice* device);

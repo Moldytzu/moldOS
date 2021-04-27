@@ -3,7 +3,7 @@
 #include "../drivers/display/displaydriver.h"
 
 void DoWrite(char* str) {
-    printf("%u",(uint64_t)str);
+    printf(str);
     GlobalDisplay->update();
 }
 

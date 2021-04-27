@@ -12,9 +12,10 @@ EnableSCE:
     ret                 ; return back to C
 
 RunInUserspace:
-	mov		rcx,rdi
-	mov		r11, 0x0202 
-    o64 sysret
+    mov rcx, rdi           ; first argument, new instruction pointer
+    mov rsp, rsi           ; second argument, new stack pointer
+    mov r11, 0x0202        ; eflags
+    o64 sysret;            ; to space!
 
 EXTERN GDTSetKernelStack
 GLOBAL EnableSCE

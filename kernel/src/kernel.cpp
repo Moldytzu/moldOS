@@ -150,9 +150,10 @@ void drawPointer() {
 void doMouse() {
 	drawPointer();
 
-	if(mouse.state.ButtonLeft || mouse.state.ButtonRight || mouse.state.ButtonMiddle) {		
+	if(mouse.state.ButtonLeft)		
 		acpi.DoACPIShutdown();
-	}
+	else if(mouse.state.ButtonRight)
+		acpi.DoACPIReboot();
 }
 
 void displayRSDP() {
@@ -160,13 +161,9 @@ void displayRSDP() {
 	printf("\nRSDP Signature: %c%c%c%c%c%c%c%c",*(uint8_t*)GlobalInfo->RSDP,*((uint8_t*)GlobalInfo->RSDP+1),*((uint8_t*)GlobalInfo->RSDP+2),*((uint8_t*)GlobalInfo->RSDP+3),*((uint8_t*)GlobalInfo->RSDP+4),*((uint8_t*)GlobalInfo->RSDP+5),*((uint8_t*)GlobalInfo->RSDP+6),*((uint8_t*)GlobalInfo->RSDP+7));
 }
 
-struct uint24 {
-	unsigned uint24 : 24;
-} __attribute__((packed));
-
 void displaybgrt(){
 	uint24 *img_ptr = (uint24 *)(bootImg + bootImg->HeaderSize);
-	for (size_t dy = bootImg->Height - 1; dy > 0; dy--)
+	for (size_t dy = bootImg->Height - 1; dy > 0; dy--) //the bmp data is stored backwards, so we count from big to little
 		memcpy(display.secondFrameBuffer->BaseAddr+dy*display.getWidth()*4,img_ptr,bootImg->Width); //copy line by line, it's very fast compared to ploting pixels one by one
 }
 
@@ -187,7 +184,7 @@ void kernelLoop() {
 	printf("\n\nFPS: %f",fps);
 	printf("\n\nTime since boot: %f seconds",TimeSinceBoot);
 
-	printf("\n\nClick to shutdown!");
+	printf("\n\nUse left click to shutdown and right click to reboot!");
 
 	doMouse();
 
@@ -200,7 +197,6 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	srand(rtc.readTime());
 	display.clearScreen(BLACK);
 	com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
-
 	LOOP {
 		float timea = TimeSinceBoot;
 
@@ -208,6 +204,8 @@ extern "C" int kernelMain(BootInfo* binfo) {
 		
 		float timeb = TimeSinceBoot;
 		frametime = timeb-timea;
+		if(frametime == 0)
+			frametime = 0.001f;
 		fps = (1.0f/frametime);
 	}
 

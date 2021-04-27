@@ -30,7 +30,7 @@ void PCI::EnumFunc(uint64_t addr,uint64_t function) {
                             new AHCIDriver(deviceZ);
                     }
             }
-        }
+    }
     
     switch (deviceZ->Class)
     {

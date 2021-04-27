@@ -1,5 +1,5 @@
 #include "intrerupts.h"
-//#include "../userspace/userspace.h"
+#include "../userspace/userspace.h"
 
 __attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFrame* frame) {
     KernelPanic("General Protection Fault",frame);
@@ -45,7 +45,7 @@ __attribute__((interrupt)) void SYSHandler(struct IntreruptFrame* frame) {
     register uint64_t a asm("rax"); 
     register uint64_t b asm("rbx"); 
     register uint64_t c asm("rcx"); 
-    //SYSHandle(a,b,c);
+    SYSHandle(a,b,c);
 }
 
 void PIC_EndMaster(){
