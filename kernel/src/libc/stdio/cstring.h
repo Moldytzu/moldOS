@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "../../memory/efiMemory.h"
 
+#define streq(x,y) (strcmp(x,y)==0)
+
 //int
 char* inttostr(uint64_t val);
 char* inttostr(uint32_t val);
@@ -31,3 +33,6 @@ char* chartostr(char c);
 
 //string lenght
 int strlen(char* str);
+
+//string compare
+int strcmp(const char* p1, const char* p2);

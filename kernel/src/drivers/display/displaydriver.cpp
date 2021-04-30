@@ -153,7 +153,7 @@ void DisplayDriver::setColour(unsigned int colo) {
 }
 
 void DisplayDriver::update() {
-	ssememcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
+	memcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
 }
 
 void DisplayDriver::advanceCursor() {

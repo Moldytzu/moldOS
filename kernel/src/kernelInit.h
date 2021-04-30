@@ -112,6 +112,14 @@ PS2Controller ps2;
 ACPI acpi;
 PCITranslate pcitranslate;
 
+#if defined(__clang__)
+#define clang
+#elif defined(__GNUC__) || defined(__GNUG__)
+#define gcc
+#elif defined(_MSC_VER)
+#define msvc
+#endif
+
 //userspace stuff
 uint64_t UserspaceStack[1024];
 void UserSpaceFunc() {
@@ -294,7 +302,7 @@ void InitDrivers(BootInfo* bootInfo) {
 	doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
 	doubleBuffer->Width = display.globalFrameBuffer->Width;
 
-    GlobalAllocator.LockPages(doubleBuffer->BaseAddr, (display.globalFrameBuffer->BufferSize / 4096) + 100);
+    GlobalAllocator.LockPages((void*)((uint64_t)doubleBuffer->BaseAddr-0x1000), (display.globalFrameBuffer->BufferSize / 4096) + 100);
 
     for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096){
         GlobalTableManager.MapMemory((void*)t, (void*)t);
@@ -320,7 +328,7 @@ void InitDrivers(BootInfo* bootInfo) {
     InitializeHeap((void*)0x0000100000000000, 0x10);
     log.info("Initialized Heap!");
 
-    PITSetDivisor(20000);
+    PITSetDivisor(1);
     log.info("Initialized PIT!");
 
 	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
@@ -338,8 +346,11 @@ void InitDrivers(BootInfo* bootInfo) {
     EnableSCE();
     log.info("Prepared Userspace!");
 
-    RunInUserspace((void*)UserAPP,(void*)&UserspaceStack[1023]);
-    //no userspace 'cause i'm dumb and i can't implement it :(
+    void* UserspacePage = GlobalAllocator.RequestPage();
+    GlobalTableManager.MapUserspaceMemory((void*)UserAPP);
+    GlobalTableManager.MapUserspaceMemory(UserspacePage);
+    RunInUserspace((void*)UserAPP,UserspacePage+4096-8);
+    //ring 3 baby :D thanks KeepKonect and NoThot
 
     //UserAPP();
 
@@ -349,9 +360,18 @@ void InitDrivers(BootInfo* bootInfo) {
 
     log.info("");
     log.info("Welcome to LowLevelOS!");
-    log.info("By Moldu' (Nov. 2020 - Apr. 2021)");
+    log.info("Copyright Moldu' (Nov. 2020 - Apr. 2021)");
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);
-    rtc.waitSeconds(2);
+    log.info("Built with:");
+#if defined(clang)
+    log.info("CLang");
+#elif defined(gcc)
+    log.info("GNU C Compiler");
+#elif defined(msvc)
+    log.info("Micro$oft Visual C++");
+#endif
+    log.info(__VERSION__);
+    //rtc.waitSeconds(2);
 }

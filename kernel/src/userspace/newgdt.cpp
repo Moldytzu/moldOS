@@ -44,7 +44,7 @@ struct {
 };
 
 
-
+uint64_t stack[2048];
 
 
 void memzero(void * s, uint64_t n) {
@@ -63,4 +63,8 @@ void setup_gdt() {
 
     table_ptr gdt_ptr = { sizeof(gdt_table)-1, (uint64_t)&gdt_table };
     load_gdt(&gdt_ptr);
+}
+
+void setr0stack(uint64_t rsp) {
+  tss_t.rsp0 = rsp;
 }

@@ -167,40 +167,87 @@ void displaybgrt(){
 		memcpy(display.secondFrameBuffer->BaseAddr+dy*display.getWidth()*4,img_ptr,bootImg->Width); //copy line by line, it's very fast compared to ploting pixels one by one
 }
 
+void displayDebugInfo() {
+	printf("\n\n==Debug info==");
+	printf("\nFPS: %f",fps);
+    printf("\nTime since boot: %f seconds",TimeSinceBoot);
+	printf("\n==Debug info==");
+}
+
+char serialConsoleBuffer[256];
+int serialConsoleBufferIndex = 0;
+
+void handleSerialConsole() {
+	if(streq(serialConsoleBuffer,"help")) {
+		com1.Write("\nLLOS serial debug console");
+		com1.Write("\nsh -> shutdown computer");
+		com1.Write("\nrb -> restart computer");
+		com1.Write("\nhelp -> show commands");
+	} else if (streq(serialConsoleBuffer,"sh")) {
+		acpi.DoACPIShutdown();
+	} else if (streq(serialConsoleBuffer,"rb")) {
+		acpi.DoACPIReboot();
+	}
+
+	memset(serialConsoleBuffer,0,256);
+	serialConsoleBufferIndex = 0;
+	com1.Write("\n> ");
+}
+
+void doSerialConsole() {
+	if(com1.isReceived()) {
+		char r = com1.Read();
+		if(r == '\r' || r == '\n') {
+			handleSerialConsole();
+			return;
+		}
+		if(r == '\b')
+			return;
+		serialConsoleBuffer[serialConsoleBufferIndex++] = r;
+		com1.Write(r);
+	}
+} 
+
 void kernelLoop() {
 	display.clearScreen(BLACK);
 
 	displayLogo();
 	displayDateTime();
 
-	displayRAM();
-	displayCPU();
+	//displayRAM();
+	//displayCPU();
 
-	displayKeyboard();
-	displaybgrt();
+	//displayKeyboard();
+	//displaybgrt();
 
-	printf("\n\nCPU Temp: %u C*",GetCPUTemp());
-
-	printf("\n\nFPS: %f",fps);
-	printf("\n\nTime since boot: %f seconds",TimeSinceBoot);
+	//printf("\n\nCPU Temp: %u C*",GetCPUTemp());
 
 	printf("\n\nUse left click to shutdown and right click to reboot!");
+
+	displayDebugInfo();
 
 	doMouse();
 
 	display.update();
+
+	//sound.playnext();
 }
 
+char* kernelExitMessage = "Unexpected kernel exit";
 extern "C" int kernelMain(BootInfo* binfo) {
 	bInfo = binfo;
 	InitDrivers(binfo);
 	srand(rtc.readTime());
 	display.clearScreen(BLACK);
 	com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
+
+	com1.Write("> ");
+
 	LOOP {
 		float timea = TimeSinceBoot;
 
 		kernelLoop();
+		doSerialConsole();
 		
 		float timeb = TimeSinceBoot;
 		frametime = timeb-timea;
@@ -210,7 +257,7 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	}
 
 	IntreruptFrame f={0};
-	KernelPanic("You shouldn't be out of the kernelLoop",&f);
+	KernelPanic(kernelExitMessage,&f);
 
 	return 0;
 } 

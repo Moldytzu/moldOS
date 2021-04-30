@@ -4,11 +4,13 @@ void Sound::play(long long nFrequence) {
  	uint32_t Div;
  	uint8_t tmp;
  
+        //Set the PIT to the desired frequency
  	Div = 1193180 / nFrequence;
  	outportb(0x43, 0xb6);
  	outportb(0x42, (uint8_t) (Div) );
  	outportb(0x42, (uint8_t) (Div >> 8));
  
+        //And play the sound using the PC speaker
  	tmp = inportb(0x61);
   	if (tmp != (tmp | 3)) {
  		outportb(0x61, tmp | 3);

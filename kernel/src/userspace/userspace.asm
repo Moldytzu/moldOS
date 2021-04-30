@@ -11,13 +11,21 @@ EnableSCE:
     wrmsr               ; write back new STAR
     ret                 ; return back to C
 
-RunInUserspace:
-    mov rcx, rdi           ; first argument, new instruction pointer
-    mov rsp, rsi           ; second argument, new stack pointer
-    mov r11, 0x0202        ; eflags
-    o64 sysret;            ; to space!
 
-EXTERN GDTSetKernelStack
+RunInUserspace:
+    push rdi
+    push rsi
+
+    mov rdi,rsp
+    add rdi,16
+    call setr0stack
+    
+    pop rcx
+    pop rsp
+    mov r11, 0x0202
+    o64 sysret            ; to userspace and beyond
+
+EXTERN setr0stack
 GLOBAL EnableSCE
 GLOBAL RunInUserspace
 

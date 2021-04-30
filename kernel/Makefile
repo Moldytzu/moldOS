@@ -10,9 +10,12 @@ CC = gcc
 LD = ld
 ASM = nasm
 
-CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -msse3 -Wno-pointer-arith -Wno-int-to-pointer-cast
+CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -Wno-pointer-arith -Wno-int-to-pointer-cast
 # uncomment for debugging
 #CFLAGS += -g
+
+# optimization flags
+CFLAGS += -march=core2 -mssse3 -m64 -mtune=generic -mfpmath=sse -pipe
 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 

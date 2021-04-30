@@ -2,6 +2,7 @@
 #include "../../libc/stdio.h"
 #include "../../memory/PageTableManager.h"
 #include "../../drivers/display/displaydriver.h"
+#include "../../io/serial.h"
 
 void* ACPI::FindTable(SDT* sdt, char* sign) {
     int entries = (sdt->Lenght - sizeof(SDT)) / 8;
@@ -19,23 +20,32 @@ void* ACPI::FindTable(SDT* sdt, char* sign) {
 }
 
 void ACPI::DoACPIReboot() {
+    GlobalCOM1->Write("Rebooting");
     outportb(fadt->ResetReg.Address,fadt->ResetValue); //if that fails, we use uefi runtime services
+    GlobalCOM1->Write("Try #1 failed!");
     ((void(*)())RebootBackup)();
+    GlobalCOM1->Write("Try #2 failed!");
 }
 
 void ACPI::DoACPIShutdown() {
+    GlobalCOM1->Write("Shutdowning");
     if(ShutdownPossible) {
         outportw(fadt->PM1aControlBlock,SLP_TYPa | SLP_EN);
-        outportw(fadt->PM1bControlBlock,SLP_TYPb | SLP_EN);
+        outportw(fadt->PM1bControlBlock,SLP_TYPb | SLP_EN);    
     } // if that fails, we try emulator specific metods
+    GlobalCOM1->Write("Try #2 failed!");
     
     outportw(0xB004,0x2000);
     outportw(0x604,0x2000);
     outportw(0x4004,0x3400);
     outportw(0x4004,(((5 & 7) << 10) | (1 << 13)));
 
+    GlobalCOM1->Write("Try #2 failed!");
+
     //if that fails we use uefi runtime services
     ((void(*)())ShutdownBackup)();
+
+    GlobalCOM1->Write("Try #3 failed!");
 
     //it that fails too we panic 'cause we have nothing left to do to shutdown :(
     IntreruptFrame f = {0};
