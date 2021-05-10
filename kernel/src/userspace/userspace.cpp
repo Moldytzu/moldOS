@@ -1,19 +1,37 @@
 #include "userspace.h"
 #include "../libc/stdio.h"
 #include "../drivers/display/displaydriver.h"
+#include "../io/serial.h"
 
-void DoWrite(char* str) {
-    printf(str);
+void ConsoleWrite(char* text) {
+    printf(text);
     GlobalDisplay->update();
 }
 
-void SYSHandle(uint64_t a,uint64_t b,uint64_t c) {
-    switch (a)
+void SerialWrite(char* text) {
+    GlobalCOM1->Write(text);
+}
+
+void Exit(uint64_t code) {
+    printf("Exiting userspace with exit code %u",code);
+    GlobalDisplay->update();
+    while (1);
+}
+
+void SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) {
+    switch (syscall)
     {
-    case 0x1:
-        DoWrite((char*)b);
+    case SYSCALL_WRITE:
+        ConsoleWrite((char*)(uint64_t*)arg1);
+        break;
+    case SYSCALL_SERIALWRITE:
+        SerialWrite((char*)(uint64_t*)arg1);
+        break;
+    case SYSCALL_EXIT:
+        Exit(arg1);
+        break;
+
     default:
         break;
     }
-    //printf();
 }

@@ -9,3 +9,4 @@ struct table_ptr {
 extern "C" void load_gdt(table_ptr * gdt_ptr);
 void setup_gdt();
 extern "C" void setr0stack(uint64_t rsp);
+extern "C" uint64_t getr0stack(); 

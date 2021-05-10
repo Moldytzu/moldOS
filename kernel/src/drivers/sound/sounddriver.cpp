@@ -12,9 +12,9 @@ void Sound::play(long long nFrequence) {
  
         //And play the sound using the PC speaker
  	tmp = inportb(0x61);
-  	if (tmp != (tmp | 3)) {
+  	//if (tmp != (tmp | 3)) {
  		outportb(0x61, tmp | 3);
- 	}
+ 	//}
 }
 
 void Sound::stop() {

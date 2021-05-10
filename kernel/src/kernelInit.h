@@ -42,7 +42,7 @@
 
 //intrerupturi
 //#include "intrerupts/gdt.h" //gdt
-#include "userspace/newgdt.h"
+//#include "userspace/newgdt.h"
 #include "intrerupts/idt.h" //idt
 #include "intrerupts/intrerupts.h" //handlere
 
@@ -56,6 +56,8 @@
 
 //userspace
 #include "userspace/userspace.h" //userspace
+#include "userspace/kotos_gdt_tss/gdt.h"
+#include "userspace/kotos_gdt_tss/tss.h"
 
 #define LOOP while(1)
 
@@ -120,12 +122,6 @@ PCITranslate pcitranslate;
 #define msvc
 #endif
 
-//userspace stuff
-uint64_t UserspaceStack[1024];
-void UserSpaceFunc() {
-    for(;;);
-}
-
 void EnablePaging(BootInfo* bootInfo) {
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
@@ -145,7 +141,7 @@ void EnablePaging(BootInfo* bootInfo) {
         GlobalTableManager.MapMemory((void*)t, (void*)t);
     }
 
-    asm ("mov %0, %%cr3" : : "r" (PML4));
+    asm volatile ("mov %0, %%cr3" : : "r" (PML4));
 }
 
 void LoadGDT() {
@@ -154,7 +150,8 @@ void LoadGDT() {
 	//gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
     //TSSInit((void*)UserspaceStack);
 	//LoadGDT(&gdtDescriptor);
-    setup_gdt();
+    //setup_gdt();
+    gdtInit();
 }
 
 void CreateIntrerupt(void* handler,uint8_t offset,uint8_t t_a,uint8_t selector) {
@@ -168,19 +165,19 @@ void InitIntrerupts() {
 	idtr.Limit = 0x0fff;
 	idtr.Offset = (uint64_t)GlobalAllocator.RequestPage();
 
-    CreateIntrerupt((void*)PageFaultHandler,0xE,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)DoubleFaultHandler,0x8,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)GeneralProtectionFaultHandler,0xD,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)InvalideOpcodeHandler,0x6,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)PageFaultHandlerEntry,0xE,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)DoubleFaultHandlerEntry,0x8,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)GeneralProtectionFaultHandlerEntry,0xD,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)InvalideOpcodeHandlerEntry,0x6,IDT_TA_InterruptGate,0x08);
 
-    CreateIntrerupt((void*)KBHandler,0x21,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)MSHandler,0x2C,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)PITHandler,0x20,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)USBHandler,0xC4,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)KBHandlerEntry,0x21,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)MSHandlerEntry,0x2C,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void*)PITHandlerEntry,0x20,IDT_TA_InterruptGate,0x08);
+    //CreateIntrerupt((void*)USBHandler,0xC4,IDT_TA_InterruptGate,0x08);
 
-    CreateIntrerupt((void*)SYSHandler,0xFF,IDT_TA_InterruptGate,0x08);
+    //CreateIntrerupt((void*)SYSHandler,0xFF,IDT_TA_InterruptGate,0x08);
 
-	asm ("lidt %0" : : "m" (idtr));
+	asm volatile ("lidt %0" : : "m" (idtr));
 
     RemapPIC();
 
@@ -277,12 +274,19 @@ void InitDrivers(BootInfo* bootInfo) {
 
     LoadGDT();
 	InitIntrerupts();
-    
+
+    com1.Init();
+	GlobalCOM1 = &com1;
+	com1.ClearMonitor();
+    com1.Write("Kernel intialized the Serial Port!\n");
+
 	EnablePaging(bootInfo);
+    com1.Write("Done paging!");
 
     GlobalKeyboard = &kb;
     mouse.Init();
     GlobalMouse = &mouse;
+    com1.Write("Done mouse!");
 
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
 
@@ -319,10 +323,6 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	GlobalDisplay = &display;
 	
-    com1.Init();
-	GlobalCOM1 = &com1;
-	com1.ClearMonitor();
-    com1.Write("Kernel intialized the Serial Port!\n");
     log.info("Initialized PS/2, Intrerupts, Display, Serial!");
 
     InitializeHeap((void*)0x0000100000000000, 0x10);
@@ -343,24 +343,19 @@ void InitDrivers(BootInfo* bootInfo) {
     FPUInit();
     log.info("Intialized FPU!");
 
-    EnableSCE();
-    log.info("Prepared Userspace!");
-
-    void* UserspacePage = GlobalAllocator.RequestPage();
-    GlobalTableManager.MapUserspaceMemory((void*)UserAPP);
-    GlobalTableManager.MapUserspaceMemory(UserspacePage);
-    RunInUserspace((void*)UserAPP,UserspacePage+4096-8);
-    //ring 3 baby :D thanks KeepKonect and NoThot
-
-    //UserAPP();
-
     PrepareMelody();
 
     log.info("Initialized Everything!");
 
+    EnableSCE();
+    void* UserspacePage = GlobalAllocator.RequestPage();
+    GlobalTableManager.MapUserspaceMemory((void*)UserAPP);
+    GlobalTableManager.MapUserspaceMemory(UserspacePage);
+    RunInUserspace((void*)UserAPP,UserspacePage+4096-8);
+
     log.info("");
     log.info("Welcome to LowLevelOS!");
-    log.info("Copyright Moldu' (Nov. 2020 - Apr. 2021)");
+    log.info("Copyright Moldu' (Nov. 2020 - May 2021)");
     log.info("Build date & time:");
     log.info(__DATE__);
     log.info(__TIME__);

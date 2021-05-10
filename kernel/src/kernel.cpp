@@ -12,7 +12,8 @@ BootInfo* bInfo;
 Special Thanks to:
 - @borrrden - he fixed my buggy keyboard handler
 - @AbsurdPoncho - if he didn't do a osdev series i won't started this project
-- @nothotscott - he has a very good tutorial on debugging that helped me (https://www.youtube.com/watch?v=llP7zB8HTls)
+- @nothotscott - he has a very good tutorial on debugging that helped me (https://www.youtube.com/watch?v=llP7zB8HTls) and for some userspace tips
+- @keepkonect - he's my friend that helped me do this project
 */
 
 uint8_t MousePointer[16*25] = {
@@ -214,13 +215,13 @@ void kernelLoop() {
 	displayLogo();
 	displayDateTime();
 
-	//displayRAM();
-	//displayCPU();
+	displayRAM();
+	displayCPU();
 
-	//displayKeyboard();
-	//displaybgrt();
+	displayKeyboard();
+	displaybgrt();
 
-	//printf("\n\nCPU Temp: %u C*",GetCPUTemp());
+	printf("\n\nCPU Temp: %u C*",GetCPUTemp());
 
 	printf("\n\nUse left click to shutdown and right click to reboot!");
 
@@ -233,7 +234,7 @@ void kernelLoop() {
 	//sound.playnext();
 }
 
-char* kernelExitMessage = "Unexpected kernel exit";
+char* kernelExitMessage = (char*)"Unexpected kernel exit";
 extern "C" int kernelMain(BootInfo* binfo) {
 	bInfo = binfo;
 	InitDrivers(binfo);

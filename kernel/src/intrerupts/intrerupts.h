@@ -17,15 +17,22 @@
 #define ICW1_ICW4 0x01
 #define ICW4_8086 0x01
 
-__attribute__((interrupt)) void InvalideOpcodeHandler(struct IntreruptFrame* frame);//6
-__attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFrame* frame);//13
-__attribute__((interrupt)) void PageFaultHandler(struct IntreruptFrame* frame); //14
-__attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame);
-__attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame);
-__attribute__((interrupt)) void MSHandler(struct IntreruptFrame* frame);
-__attribute__((interrupt)) void PITHandler(struct IntreruptFrame* frame);
-__attribute__((interrupt)) void USBHandler(struct IntreruptFrame* frame);
-__attribute__((interrupt)) void SYSHandler(struct IntreruptFrame* frame);
+extern "C" void InvalideOpcodeHandler();//6
+extern "C" void GeneralProtectionFaultHandler();//13
+extern "C" void PageFaultHandler(); //14
+extern "C" void DoubleFaultHandler();
+extern "C" void KBHandler();
+extern "C" void MSHandler();
+extern "C" void PITHandler();
+//extern "C" void SYSHandler();
+
+extern "C" void InvalideOpcodeHandlerEntry();//6
+extern "C" void GeneralProtectionFaultHandlerEntry();//13
+extern "C" void PageFaultHandlerEntry(); //14
+extern "C" void DoubleFaultHandlerEntry();
+extern "C" void KBHandlerEntry();
+extern "C" void MSHandlerEntry();
+extern "C" void PITHandlerEntry();
 
 void RemapPIC();
 void PIC_EndMaster();

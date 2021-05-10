@@ -1,16 +1,23 @@
 [bits 64]
 
 UserAPP:
-;.loop:
-    ;wrmsr
-    ;mov rax, 1 ; syscall puts
-    ;mov rbx, Text ; string pointer
-    ;mov rcx, 0
-    ;int 0xFF
-    ;jmp UserAPP
+    mov rdi, 1    ; syscall console write
+    mov rsi, Text ; string pointer
+    syscall
+
+    mov rdi, 2    ; syscall serial write
+    mov rsi, TextSerial ; string pointer
+    syscall
+
+    mov rdi, 0xFF ;syscall exit
+    mov rsi, 1 ; exit code
+    syscall
     jmp $
 
 GLOBAL UserAPP
 
 Text:
-    db "Hello!",10,0
+    db "This should be in the normal console",10,0
+
+TextSerial:
+    db "and this should be in the serial console",10,0

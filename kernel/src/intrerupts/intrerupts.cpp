@@ -1,52 +1,51 @@
 #include "intrerupts.h"
 #include "../userspace/userspace.h"
 
-__attribute__((interrupt)) void GeneralProtectionFaultHandler(struct IntreruptFrame* frame) {
-    KernelPanic("General Protection Fault",frame);
+void GeneralProtectionFaultHandler() {
+    IntreruptFrame f;
+    KernelPanic("General Protection Fault",&f);
     while(1);
 }
-__attribute__((interrupt)) void PageFaultHandler(struct IntreruptFrame* frame) {
-    KernelPanic("Page Fault",frame);
+void PageFaultHandler() {
+    IntreruptFrame f;
+    KernelPanic("Page Fault",&f);
     while(1);
 }
-__attribute__((interrupt)) void DoubleFaultHandler(struct IntreruptFrame* frame) {
-    KernelPanic("Double Fault",frame);
+void DoubleFaultHandler() {
+    IntreruptFrame f;
+    KernelPanic("Double Fault",&f);
     while(1);
 }
 
-__attribute__((interrupt)) void InvalideOpcodeHandler(struct IntreruptFrame* frame) {
-    KernelPanic("Invalid Opcode",frame);
+void InvalideOpcodeHandler() {
+    IntreruptFrame f;
+    KernelPanic("Invalid Opcode",&f);
     while(1);
 }
 
-__attribute__((interrupt)) void KBHandler(struct IntreruptFrame* frame) {
+void KBHandler() {
     uint8_t keycode = inportb(0x60);
     GlobalKeyboard->Handle(keycode);
     PIC_EndMaster();
 }
 
-__attribute__((interrupt)) void MSHandler(struct IntreruptFrame* frame) {
+void MSHandler() {
     uint8_t data = inportb(0x60);
     GlobalMouse->Handle(data);
     PIC_EndSlave();
 }
 
-__attribute__((interrupt)) void PITHandler(struct IntreruptFrame* frame) {
+void PITHandler() {
     PITTick();
     PIC_EndMaster();
 }
 
-__attribute__((interrupt)) void USBHandler(struct IntreruptFrame* frame) {
-    KernelPanic("USB",frame);
-    PIC_EndMaster();
-}
-
-__attribute__((interrupt)) void SYSHandler(struct IntreruptFrame* frame) {
+/*void SYSHandler() {
     register uint64_t a asm("rax"); 
     register uint64_t b asm("rbx"); 
     register uint64_t c asm("rcx"); 
     SYSHandle(a,b,c);
-}
+}*/
 
 void PIC_EndMaster(){
     outportb(PIC1_COMMAND, PIC_EOI);
