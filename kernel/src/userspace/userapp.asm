@@ -1,23 +1,35 @@
 [bits 64]
 
+SECTION .text
+ALIGN 4096
+
 UserAPP:
     mov rdi, 1    ; syscall console write
     mov rsi, Text ; string pointer
     syscall
 
-    mov rdi, 2    ; syscall serial write
+    mov rdi, 0x21 ; syscall yeld
+    mov rsi, UserAPP ; set the rip
+    syscall
+
+    jmp UserAPP
+
+UserAPP2:
+    mov rdi, 1    ; syscall console write
     mov rsi, TextSerial ; string pointer
     syscall
 
-    mov rdi, 0xFF ;syscall exit
-    mov rsi, 1 ; exit code
+    mov rdi, 0x21 ; syscall yeld
+    mov rsi, UserAPP2 ; set the rip
     syscall
-    jmp $
+
+    jmp UserAPP2
 
 GLOBAL UserAPP
+GLOBAL UserAPP2
 
 Text:
-    db "This should be in the normal console",10,0
+    db "A",0
 
 TextSerial:
-    db "and this should be in the serial console",10,0
+    db "B",0

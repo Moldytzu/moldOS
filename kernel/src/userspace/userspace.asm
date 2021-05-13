@@ -1,10 +1,6 @@
 [bits 64]
 ALIGN	4096
 
-;syscall list:
-;1 - console write
-;255 - exit
-
 %macro	SYSCALL_SAVE	0
 	push	r15
 	push	r14
@@ -38,23 +34,11 @@ syscall_entry:
     SYSCALL_SAVE
     push r11
     push rcx
-	push rdi
     call SyscallHandler
-	pop	rdi
     pop rcx
     pop r11
-    lea rdx, [rel SysexitByte]
-    cmp rdi, rdx
-    je .kernel_exit
-    .sysret_exit:
-        SYSCALL_RESTORE
-        o64    sysret
-    .kernel_exit:
-        mov        rdi, 0
-        call    TSSGetStack
-        SYSCALL_RESTORE
-        mov        rsp, rax
-        ret
+    SYSCALL_RESTORE
+    o64 sysret
 
 EnableSCE:
 	mov		rax, syscall_entry
@@ -85,9 +69,6 @@ RunInUserspace:
 	pop		rsp
 	mov		r11, 0x0202 ;set the x86 flags
 	o64 sysret ; to userspace and beyond
-
-SysexitByte:
-	db 255
 
 EXTERN TSSSetStack
 EXTERN TSSGetStack

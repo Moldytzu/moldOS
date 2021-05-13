@@ -240,6 +240,14 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
 	srand(rtc.readTime());
 	display.clearScreen(BLACK);
+	display.update();
+
+	Task t = {(uint64_t)(uint64_t*)(void*)UserAPP,(uint64_t*)GenerateUserspaceStack()};
+	Task t2 = {(uint64_t)(uint64_t*)(void*)UserAPP2,(uint64_t*)GenerateUserspaceStack()};
+	GlobalTaskManager->AddTask(t);
+	GlobalTaskManager->AddTask(t2);
+
+	RunInUserspace((void*)UserAPP,(void*)(t.stack+4096-8));
 	com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
 
 	com1.Write("> ");

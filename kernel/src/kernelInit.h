@@ -53,6 +53,7 @@
 
 //scheduling
 #include "scheduling/pit.h" //pit
+#include "scheduling/cooperative.h"
 
 //userspace
 #include "userspace/userspace.h" //userspace
@@ -113,6 +114,7 @@ Mouse mouse;
 PS2Controller ps2;
 ACPI acpi;
 PCITranslate pcitranslate;
+TaskManager tmgr;
 
 #if defined(__clang__)
 #define clang
@@ -121,6 +123,12 @@ PCITranslate pcitranslate;
 #elif defined(_MSC_VER)
 #define msvc
 #endif
+
+void* GenerateUserspaceStack() {
+    void* UserspacePage = GlobalAllocator.RequestPage();
+    GlobalTableManager.MapUserspaceMemory(UserspacePage);
+    return UserspacePage;
+}
 
 void EnablePaging(BootInfo* bootInfo) {
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -173,9 +181,6 @@ void InitIntrerupts() {
     CreateIntrerupt((void*)KBHandlerEntry,0x21,IDT_TA_InterruptGate,0x08);
     CreateIntrerupt((void*)MSHandlerEntry,0x2C,IDT_TA_InterruptGate,0x08);
     CreateIntrerupt((void*)PITHandlerEntry,0x20,IDT_TA_InterruptGate,0x08);
-    //CreateIntrerupt((void*)USBHandler,0xC4,IDT_TA_InterruptGate,0x08);
-
-    //CreateIntrerupt((void*)SYSHandler,0xFF,IDT_TA_InterruptGate,0x08);
 
 	asm volatile ("lidt %0" : : "m" (idtr));
 
@@ -281,12 +286,10 @@ void InitDrivers(BootInfo* bootInfo) {
     com1.Write("Kernel intialized the Serial Port!\n");
 
 	EnablePaging(bootInfo);
-    com1.Write("Done paging!");
 
     GlobalKeyboard = &kb;
     mouse.Init();
     GlobalMouse = &mouse;
-    com1.Write("Done mouse!");
 
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
 
@@ -348,10 +351,11 @@ void InitDrivers(BootInfo* bootInfo) {
     log.info("Initialized Everything!");
 
     EnableSCE();
+    GlobalTaskManager = &tmgr;
     void* UserspacePage = GlobalAllocator.RequestPage();
     GlobalTableManager.MapUserspaceMemory((void*)UserAPP);
     GlobalTableManager.MapUserspaceMemory(UserspacePage);
-    RunInUserspace((void*)UserAPP,UserspacePage+4096-8);
+    //RunInUserspace((void*)UserAPP,UserspacePage+4096-8);
 
     log.info("");
     log.info("Welcome to LowLevelOS!");
@@ -368,5 +372,5 @@ void InitDrivers(BootInfo* bootInfo) {
     log.info("Micro$oft Visual C++");
 #endif
     log.info(__VERSION__);
-    //rtc.waitSeconds(2);
+    //PITSleep(1.0f);
 }

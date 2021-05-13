@@ -40,13 +40,6 @@ void PITHandler() {
     PIC_EndMaster();
 }
 
-/*void SYSHandler() {
-    register uint64_t a asm("rax"); 
-    register uint64_t b asm("rbx"); 
-    register uint64_t c asm("rcx"); 
-    SYSHandle(a,b,c);
-}*/
-
 void PIC_EndMaster(){
     outportb(PIC1_COMMAND, PIC_EOI);
 }

@@ -24,7 +24,6 @@ extern "C" void DoubleFaultHandler();
 extern "C" void KBHandler();
 extern "C" void MSHandler();
 extern "C" void PITHandler();
-//extern "C" void SYSHandler();
 
 extern "C" void InvalideOpcodeHandlerEntry();//6
 extern "C" void GeneralProtectionFaultHandlerEntry();//13
