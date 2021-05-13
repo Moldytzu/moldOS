@@ -1,23 +1,44 @@
 # LowLevelOS (LLOS)
 
-LLOS is a W.I.P operating system writen in C and C++ that targets x86_64 hardware
+LLOS is a W.I.P operating system writen in C and C++ that targets x86_64 hardware.
+
+It aims to be easy to use, small and simple.
 
 # Features:
  - Drivers:
-    - PC-Speaker Sound
     - EFI GOP (Graphics Output Protocol)
          - PSF1 Font
          - 32-bit Colours
     - RTC (Real Time Clock) 
     - PS/2 Mouse&Keyboard
+    - AHCI
+         - Read AHCI, SATA and SATAPI drives
+    - PCI
  - Hardware Communications:
     - Parallel Port (LPT1)
     - Serial Port (COM1)
     - PCI (Peripheral Component Interconnect)
  - Misc:
-    - CPUID
-         - CPU Name
-         - CPU Vendor
-         - CPU Features
+    - CPU Info
+         - Name
+         - Vendor
+         - Features
+         - Temperature
     - Paging
     - Shutdown&Reboot
+         - ACPI
+         - UEFI Runtime Services
+    - Userspace
+         - Cooperative Multitasking
+         - Fast System Calls
+    - Kernel LibC
+
+# Photo Galery:
+![](https://i.imgur.com/YakZyn8.png)
+LLOS main kernel loop
+
+![](https://i.imgur.com/nE6Pm7g.png)
+LLOS running 2 tasks (A and B)
+
+![](https://i.imgur.com/7539MjY.png)
+LLOS kernel panic
