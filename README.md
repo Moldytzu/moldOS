@@ -4,6 +4,12 @@ LLOS is a W.I.P operating system writen in C and C++ that targets x86_64 hardwar
 
 It aims to be easy to use, small and simple.
 
+<p float="left">
+<img width="37%" src="https://forthebadge.com/images/badges/works-on-my-machine.svg">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img width="25%" src="https://forthebadge.com/images/badges/0-percent-optimized.svg">
+</p>
+
 # Features:
  - Drivers:
     - EFI GOP (Graphics Output Protocol)
