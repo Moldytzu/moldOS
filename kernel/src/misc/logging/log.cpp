@@ -1,6 +1,6 @@
 #include "log.h"
 
-void Logging::info(const char* text) {
+void LogInfo(const char* text) {
     GlobalDisplay->puts("[");
     GlobalDisplay->setColour(LIGHTBLUE);
     GlobalDisplay->puts("INFO");
@@ -12,7 +12,7 @@ void Logging::info(const char* text) {
     GlobalCOM1->Write(SERIALBLUE,"[INFO] ",SERIALWHITE,text,"\n");
 }
 
-void Logging::warn(const char* text) {
+void LogWarn(const char* text) {
     GlobalDisplay->puts("[");
     GlobalDisplay->setColour(YELLOW);
     GlobalDisplay->puts("WARN");
@@ -24,7 +24,7 @@ void Logging::warn(const char* text) {
     GlobalCOM1->Write(SERIALYELLOW,"[WARN] ",SERIALWHITE,text,"\n");
 }
 
-void Logging::error(const char* text) {
+void LogError(const char* text) {
     GlobalDisplay->puts("[");
     GlobalDisplay->setColour(LIGHTRED);
     GlobalDisplay->puts("ERROR");

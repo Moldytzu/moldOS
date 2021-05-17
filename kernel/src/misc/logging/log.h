@@ -3,9 +3,6 @@
 #include "../colors.h"
 #include "../../io/serial.h"
 
-class Logging {
-public:
-    void info(const char* text);
-    void warn(const char* text);
-    void error(const char* text);
-};
+void LogInfo(const char* text);
+void LogWarn(const char* text);
+void LogError(const char* text);

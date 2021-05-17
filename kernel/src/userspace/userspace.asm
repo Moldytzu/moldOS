@@ -70,8 +70,14 @@ RunInUserspace:
 	mov		r11, 0x0202 ;set the x86 flags
 	o64 sysret ; to userspace and beyond
 
+RunInUserspaceMultiTasking:
+	mov		rcx, rdi	
+	mov		r11, 0x0202 ;set the x86 flags
+	o64 sysret ; to userspace and beyond
+
 EXTERN TSSSetStack
 EXTERN TSSGetStack
 EXTERN SyscallHandler
 GLOBAL EnableSCE
 GLOBAL RunInUserspace
+GLOBAL RunInUserspaceMultiTasking

@@ -33,3 +33,10 @@ void PITSetFrequency(uint64_t frequency) {
 void PITTick() {
     TimeSinceBoot += 1 / (double)PITGetFrequency();
 }
+
+void PIT2SetFreq(uint32_t frequency) {
+    int zdivisor = PITBaseFrequency / frequency;
+    outportb(0x43, 0xb6);
+    outportb(0x42, zdivisor & 0xFF); //low
+    outportb(0x42, zdivisor >> 8);   //high
+}

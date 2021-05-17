@@ -13,7 +13,6 @@
 #include "drivers/keyboard/keyboarddriver.h" // claviatura
 #include "drivers/mouse/mouse.h" //ps/2 mouse
 #include "drivers/ahci/ahci.h" //disk
-#include "drivers/fpu/fpu.h" //floating point unit
 
 //misc
 #include "misc/power/power.h" //power
@@ -109,7 +108,6 @@ Parallel paralel;
 DisplayBuffer* doubleBuffer;
 IDTR idtr;
 Keyboard kb;
-Logging log;
 Mouse mouse;
 PS2Controller ps2;
 ACPI acpi;
@@ -123,6 +121,8 @@ TaskManager tmgr;
 #elif defined(_MSC_VER)
 #define msvc
 #endif
+
+char fxsave_region[2048] __attribute__((aligned(16)));
 
 void* GenerateUserspaceStack() {
     void* UserspacePage = GlobalAllocator.RequestPage();
@@ -195,17 +195,17 @@ void InitIntrerupts() {
 void PrepareMelody() {
     sound.Melody[0] = {NOTE_E5,8};
     sound.Melody[1] = {NOTE_D5,8};
-    sound.Melody[2] = {NOTE_FS4,8};
-    sound.Melody[3] = {NOTE_GS4,8};
+    sound.Melody[2] = {NOTE_FS4,4};
+    sound.Melody[3] = {NOTE_GS4,4};
     sound.Melody[4] = {NOTE_CS5,8};
     sound.Melody[5] = {NOTE_B4,8};
-    sound.Melody[6] = {NOTE_D4,8};
-    sound.Melody[7] = {NOTE_E4,8};
+    sound.Melody[6] = {NOTE_D4,4};
+    sound.Melody[7] = {NOTE_E4,4};
     sound.Melody[8] = {NOTE_B4,8};
     sound.Melody[9] = {NOTE_A4,8};
-    sound.Melody[10] = {NOTE_CS4,8};
-    sound.Melody[11] = {NOTE_E4,8};
-    sound.Melody[12] = {NOTE_A4,8};
+    sound.Melody[10] = {NOTE_CS4,4};
+    sound.Melody[11] = {NOTE_E4,4};
+    sound.Melody[12] = {NOTE_A4,2};
     sound.MelodyLen = 12;
 }
 
@@ -222,10 +222,10 @@ void InitACPI(BootInfo* bootInfo) {
     bootImg = (BMPHeader*)(void*)bgrt->ImageAddress;
     acpi.fadt = fadt;
 
-    log.info("Parsing MADT");
+    LogInfo("Parsing MADT");
     acpi.ParseMADT(madt);
 
-    log.info("Decoding DSDT");
+    LogInfo("Decoding DSDT");
     char *S5Addr = (char *) fadt->Dsdt +36;
     int dsdtLength = fadt->Dsdt+1-36;
 
@@ -253,22 +253,23 @@ void InitACPI(BootInfo* bootInfo) {
     acpi.ShutdownBackup = bootInfo->Power->PowerOff;
     acpi.RebootBackup = bootInfo->Power->Restart;
 
-    log.info("Enumerating PCI");
+    LogInfo("Enumerating PCI");
     pci.EnumeratePCI(mcfg);
     if(pci.DevicesIndex == 0) {
-        log.warn("No MCFG found or no PCI devices!");
-        log.warn("AHCI might not work.");
+        LogWarn("No MCFG found or no PCI devices!");
+        LogWarn("AHCI might not work.");
     }
 }
 
 void InitDrivers(BootInfo* bootInfo) {
     GlobalInfo = bootInfo;
+    
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
     GlobalAllocator = PageFrameAllocator();
     GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
-    GlobalAllocator.LockPages((void*)0,256);
+    GlobalAllocator.LockPages((void*)0,1000);
 
     uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
     uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
@@ -293,12 +294,17 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
 
+    InitializeHeap((void*)0x0000100000000000, 0x10);
+
+    display.EmptyScreenBuffer = malloc(display.globalFrameBuffer->BufferSize);
+    memset(display.EmptyScreenBuffer,0,display.globalFrameBuffer->BufferSize);
+
     if(bootInfo->Key*2048+2047 != 0xFFFFFF) {
         display.InitDoubleBuffer(bootInfo->GOPFrameBuffer);
         GlobalDisplay = &display;
         display.clearScreen(0);
-        log.error("Key verification failed!");
-        log.error("Corrupt or non-compliant bootloader!");
+        LogError("Key verification failed!");
+        LogError("Corrupt or non-compliant bootloader!");
         while(1);
     }
 
@@ -326,51 +332,25 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	GlobalDisplay = &display;
 	
-    log.info("Initialized PS/2, Intrerupts, Display, Serial!");
-
-    InitializeHeap((void*)0x0000100000000000, 0x10);
-    log.info("Initialized Heap!");
+    LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
 
     PITSetDivisor(1);
-    log.info("Initialized PIT!");
+    LogInfo("Initialized PIT!");
 
 	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
-	log.info("Initialized Power!");
+	LogInfo("Initialized Power!");
 
 	CPUFeatures = cpu.getFeatures();
-	log.info("Detected CPU features!");
+	LogInfo("Detected CPU features!");
 
     InitACPI(bootInfo);
-    log.info("Initialized ACPI!");
-
-    FPUInit();
-    log.info("Intialized FPU!");
-
-    PrepareMelody();
-
-    log.info("Initialized Everything!");
+    LogInfo("Initialized ACPI!");
 
     EnableSCE();
     GlobalTaskManager = &tmgr;
-    void* UserspacePage = GlobalAllocator.RequestPage();
-    GlobalTableManager.MapUserspaceMemory((void*)UserAPP);
-    GlobalTableManager.MapUserspaceMemory(UserspacePage);
-    //RunInUserspace((void*)UserAPP,UserspacePage+4096-8);
+    LogInfo("Initialized Task Switching and System Calls!");
 
-    log.info("");
-    log.info("Welcome to LowLevelOS!");
-    log.info("Copyright Moldu' (Nov. 2020 - May 2021)");
-    log.info("Build date & time:");
-    log.info(__DATE__);
-    log.info(__TIME__);
-    log.info("Built with:");
-#if defined(clang)
-    log.info("CLang");
-#elif defined(gcc)
-    log.info("GNU C Compiler");
-#elif defined(msvc)
-    log.info("Micro$oft Visual C++");
-#endif
-    log.info(__VERSION__);
-    //PITSleep(1.0f);
+    LogInfo("Initialized Everything!");
+    
+    com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
 }

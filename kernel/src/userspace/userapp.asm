@@ -4,32 +4,16 @@ SECTION .text
 ALIGN 4096
 
 UserAPP:
-    mov rdi, 1    ; syscall console write
+    mov rdi, 1     ; syscall console write
     mov rsi, Text ; string pointer
+    mov rdx, 1     ; console out
     syscall
 
-    mov rdi, 0x21 ; syscall yeld
-    mov rsi, UserAPP ; set the rip
+    mov rdi, 0xFF ; syscall exit
+    mov rsi, 0 ; exit code 0
     syscall
-
-    jmp UserAPP
-
-UserAPP2:
-    mov rdi, 1    ; syscall console write
-    mov rsi, TextSerial ; string pointer
-    syscall
-
-    mov rdi, 0x21 ; syscall yeld
-    mov rsi, UserAPP2 ; set the rip
-    syscall
-
-    jmp UserAPP2
 
 GLOBAL UserAPP
-GLOBAL UserAPP2
 
 Text:
-    db "A",0
-
-TextSerial:
-    db "B",0
+    db "App!",0

@@ -10,12 +10,14 @@ struct Task {
 
 class TaskManager {
  public:
-    Task tasks[512];
+    Task tasks[2048];
     int currentTask = 0;
     int taskNum = 0;
 
     void DoYeld(uint64_t newP);
     void AddTask(Task t);
+    void DoExitTask();
+    void RunNext();
 };
 
 extern TaskManager* GlobalTaskManager;

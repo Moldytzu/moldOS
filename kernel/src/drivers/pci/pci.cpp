@@ -3,7 +3,6 @@
 #include "../../drivers/display/displaydriver.h"
 #include "../../libc/stdio.h"
 #include "../ahci/ahci.h"
-#include "../usb/usb.h"
 #include "../../memory/heap.h"
 
 PCITranslate translate;
@@ -29,22 +28,6 @@ void PCI::EnumFunc(uint64_t addr,uint64_t function) {
                         case 0x01:
                             new AHCIDriver(deviceZ);
                     }
-            }
-    }
-    
-    switch (deviceZ->Class)
-    {
-        case 0x0C:
-            switch (deviceZ->Subclass)
-            {
-            case 0x03:
-                switch (deviceZ->ProgramInterface)
-                {
-                case 0x00:
-                    UHCIInit(deviceZ);
-                    break;
-                }
-                break;
             }
     }
 

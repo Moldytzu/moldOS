@@ -16,25 +16,22 @@ void SerialWrite(char* text) {
 }
 
 void Exit(uint64_t code) {
-    printf("Exiting userspace with exit code %u",code);
+    printf("\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
     GlobalDisplay->update();
-    while (1);
+    GlobalTaskManager->DoExitTask();
+    GlobalTaskManager->RunNext();
 }
 
 void Yeld(uint64_t ip) {
     GlobalTaskManager->DoYeld(ip);
 }
 
-Logging l;
-
 void SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) {
     switch (syscall)
     {
     case SYSCALL_WRITE:
-        ConsoleWrite((char*)(uint64_t*)arg1);
-        break;
-    case SYSCALL_SERIALWRITE:
-        SerialWrite((char*)(uint64_t*)arg1);
+        if(arg2 == SOUT) SerialWrite((char*)(uint64_t*)arg1);
+        else ConsoleWrite((char*)(uint64_t*)arg1);
         break;
     case SYSCALL_EXIT:
         Exit(arg1);
@@ -44,8 +41,8 @@ void SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) 
         break;
 
     default:
-        l.warn(inttohstr((uint64_t)syscall));
-        l.warn("Unknown syscall! Forcing userspace exit!");
+        LogWarn(inttohstr((uint64_t)syscall));
+        LogWarn("Unknown syscall! Forcing userspace exit!");
         Exit(2550);
         break;
     }

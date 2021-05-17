@@ -1,8 +1,6 @@
 #include "efiMemory.h"
 #include <xmmintrin.h> // SSE
-
 const char* EFI_MEMORY_TYPE_STRINGS[] {
-
     "EfiReservedMemoryType",
     "EfiLoaderCode",
     "EfiLoaderData",
@@ -121,8 +119,13 @@ __attribute__((optimize("-fno-tree-loop-distribute-patterns"))) void ssememcpy(v
 }
 
 void asmmemcpy(void *d, const void *s, size_t n) {
-      asm volatile("rep movsb"
-               : "=D"(d), "=S"(s), "=c"(n)
-               : "0"(d), "1"(s), "2"(n)
-               : "memory");
+    uint64_t d0, d1, d2; 
+    asm volatile(
+        "rep ; movsq\n\t""movq %4,%%rcx\n\t""rep ; movsb\n\t": "=&c" (d0),                                                                                   
+        "=&D" (d1),
+        "=&S" (d2): "0" (n >> 3), 
+        "g" (n & 7), 
+        "1" (d),
+        "2" (s): "memory"
+    );  //not mine (found it on reddit: https://www.reddit.com/r/C_Programming/comments/ivoqhk/understanding_the_assembly_code_of_memcpy/)
 }

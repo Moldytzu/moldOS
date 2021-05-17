@@ -24,7 +24,7 @@ void DisplayDriver::putc(char ch) {
 }
 
 void DisplayDriver::scroll() {
-	ssememcpy(secondFrameBuffer->BaseAddr-((uint64_t)secondFrameBuffer->BufferSize%4),(void*)((uint64_t)secondFrameBuffer->BaseAddr+((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4)),globalFrameBuffer->BufferSize-((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4));
+	asmmemcpy(secondFrameBuffer->BaseAddr-((uint64_t)secondFrameBuffer->BufferSize%4),(void*)((uint64_t)secondFrameBuffer->BaseAddr+((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4)),globalFrameBuffer->BufferSize-((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4));
 	memset(secondFrameBuffer->BaseAddr+globalFrameBuffer->BufferSize-((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4),0,(getWidth()*4*16)-((uint64_t)secondFrameBuffer->BufferSize%4));
 }
 
@@ -33,7 +33,7 @@ void DisplayDriver::checkScroll() {
 		scroll();
 		CursorPos.X=0;
 		CursorPos.Y=CursorPos.Y-17;
-	} //shî asta la fel
+	}
 }
 
 void DisplayDriver::puts(const char* ch)
@@ -58,7 +58,7 @@ void DisplayDriver::setCursorPos(int x,int y) {
 void DisplayDriver::InitDoubleBuffer(DisplayBuffer* f) {
 	secondFrameBuffer = f;
 }
-
+	
 void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font) {
 	globalFont = font;
 	globalFrameBuffer = framebuf;
@@ -67,7 +67,8 @@ void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font) 
 
 void DisplayDriver::clearScreen(unsigned int colour) {
 	if(colour == 0) {
-		memset(secondFrameBuffer->BaseAddr,0,secondFrameBuffer->BufferSize);
+		asmmemcpy(secondFrameBuffer->BaseAddr,EmptyScreenBuffer,secondFrameBuffer->BufferSize);	
+		//memset(secondFrameBuffer->BaseAddr,0,secondFrameBuffer->BufferSize);
 	} else {
 		for(uint64_t y = 0;y<=getHeight();y++) {
 			for(uint64_t x = 0;x<=getWidth()*4;x+=4) {
@@ -153,7 +154,7 @@ void DisplayDriver::setColour(unsigned int colo) {
 }
 
 void DisplayDriver::update() {
-	memcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
+	asmmemcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
 }
 
 void DisplayDriver::advanceCursor() {

@@ -12,3 +12,5 @@ void PITSetDivisor(uint16_t divisor);
 uint64_t PITGetFrequency();
 void PITSetFrequency(uint64_t frequency);
 void PITTick();
+
+void PIT2SetFreq(uint32_t frequency);

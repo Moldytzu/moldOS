@@ -1,21 +1,18 @@
 SRCDIR := src
 OBJDIR := lib
 BUILDDIR = bin
-BOOTEFI := $(GNUEFI)/x86_64/bootloader/main.efi
 
 GNUEFI = ../gnu-efi
-OVMFDIR = ../OVMFbin
 LDS = kern.ld
 CC = gcc
 LD = ld
 ASM = nasm
 
 CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -Wno-pointer-arith -Wno-int-to-pointer-cast
-# uncomment for debugging
-#CFLAGS += -g
 
 # optimization flags
-CFLAGS += -march=core2 -mssse3 -m64 -mtune=generic -mfpmath=sse -pipe
+#CFLAGS += -march=core2 -mssse3 -m64 -mtune=generic -mfpmath=sse -pipe
+#CFLAGS += -fno-defer-pop -foptimize-sibling-calls -foptimize-strlen -finline-small-functions -finline-functions -fmerge-constants -fthread-jumps -fdce -fdse -fpredictive-commoning -fcombine-stack-adjustments -ftree-phiprop -ftree-copy-prop -fssa-phiopt -ftree-switch-conversion -ftree-dce -ftree-ch -ftree-loop-optimize -floop-nest-optimize -ftree-loop-distribution -ftree-vectorize -fno-peephole2 -freorder-blocks 
 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 
@@ -30,7 +27,7 @@ OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 
 DIRS = $(wildcard $(SRCDIR)/*)
 
-kernel: $(OBJS) link
+kernel: $(OBJS) link buildimg
 
 $(OBJDIR)/intrerupts/intrerupts.o: $(SRCDIR)/intrerupts/intrerupts.cpp
 	@ echo Compiling: $^
@@ -51,7 +48,7 @@ link: $(OBJS)
 	@ echo Linking: $(OBJS)
 	@ $(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.llexec $(OBJS)
 
-buildimg: $(BUILDDIR)/kernel.llexec
+buildimg:
 	@ echo Creating disk image
 	@ dd if=/dev/zero of=$(BUILDDIR)/disk.img bs=1024 count=32768
 	@ mkfs.vfat $(BUILDDIR)/disk.img

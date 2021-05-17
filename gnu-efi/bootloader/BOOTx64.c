@@ -58,14 +58,18 @@ PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, E
 
 void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	ClearScreen();
-	Print(L"Starting LLOS...");
+	Print(L"Starting LLOS...\n");
 	EFI_FILE* llosFolder = ReadFile(NULL,L"LLOS",ImageHandle,SystemTable);
 	if(llosFolder == NULL)
 		TriggerError(L"Cannot find \"LLOS\" folder!");
+	
+	Print(L"Loaded the LLOS folder\n");
 
 	EFI_FILE *monkernel = ReadFile(llosFolder, L"kernel.llexec", ImageHandle, SystemTable);
 	if (monkernel == NULL)
 		TriggerError(L"Cannot find \"kernel.llexec\"!");
+
+	Print(L"Loaded the kernel\n");
 
 	Elf64_Ehdr header;
 	{
@@ -81,6 +85,8 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 	if (memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 || header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64 || header.e_version != EV_CURRENT)
 		TriggerError(L"Cannot verify the kernel!");
+
+	Print(L"Verified the kernel\n");
 
 	Elf64_Phdr *phdrs;
 	{
@@ -104,16 +110,16 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 			}
 		}
 	}
+	Print(L"Found the entry point\n");
 
 	PSF1_FONT *newFont = LoadFont(llosFolder, L"font.psf", ImageHandle, SystemTable);
 	if (newFont == NULL)
 		TriggerError(L"Cannot find \"font.psf\"!");
 
-	InitGOP();
+	Print(L"Loaded the font\n");
 
-    EFI_EDID_ACTIVE_PROTOCOL* edid = NULL;
-	EFI_GUID edidGUID = EFI_EDID_ACTIVE_PROTOCOL_GUID;
-    SystemTable->BootServices->HandleProtocol(gop, &edidGUID, (void**)&edid);
+	InitGOP();
+	Print(L"Loaded the GOP\n");
 
 	EFI_MEMORY_DESCRIPTOR *Map = NULL;
 	UINTN MapSize, MapKey;
@@ -128,6 +134,8 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 		} while(st != EFI_SUCCESS);
 	}
 
+	Print(L"Got the memory map\n");
+
 	EFI_CONFIGURATION_TABLE* configTable = SystemTable->ConfigurationTable;
 	void* RSDP = NULL;
 	EFI_GUID ACPITABLEGUID = ACPI_20_TABLE_GUID;
@@ -138,6 +146,8 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 				RSDP = (void*)configTable->VendorTable;
 		configTable++;
 	}
+
+	Print(L"Found the ACPI 2.0 table\n");
 
 	int (*EntryPoint)(BootInfo *) = ((__attribute__((sysv_abi)) int (*)(BootInfo *))header.e_entry);
 
@@ -160,8 +170,11 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	info.firm = &f;
 	info.Key = 0xFFFFFF/0x800;
 	info.RSDP = RSDP;
+	Print(L"Prepared the struct\n");
+
 	SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
 
+	Print(L"Running the kernel!\n");
 	EntryPoint(&info);
 
 	TriggerError(L"Cannot run the kernel!");

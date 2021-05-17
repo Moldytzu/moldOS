@@ -25,9 +25,6 @@ char* inttohstr(uint8_t val);
 //short
 char* shorttostr(unsigned short* sh);
 
-//is something
-int isalpha(char _c);
-
 //char to char*
 char* chartostr(char c);
 

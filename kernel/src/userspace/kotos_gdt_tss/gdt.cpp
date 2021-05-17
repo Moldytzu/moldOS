@@ -40,7 +40,7 @@ void gdtInit(){
     gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_DPL, BASE_GRAN); // user data segment    
     TSSInit();
     
-    LoadGDT(&gdtBaseInfo);    
+    LoadGDTKOT(&gdtBaseInfo);    
     
     for(int i = 0; i < 1; i++){
         if(TSSdescriptorsLocation[i] != 0){

@@ -67,4 +67,4 @@ void gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit);
 
 extern int GDTIndexTable;
-extern "C" void LoadGDT(GDTDescriptor* gdtDescriptor);
+extern "C" void LoadGDTKOT(GDTDescriptor* gdtDescriptor);

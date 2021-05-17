@@ -64,6 +64,7 @@ DisplayBuffer* globalFrameBuffer;
 PSF1_FONT* globalFont;
 Point CursorPos;
 uint64_t colour;
+void* EmptyScreenBuffer;
 };
 
 extern DisplayDriver* GlobalDisplay;
