@@ -51,7 +51,7 @@ typedef struct
 	UINTN mMapDescSize;
 	uint64_t Key;
 	void* RSDP;
-
+	void* ramfs;
 } BootInfo;
 
 typedef struct {

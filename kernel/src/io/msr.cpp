@@ -16,6 +16,5 @@ uint32_t GetCPUTemp() {
 	uint32_t TempHigh;
 
 	ReadMSR(MSR_CPU_TEMP,&TempLow,&TempHigh);
-    //return ((TempLow >> 16) & 0x7f) - 30;
     return GetCPUTJunction()-((TempLow >> 16) & 0x7f); //the proper way
 }

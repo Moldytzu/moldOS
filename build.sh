@@ -1,3 +1,4 @@
+python3 buildramfs.py ramfs/fileA.txt ramfs/fileB.txt
 cd gnu-efi
 make -s -j8 bootloader
 cd ..

@@ -40,57 +40,41 @@ ALIGN 16
 %endmacro
 
 InvalideOpcodeHandlerEntry:
-	;cli
     PUSH_REG
     call InvalideOpcodeHandler
     POP_REG
-	;sti
 	ret
 
 GeneralProtectionFaultHandlerEntry:
-	;cli
     PUSH_REG
     call GeneralProtectionFaultHandler
     POP_REG
-	;sti
 	ret
+
 PageFaultHandlerEntry:
-    ;cli
 	PUSH_REG
     call PageFaultHandler
     POP_REG
-	;sti
 	ret
 DoubleFaultHandlerEntry:
-    ;cli
 	PUSH_REG
     call DoubleFaultHandler
     POP_REG
-	;sti
 	ret
 KBHandlerEntry:
-    ;cli
 	PUSH_REG
-    cld
 	call KBHandler
     POP_REG
-	;sti
 	ret
 MSHandlerEntry:
-    ;cli
 	PUSH_REG
-    cld
 	call MSHandler
     POP_REG
-	;sti
 	ret
 PITHandlerEntry:
-    ;cli
 	PUSH_REG
-    cld
 	call PITHandler
 	POP_REG
-	;sti
 	ret
 
 EXTERN InvalideOpcodeHandler

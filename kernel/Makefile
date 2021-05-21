@@ -57,6 +57,7 @@ buildimg:
 	@ mmd -i $(BUILDDIR)/disk.img ::/EFI/BOOT
 	@ mcopy -i $(BUILDDIR)/disk.img $(GNUEFI)/x86_64/bootloader/BOOTx64.efi ::/EFI/BOOT
 	@ mcopy -i $(BUILDDIR)/disk.img font.psf ::/LLOS
+	@ mcopy -i $(BUILDDIR)/disk.img $(BUILDDIR)/ram.llfs ::/LLOS
 	@ mcopy -i $(BUILDDIR)/disk.img $(BUILDDIR)/kernel.llexec ::/LLOS
 
 	@ echo Creating iso image

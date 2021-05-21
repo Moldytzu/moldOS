@@ -6,9 +6,7 @@
 
 //drivere
 #include "drivers/display/displaydriver.h" //display
-#include "drivers/sound/sounddriver.h" //sunet
 #include "drivers/pci/pci.h" //pci
-#include "drivers/pci/pcitranslate.h" //translate pci things
 #include "drivers/rtc/rtc.h" //realtimeclock
 #include "drivers/keyboard/keyboarddriver.h" // claviatura
 #include "drivers/mouse/mouse.h" //ps/2 mouse
@@ -27,8 +25,6 @@
 
 //io
 #include "io/serial.h" //serial port
-#include "io/parallel.h" //parallel port
-#include "io/ps2.h"
 #include "io/msr.h" //model specific registers
 
 //memorie
@@ -40,8 +36,6 @@
 #include "memory/heap.h" //heap
 
 //intrerupturi
-//#include "intrerupts/gdt.h" //gdt
-//#include "userspace/newgdt.h"
 #include "intrerupts/idt.h" //idt
 #include "intrerupts/intrerupts.h" //handlere
 
@@ -58,6 +52,9 @@
 #include "userspace/userspace.h" //userspace
 #include "userspace/kotos_gdt_tss/gdt.h"
 #include "userspace/kotos_gdt_tss/tss.h"
+
+//filesystem
+#include "filesystem/llfs.h" //llfs
 
 #define LOOP while(1)
 
@@ -82,6 +79,9 @@ struct BootInfo {
 
     //acpi
     RSDP2* RSDP;
+
+    //llfs
+    LLFSHeader* RamFS;
 };
 
 extern uint64_t _KernelStart;
@@ -89,7 +89,6 @@ extern uint64_t _KernelEnd;
 
 char** CPUFeatures;
 
-//todo fix typo in logo
 const char* LLOSLogo =  "/ \\   / \\   /  _ \\/ ___\\\n"
 						"| |   | |   | / \\||    \\\n"
 						"| |_/\\| |_/\\| \\_/|\\___ |\n"
@@ -98,31 +97,16 @@ const char* LLOSLogo =  "/ \\   / \\   /  _ \\/ ___\\\n"
 BootInfo* GlobalInfo;
 
 DisplayDriver display;
-Power power;
-Sound sound;
 CPU cpu;
 PCI pci;
 RealTimeClock rtc;
 SerialPort com1;
-Parallel paralel;
 DisplayBuffer* doubleBuffer;
 IDTR idtr;
 Keyboard kb;
 Mouse mouse;
-PS2Controller ps2;
 ACPI acpi;
-PCITranslate pcitranslate;
 TaskManager tmgr;
-
-#if defined(__clang__)
-#define clang
-#elif defined(__GNUC__) || defined(__GNUG__)
-#define gcc
-#elif defined(_MSC_VER)
-#define msvc
-#endif
-
-char fxsave_region[2048] __attribute__((aligned(16)));
 
 void* GenerateUserspaceStack() {
     void* UserspacePage = GlobalAllocator.RequestPage();
@@ -153,12 +137,6 @@ void EnablePaging(BootInfo* bootInfo) {
 }
 
 void LoadGDT() {
-	//GDTDescriptor gdtDescriptor;
-	//gdtDescriptor.Size = sizeof(GDT)-1;
-	//gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
-    //TSSInit((void*)UserspaceStack);
-	//LoadGDT(&gdtDescriptor);
-    //setup_gdt();
     gdtInit();
 }
 
@@ -192,23 +170,6 @@ void InitIntrerupts() {
     asm volatile("sti");
 }
 
-void PrepareMelody() {
-    sound.Melody[0] = {NOTE_E5,8};
-    sound.Melody[1] = {NOTE_D5,8};
-    sound.Melody[2] = {NOTE_FS4,4};
-    sound.Melody[3] = {NOTE_GS4,4};
-    sound.Melody[4] = {NOTE_CS5,8};
-    sound.Melody[5] = {NOTE_B4,8};
-    sound.Melody[6] = {NOTE_D4,4};
-    sound.Melody[7] = {NOTE_E4,4};
-    sound.Melody[8] = {NOTE_B4,8};
-    sound.Melody[9] = {NOTE_A4,8};
-    sound.Melody[10] = {NOTE_CS4,4};
-    sound.Melody[11] = {NOTE_E4,4};
-    sound.Melody[12] = {NOTE_A4,2};
-    sound.MelodyLen = 12;
-}
-
 SDT* xsdt;
 BMPHeader* bootImg;
 void InitACPI(BootInfo* bootInfo) {
@@ -217,9 +178,7 @@ void InitACPI(BootInfo* bootInfo) {
     MCFG* mcfg = (MCFG*)acpi.FindTable(xsdt,(char*)"MCFG");
     MADT* madt = (MADT*)acpi.FindTable(xsdt,(char*)"APIC");
     FADT* fadt = (FADT*)acpi.FindTable(xsdt,(char*)"FACP");
-    BGRT* bgrt = (BGRT*)acpi.FindTable(xsdt,(char*)"BGRT");
-
-    bootImg = (BMPHeader*)(void*)bgrt->ImageAddress;
+    
     acpi.fadt = fadt;
 
     LogInfo("Parsing MADT");
@@ -288,8 +247,8 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	EnablePaging(bootInfo);
 
-    GlobalKeyboard = &kb;
     mouse.Init();
+    GlobalKeyboard = &kb;
     GlobalMouse = &mouse;
 
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
@@ -336,9 +295,6 @@ void InitDrivers(BootInfo* bootInfo) {
 
     PITSetDivisor(1);
     LogInfo("Initialized PIT!");
-
-	power.InitPower(bootInfo->Power->PowerOff,bootInfo->Power->Restart);
-	LogInfo("Initialized Power!");
 
 	CPUFeatures = cpu.getFeatures();
 	LogInfo("Detected CPU features!");

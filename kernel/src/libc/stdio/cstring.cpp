@@ -1,6 +1,5 @@
 #include "cstring.h"
 
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
 
@@ -18,11 +17,6 @@ int strcmp (const char *p1, const char *p2) //https://code.woboq.org/userspace/g
     }
   while (c1 == c2);
   return c1 - c2;
-}
-
-int isalpha(char _c)
-{
-    return  _c >= 'A' &&  _c <= 'Z' ||  _c >= 'a' &&  _c <= 'z'; 
 }
 
 char str[1025]; 

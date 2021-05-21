@@ -3,7 +3,6 @@
 framebuffer frambuf;
 
 void TriggerError(wchar_t *errstr) {
-	ClearScreen();
 	Print(errstr);
 	while (1);
 }
@@ -57,7 +56,6 @@ PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, E
 }
 
 void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
-	ClearScreen();
 	Print(L"Starting LLOS...\n");
 	EFI_FILE* llosFolder = ReadFile(NULL,L"LLOS",ImageHandle,SystemTable);
 	if(llosFolder == NULL)
@@ -118,6 +116,8 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 	Print(L"Loaded the font\n");
 
+	void* LLFS = ReadBytes(llosFolder, L"ram.llfs",ImageHandle,SystemTable);
+
 	InitGOP();
 	Print(L"Loaded the GOP\n");
 
@@ -170,6 +170,7 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	info.firm = &f;
 	info.Key = 0xFFFFFF/0x800;
 	info.RSDP = RSDP;
+	info.ramfs = LLFS;
 	Print(L"Prepared the struct\n");
 
 	SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);

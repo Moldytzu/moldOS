@@ -29,8 +29,6 @@ char SerialPort::Read() {
 }
 
 void SerialPort::Write(char chr) {
-    while(!isTransmitEmpty());
-
     outportb(COM1, chr);
 }
 
