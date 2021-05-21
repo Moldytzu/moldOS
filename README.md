@@ -40,9 +40,6 @@ It aims to be easy to use, small and simple.
     - Kernel LibC
 
 # Photo Galery:
-![](https://i.imgur.com/YakZyn8.png)
-LLOS main kernel loop
-
 ![](https://i.imgur.com/nE6Pm7g.png)
 LLOS running 2 tasks (A and B)
 
