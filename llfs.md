@@ -1,6 +1,6 @@
 The Low Level File System is a file system designed to be small and to be used as a read only ram file system.
 
-### Version 1
+# Version 1
 
 # Header:
  - 4 byte signature (always "LLFS")
