@@ -1,5 +1,6 @@
 #include "cooperative.h"
 #include "../libc/stdio.h"
+#include "../io/serial.h"
 
 TaskManager* GlobalTaskManager;
 
@@ -15,20 +16,16 @@ void TaskManager::AddTask(Task t) {
 }
 
 void TaskManager::DoExitTask() {
-    tasks[currentTask].instructionPointer = 0;
-    tasks[currentTask].stack = (uint64_t*)0;
-    //tasks[currentTask] = tasks[taskNum-1];
-    //taskNum--;
+    tasks[currentTask].state = STATE_HALTED;
 }
 
 void TaskManager::RunNext() {
     currentTask++;
     if(taskNum <= currentTask) currentTask = 0;
-    void* rip = (void*)(uint64_t*)tasks[currentTask].instructionPointer;
-    if(rip == (void*)0) RunNext();
-    GlobalDisplay->update();
-    GlobalTableManager.MapUserspaceMemory((void*)tasks[currentTask].stack - USERSPACE_STACK_SIZE + ((uint64_t)tasks[currentTask].stack % USERSPACE_STACK_SIZE));
-    //RunInUserspace(rip,tasks[currentTask].stack + USERSPACE_STACK_SIZE - ((uint64_t)tasks[currentTask].stack % USERSPACE_STACK_SIZE) - 16);
-    RunInUserspaceMultiTasking(rip);
-    //((void(*)())rip)();
+    if(tasks[currentTask].state == STATE_HALTED) RunNext();
+
+    Task t = tasks[currentTask];
+    lastTask = (char*)t.name;
+    void* rip = (void*)t.instructionPointer;
+    RunInUserspace(rip,t.stack + USERSPACE_STACK_SIZE);
 }

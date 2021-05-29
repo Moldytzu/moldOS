@@ -1,10 +1,17 @@
-python3 buildramfs.py ramfs/fileA.txt ramfs/fileB.txt
-cd gnu-efi
-make -s -j8 bootloader
-cd ..
+#clean up
 rm -rf kernel/lib
 mkdir kernel/lib
+rm -rf kernel/bin
+mkdir kernel/bin
+
+#bootloader
+cd gnu-efi
+make -s -j bootloader
+cd ..
+
+#ramfs
+python3 buildramfs.py
+
+#kernel
 cd kernel
-rm -rf bin/cdrom.iso
-rm -rf bin/disk.img
-make -j8 -s kernel
+make -s -j kernel

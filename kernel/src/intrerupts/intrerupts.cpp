@@ -2,24 +2,20 @@
 #include "../userspace/userspace.h"
 
 void GeneralProtectionFaultHandler() {
-    IntreruptFrame f;
-    KernelPanic("General Protection Fault",&f);
+    KernelPanic("General Protection Fault");
     while(1);
 }
 void PageFaultHandler() {
-    IntreruptFrame f;
-    KernelPanic("Page Fault",&f);
+    KernelPanic("Page Fault");
     while(1);
 }
 void DoubleFaultHandler() {
-    IntreruptFrame f;
-    KernelPanic("Double Fault",&f);
+    KernelPanic("Double Fault");
     while(1);
 }
 
 void InvalideOpcodeHandler() {
-    IntreruptFrame f;
-    KernelPanic("Invalid Opcode",&f);
+    KernelPanic("Invalid Opcode");
     while(1);
 }
 

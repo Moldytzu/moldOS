@@ -61,8 +61,7 @@ void* PageFrameAllocator::RequestPage(){
         return (void*)(pageBitmapIndex * 4096);
     }
     //panic because we don't have free pages
-    IntreruptFrame f = {0};
-    KernelPanic("Out of memory",&f);
+    KernelPanic("Out of memory");
 
     return NULL;
 }

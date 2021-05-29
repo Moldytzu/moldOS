@@ -1,4 +1,5 @@
 #include "serial.h"
+#include "../settings.h"
 #define COM1 0x3f8
 
 SerialPort* GlobalCOM1;
@@ -29,14 +30,18 @@ char SerialPort::Read() {
 }
 
 void SerialPort::Write(char chr) {
+    #ifdef Serial_Console
     outportb(COM1, chr);
+    #endif
 }
 
 void SerialPort::Write(const char* chr) {
+    #ifdef Serial_Console
     for(int i = 0;chr[i] != '\0';i++){
         Write(chr[i]);
         if(chr[i] == '\n') Write('\r');   
     }
+    #endif
 }
 
 void SerialPort::ClearMonitor() {

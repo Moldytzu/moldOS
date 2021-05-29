@@ -1,8 +1,8 @@
 #pragma once
 #include "drivers/display/displaydriver.h"
 #include "io/serial.h"
-#include "misc/cpu/cpu.h"
-#include "scheduling/pit.h"
+#include "misc/logging/log.h"
+#include "scheduling/cooperative.h"
 
 struct IntreruptFrame
 {
@@ -13,4 +13,4 @@ struct IntreruptFrame
     uint32_t ss;
 };
 
-void KernelPanic(const char* Message,IntreruptFrame* frame);
+void KernelPanic(const char* Message);

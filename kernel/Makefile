@@ -1,3 +1,4 @@
+#defs
 SRCDIR := src
 OBJDIR := lib
 BUILDDIR = bin
@@ -7,12 +8,7 @@ LDS = kern.ld
 CC = gcc
 LD = ld
 ASM = nasm
-
-CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -Wno-pointer-arith -Wno-int-to-pointer-cast
-
-# optimization flags
-#CFLAGS += -march=core2 -mssse3 -m64 -mtune=generic -mfpmath=sse -pipe
-#CFLAGS += -fno-defer-pop -foptimize-sibling-calls -foptimize-strlen -finline-small-functions -finline-functions -fmerge-constants -fthread-jumps -fdce -fdse -fpredictive-commoning -fcombine-stack-adjustments -ftree-phiprop -ftree-copy-prop -fssa-phiopt -ftree-switch-conversion -ftree-dce -ftree-ch -ftree-loop-optimize -floop-nest-optimize -ftree-loop-distribution -ftree-vectorize -fno-peephole2 -freorder-blocks 
+CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -Wno-pointer-arith -Wno-int-to-pointer-cast -pipe
 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 
@@ -27,28 +23,39 @@ OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
 
 DIRS = $(wildcard $(SRCDIR)/*)
 
-kernel: $(OBJS) link buildimg
+kernel: buildimg
 
-$(OBJDIR)/intrerupts/intrerupts.o: $(SRCDIR)/intrerupts/intrerupts.cpp
+$(OBJDIR)/libc/%.o: $(SRCDIR)/libc/%.cpp
 	@ echo Compiling: $^
 	@ mkdir -p $(@D)
-	@ $(CC) -mno-red-zone -mgeneral-regs-only -ffreestanding -g -c $^ -o $@
+	@ $(CC) $(CFLAGS) -Ofast -c $^ -o $@
 
+$(OBJDIR)/misc/%.o: $(SRCDIR)/misc/%.cpp
+	@ echo Compiling: $^
+	@ mkdir -p $(@D)
+	@ $(CC) $(CFLAGS) -Ofast -c $^ -o $@
+
+#default
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ echo Compiling: $^
 	@ mkdir -p $(@D)
 	@ $(CC) $(CFLAGS) -c $^ -o $@
-	
+
 $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	@ echo Assembling: $^
 	@ mkdir -p $(@D)
 	@ $(ASM) $(ASMFLAGS) $^ -f elf64 -o $@
 
+#other
 link: $(OBJS)
 	@ echo Linking: $(OBJS)
 	@ $(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.llexec $(OBJS)
 
-buildimg:
+stripbinaries: link
+	@ strip $(GNUEFI)/x86_64/bootloader/BOOTx64.efi --strip-unneeded
+	@ strip $(BUILDDIR)/kernel.llexec --strip-unneeded
+
+buildimg: stripbinaries
 	@ echo Creating disk image
 	@ dd if=/dev/zero of=$(BUILDDIR)/disk.img bs=1024 count=32768
 	@ mkfs.vfat $(BUILDDIR)/disk.img
@@ -68,8 +75,8 @@ buildimg:
 	@ cp $(GNUEFI)/x86_64/bootloader/BOOTx64.efi $(BUILDDIR)/iso/EFI/BOOT
 	@ cp font.psf $(BUILDDIR)/iso/LLOS/
 	@ cp $(BUILDDIR)/kernel.llexec $(BUILDDIR)/iso/LLOS/
+	@ cp $(BUILDDIR)/ram.llfs $(BUILDDIR)/iso/LLOS/
 	@ cd $(BUILDDIR)
 	@ xorrisofs -r -J -o $(BUILDDIR)/cdrom.iso $(BUILDDIR)/iso
-	@ tput sgr0
 	
 	@ rm -rf $(BUILDDIR)/iso

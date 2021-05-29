@@ -166,19 +166,4 @@ void DisplayDriver::advanceCursor() {
 	}
 }
 
-void DisplayDriver::fillGarbage() {
-	for(uint64_t i = 0;i<secondFrameBuffer->BufferSize;i+=4) {
-		*(uint64_t*)(i+secondFrameBuffer->BaseAddr) = rand();
-	}
-}
-
-void DisplayDriver::fillRainbow() {
-	uint64_t colour = 0;
-	for(uint64_t i = 0;i<secondFrameBuffer->BufferSize;i+=4) {
-		*(uint64_t*)(i+secondFrameBuffer->BaseAddr) = colour;
-		colour+=0xFFFF;
-		if(colour > 0xFFFFFFFF) colour = 0;
-	}
-}
-
 #pragma GCC diagnostic pop

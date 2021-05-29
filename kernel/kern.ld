@@ -21,5 +21,11 @@ SECTIONS
 		*(COMMON)
 		*(.bss)
 	}
+	
 	_KernelEnd = .;
+
+	/DISCARD/ : {
+        *(.comment)
+		*(.note)
+    }
 }

@@ -56,6 +56,11 @@
 //filesystem
 #include "filesystem/llfs.h" //llfs
 
+//elf
+#include "elf/loader.h"
+
+#include "settings.h"
+
 #define LOOP while(1)
 
 #define DoubleBuffer
@@ -88,11 +93,6 @@ extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
 char** CPUFeatures;
-
-const char* LLOSLogo =  "/ \\   / \\   /  _ \\/ ___\\\n"
-						"| |   | |   | / \\||    \\\n"
-						"| |_/\\| |_/\\| \\_/|\\___ |\n"
-						"\\____/\\____/\\____/\\____/\n";
 
 BootInfo* GlobalInfo;
 
@@ -136,10 +136,6 @@ void EnablePaging(BootInfo* bootInfo) {
     asm volatile ("mov %0, %%cr3" : : "r" (PML4));
 }
 
-void LoadGDT() {
-    gdtInit();
-}
-
 void CreateIntrerupt(void* handler,uint8_t offset,uint8_t t_a,uint8_t selector) {
     IDTDescriptorEntry* int_NewInt = (IDTDescriptorEntry*)(idtr.Offset + offset * sizeof(IDTDescriptorEntry));
     int_NewInt->setOffset((uint64_t)handler);
@@ -164,7 +160,7 @@ void InitIntrerupts() {
 
     RemapPIC();
 
-    outportb(PIC1_DATA, 0b11111000);
+    outportb(PIC1_DATA, 0b11111000); //mouse and keyboard
     outportb(PIC2_DATA, 0b11101111);
 
     asm volatile("sti");
@@ -181,10 +177,14 @@ void InitACPI(BootInfo* bootInfo) {
     
     acpi.fadt = fadt;
 
+    #ifndef Quiet
     LogInfo("Parsing MADT");
+    #endif
     acpi.ParseMADT(madt);
 
+    #ifndef Quiet
     LogInfo("Decoding DSDT");
+    #endif
     char *S5Addr = (char *) fadt->Dsdt +36;
     int dsdtLength = fadt->Dsdt+1-36;
 
@@ -212,7 +212,9 @@ void InitACPI(BootInfo* bootInfo) {
     acpi.ShutdownBackup = bootInfo->Power->PowerOff;
     acpi.RebootBackup = bootInfo->Power->Restart;
 
+    #ifndef Quiet
     LogInfo("Enumerating PCI");
+    #endif
     pci.EnumeratePCI(mcfg);
     if(pci.DevicesIndex == 0) {
         LogWarn("No MCFG found or no PCI devices!");
@@ -237,7 +239,7 @@ void InitDrivers(BootInfo* bootInfo) {
 
     GlobalAllocator.LockPages(bootInfo,sizeof(BootInfo)/4096+1);
 
-    LoadGDT();
+    gdtInit();
 	InitIntrerupts();
 
     com1.Init();
@@ -291,22 +293,26 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	GlobalDisplay = &display;
 	
+    #ifndef Quiet
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
-
-    PITSetDivisor(1);
-    LogInfo("Initialized PIT!");
+    #endif
 
 	CPUFeatures = cpu.getFeatures();
-	LogInfo("Detected CPU features!");
+	#ifndef Quiet
+    LogInfo("Detected CPU features!");
+    #endif
 
     InitACPI(bootInfo);
+    #ifndef Quiet
     LogInfo("Initialized ACPI!");
+    #endif
 
     EnableSCE();
     GlobalTaskManager = &tmgr;
+    #ifndef Quiet
     LogInfo("Initialized Task Switching and System Calls!");
 
     LogInfo("Initialized Everything!");
-    
+    #endif
     com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
 }

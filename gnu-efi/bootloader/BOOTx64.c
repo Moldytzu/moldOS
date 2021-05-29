@@ -14,7 +14,7 @@ framebuffer *InitGOP() {
 
 	stat = BS->LocateProtocol(&gopGuid, ((void *)0), (void **)&gop);
 	if (EFI_ERROR(stat))
-		TriggerError(L"Cannot init GOP!\n\r");
+		TriggerError(L"Cannot init GOP!\n");
 	
 	frambuf.BaseAddr = (void *)gop->Mode->FrameBufferBase;
 	frambuf.BufferSize = gop->Mode->FrameBufferSize;

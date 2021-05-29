@@ -3,6 +3,7 @@
 #include "../../memory/PageTableManager.h"
 #include "../../drivers/display/displaydriver.h"
 #include "../../io/serial.h"
+#include "../../settings.h"
 
 void* ACPI::FindTable(SDT* sdt, char* sign) {
     int entries = (sdt->Lenght - sizeof(SDT)) / 8;
@@ -48,8 +49,7 @@ void ACPI::DoACPIShutdown() {
     GlobalCOM1->Write("Try #3 failed!");
 
     //it that fails too we panic 'cause we have nothing left to do to shutdown :(
-    IntreruptFrame f = {0};
-    KernelPanic("Shutdown failed",&f); 
+    KernelPanic("Shutdown failed"); 
 }
 
 void ACPI::ParseMADT(MADT* madt) {
@@ -65,31 +65,41 @@ void ACPI::ParseMADT(MADT* madt) {
         case 0:{
             LocalProcessor* a = (LocalProcessor*)currentRecord;
             CPUCores[CPUCoreCount++] = a;
+            #ifdef Debugging_Messages
             printf("Found a CPU core! Processor ID: %u APIC ID: %u Flags: %u\n",a->ProcessorID,a->ApicID,a->Flags);
+            #endif
         }
             break;
         case 1:{
             IoAPIC* a = (IoAPIC*)currentRecord;
             IOApics[IOApicsCount++] = a;
+            #ifdef Debugging_Messages
             printf("Found an I/O APIC! Address: %x APIC ID: %u Global Intrerrupt Base: %u\n",a->ApicAdress,a->ApicID,a->GlobalIntrerruptBase);
+            #endif
         }
             break;
         case 2: {
             InterruptSourceOverride* a = (InterruptSourceOverride*)currentRecord;
             IntreruptSourceOverrides[IntreruptSourceOverridesCount++] = a;
+            #ifdef Debugging_Messages
             printf("Found an Interrupt Source Override! Bus: %u Flags: %u Global Intrerrupt: %u\n",a->Bus,a->Flags,a->GlobalIntrerrupt);
+            #endif
         }
             break;
         case 4:{
             NonMaskableInterrupt* a = (NonMaskableInterrupt*)currentRecord;
             NMIs[NMIsCount++] = a;
+            #ifdef Debugging_Messages
             printf("Found a Non-maskable interrupts! APIC ID: %u Flags: %u Lint: %u\n",a->ApicID,a->Flags,a->Lint);
+            #endif
         }
             break;    
         case 5:{
             LocalAPICAddressOverride* a = (LocalAPICAddressOverride*)currentRecord;
             APICAddressOverrides[APICAddressOverridesCount++] = a;
+            #ifdef Debugging_Messages
             printf("Found a Local APIC Address Override! Local APIC Address: %x\n",a->LocalAPICAddress);
+            #endif
         }
             break;
     

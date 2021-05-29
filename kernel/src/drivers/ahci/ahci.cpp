@@ -2,6 +2,7 @@
 #include "../../libc/stdio.h"
 #include "../../memory/PageTableManager.h"
 #include "../../memory/heap.h"
+#include "../../settings.h"
 
 PortType CheckPortType(HBAPort* port) {
     #define atapi 0xEB140101
@@ -138,8 +139,7 @@ void Port::Stop() {
 
     while (1)
     {
-        if(hbaport->cmdSts & HBA_PxCMD_FR) continue;
-        if(hbaport->cmdSts & HBA_PxCMD_CR) continue;
+        if((hbaport->cmdSts & HBA_PxCMD_FR)||(hbaport->cmdSts & HBA_PxCMD_CR)) continue;
         break;
     }
     
@@ -158,11 +158,14 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
     GlobalTableManager.MapMemory(ABAR,ABAR);
     ProbePorts();
 
+    #ifdef Debugging_Messages
     printf("Configuring ports...\n");
+    #endif
     for(int i=0;i < PortCount;i++) {
         Port* port = Ports[i];
         port->Configure();       
     }
+    #ifdef Debugging_Messages
     printf("Detected drives:\n");
     for(int i=0;i<PortCount;i++) {
         Port* port = Ports[i];
@@ -182,6 +185,7 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
         GlobalDisplay->cursorNewLine();
         GlobalDisplay->update();*/
     }
+    #endif
 }
 
 AHCIDriver::~AHCIDriver() {

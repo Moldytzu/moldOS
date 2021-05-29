@@ -5,10 +5,10 @@ def AddFile(ofile,name,size,content):
     ofile.write(name.encode())
     ofile.write(size)
     ofile.write(b"\x00")
-    ofile.write(content.encode())
+    ofile.write(content)
 
 def AddFileFromHardDisk(ofile,name):
-    ifile = open(name,"r")
+    ifile = open(name,"rb")
     size = os.stat(name).st_size
     data = ifile.read()
     ifile.close()

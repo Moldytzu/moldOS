@@ -16,6 +16,7 @@ To-do list:
 
 extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
+	PITSetDivisor(0xFFFF);
 
 	LLFSHeader* llfs = binfo->RamFS;
 
@@ -24,51 +25,26 @@ extern "C" int kernelMain(BootInfo* binfo) {
 		while(1);
 	}
 
+	if(!LLFSCheck(llfs)) {
+		LogError("Corrupt or unsupported ram filesystem!");
+		while(1);
+	}
+
+
 	//map the llfs as userspace memory
 	uint64_t fssize = LLFSGetFileSystemSize(llfs);
 	for(int i = 0;i<fssize/4096+1;i++) {
 		GlobalTableManager.MapUserspaceMemory((void*)llfs+(i*4096));
 	}
+	//and lock the pages
+	GlobalAllocator.LockPages(llfs,fssize/4096+1);
 
-	printf("Signature: %c%c%c%c\n",llfs->Signature[0],llfs->Signature[1],llfs->Signature[2],llfs->Signature[3]);
-	printf("Entries: %u\n",llfs->Entries);
-	printf("Version: %u\n",llfs->Version);
+	//userspace stuff
+	Task userApp = {(uint64_t)(void*)UserAPP,(uint64_t*)GenerateUserspaceStack(),"Sample User Application",STATE_RUNNING};
+	Task idleTask = {(uint64_t)(void*)IdleTask,(uint64_t*)GenerateUserspaceStack(),"Idle Task",STATE_RUNNING};
+	Task initApp = {(uint64_t)(void*)LLInit,(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING};
+	//Task initApp = {(uint64_t)LoadELFExecutable(llfs,"llinit.llexec   "),(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING};
 
-	LLFSEntry* entry = LLFSOpenFile(llfs,"fileA.txt       ");
-
-	if((void*)entry != (void*)0) {
-		printf("File name: ");
-		for(int i = 0;i<16;i++)
-			printf("%c",entry->Filename[i]);
-		printf("\n");
-
-		char* contents = (char*)LLFSReadFile(entry);
-
-		printf("File contents: ");
-		for(int i = 0;i<entry->FileSize;i++)
-			printf("%c",contents[i]);
-		printf("\n");
-	}
-
-	entry = LLFSOpenFile(llfs,"fileB.txt       ");
-
-	if((void*)entry != (void*)0) {
-		printf("File name: ");
-		for(int i = 0;i<16;i++)
-			printf("%c",entry->Filename[i]);
-		printf("\n");
-
-		char* contents = (char*)LLFSReadFile(entry);
-
-		printf("File contents: ");
-		for(int i = 0;i<entry->FileSize;i++)
-			printf("%c",contents[i]);
-		printf("\n");
-	}
-
-	Task userApp = {(uint64_t)(void*)UserAPP,(uint64_t*)GenerateUserspaceStack()};
-	Task idleTask = {(uint64_t)(void*)IdleTask,(uint64_t*)GenerateUserspaceStack()};
-	Task initApp = {(uint64_t)(void*)LLInit,(uint64_t*)GenerateUserspaceStack()};
 
 	GlobalTaskManager->AddTask(initApp);
 	GlobalTaskManager->AddTask(idleTask);
@@ -76,7 +52,7 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalTaskManager->AddTask(userApp);
 
 	//jump in the userspace
-	RunInUserspace((void*)LLInit,(void*)(userApp.stack+USERSPACE_STACK_SIZE-8));
+	RunInUserspace((void*)LLInit,(void*)(initApp.stack+USERSPACE_STACK_SIZE));
 
 	while(1);
 

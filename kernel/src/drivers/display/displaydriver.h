@@ -44,8 +44,6 @@ void advanceCursor();
 void clearScreen(unsigned int colour);
 void setColour(unsigned int colo);
 void checkScroll();
-void fillGarbage();
-void fillRainbow();
 
 //initializare
 void InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font);

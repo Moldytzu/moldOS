@@ -14,7 +14,7 @@ ALIGN 16
     push    rbp
     push    rdi
     push    rsi
-    push     rsp
+    push    rsp
     push    rdx
     push    rcx
     push    rbx
@@ -65,17 +65,17 @@ KBHandlerEntry:
 	PUSH_REG
 	call KBHandler
     POP_REG
-	ret
+	iretq
 MSHandlerEntry:
 	PUSH_REG
 	call MSHandler
     POP_REG
-	ret
+	iretq
 PITHandlerEntry:
 	PUSH_REG
 	call PITHandler
 	POP_REG
-	ret
+	iretq
 
 EXTERN InvalideOpcodeHandler
 EXTERN GeneralProtectionFaultHandler
