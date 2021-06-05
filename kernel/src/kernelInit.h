@@ -59,6 +59,9 @@
 //elf
 #include "elf/loader.h"
 
+//flat binary
+#include "flatbin/loader.h" 
+
 #include "settings.h"
 
 #define LOOP while(1)
@@ -241,6 +244,7 @@ void InitDrivers(BootInfo* bootInfo) {
 
     gdtInit();
 	InitIntrerupts();
+    PITSetDivisor(1);
 
     com1.Init();
 	GlobalCOM1 = &com1;

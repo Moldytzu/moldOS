@@ -16,7 +16,6 @@ To-do list:
 
 extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
-	PITSetDivisor(0xFFFF);
 
 	LLFSHeader* llfs = binfo->RamFS;
 
@@ -30,7 +29,6 @@ extern "C" int kernelMain(BootInfo* binfo) {
 		while(1);
 	}
 
-
 	//map the llfs as userspace memory
 	uint64_t fssize = LLFSGetFileSystemSize(llfs);
 	for(int i = 0;i<fssize/4096+1;i++) {
@@ -42,19 +40,18 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	//userspace stuff
 	Task userApp = {(uint64_t)(void*)UserAPP,(uint64_t*)GenerateUserspaceStack(),"Sample User Application",STATE_RUNNING};
 	Task idleTask = {(uint64_t)(void*)IdleTask,(uint64_t*)GenerateUserspaceStack(),"Idle Task",STATE_RUNNING};
-	Task initApp = {(uint64_t)(void*)LLInit,(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING};
-	//Task initApp = {(uint64_t)LoadELFExecutable(llfs,"llinit.llexec   "),(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING};
+	//Task initApp = {(uint64_t)(void*)LLInit,(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING};
+	Task initApp = {(uint64_t)LoadFlatBinary(llfs,"llinit.llexec   "),(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING};
 
-
-	GlobalTaskManager->AddTask(initApp);
 	GlobalTaskManager->AddTask(idleTask);
+	GlobalTaskManager->AddTask(initApp);
 
 	GlobalTaskManager->AddTask(userApp);
 
 	//jump in the userspace
-	RunInUserspace((void*)LLInit,(void*)(initApp.stack+USERSPACE_STACK_SIZE));
+	RunInUserspace((void*)idleTask.instructionPointer,(void*)(idleTask.stack+USERSPACE_STACK_SIZE-16));
 
-	while(1);
+	LOOP;
 
 	return 0;
 } 

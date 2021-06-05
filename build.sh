@@ -9,6 +9,9 @@ cd gnu-efi
 make -s -j bootloader
 cd ..
 
+#apps
+for d in ./apps/* ; do (cd "$d" && echo "Compilling $d" && make && cp ./bin/* ../../ramfs/); done
+
 #ramfs
 python3 buildramfs.py
 

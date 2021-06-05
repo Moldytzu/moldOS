@@ -27,5 +27,7 @@ void TaskManager::RunNext() {
     Task t = tasks[currentTask];
     lastTask = (char*)t.name;
     void* rip = (void*)t.instructionPointer;
-    RunInUserspace(rip,t.stack + USERSPACE_STACK_SIZE);
+    GlobalTableManager.MapUserspaceMemory((void*)t.instructionPointer);
+    GlobalTableManager.MapUserspaceMemory((void*)t.stack);
+    RunInUserspace(rip,t.stack + USERSPACE_STACK_SIZE - 16);
 }

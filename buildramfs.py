@@ -1,7 +1,11 @@
 # LLFS packager
-import os,sys
+import os
+
+inputfolder = "ramfs/"
+output = "kernel/bin/ram.llfs"
 
 def AddFile(ofile,name,size,content):
+    print("Adding file " + name)
     ofile.write(name.encode())
     ofile.write(size)
     ofile.write(b"\x00")
@@ -18,9 +22,11 @@ def AddFileFromHardDisk(ofile,name):
 
 print("Building the file system")
 
-filecount = (len(sys.argv)-1).to_bytes(8,'little') # 8 bytes
+files = os.listdir(inputfolder)
 
-outfile = open("kernel/bin/ram.llfs","wb")
+filecount = len(files).to_bytes(8,'little') # 8 bytes
+
+outfile = open(output,"wb")
 
 # write the header
 outfile.write("LLFS".encode()) # signature
@@ -31,9 +37,9 @@ for i in range(4):
     outfile.write(b"\x00") # padding
 
 # add the files
-for i in range(len(sys.argv)-1):
-    AddFileFromHardDisk(outfile,sys.argv[i+1])
+for i in range(len(files)):
+    AddFileFromHardDisk(outfile,inputfolder+files[i])
 
 # close the file
 outfile.close()
-print("Done!")
+print("Done")
