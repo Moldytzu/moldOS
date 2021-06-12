@@ -6,6 +6,7 @@ This file's author is KeepKonect.
 All credits go to him
 */
 
+
 #define GDT_MAX_DESCRIPTORS  16
 
 #define GDT_DESC_ACCESS 0x01
@@ -48,23 +49,21 @@ struct gdtTSSEntry{
     uint32_t Reserved;
 } __attribute__((packed));
 
+struct gdtInfoSelectors{
+    int KCode;
+    int KData;
+    int UCode;
+    int UData;
+} __attribute__((packed));
 
-
-/*struct GDT{
-    GDTEntry Null; //0x00
-    GDTEntry KernelCode; //0x08
-    GDTEntry KernelData; //0x10
-    GDTEntry UserNull;
-    GDTEntry UserCode;
-    GDTEntry UserData;
-} __attribute__((packed)) 
-__attribute((aligned(0x1000)));
-
-extern GDT DefaultGDT;*/
+extern gdtInfoSelectors GDTInfoSelectors;
 
 void gdtInit();
-void gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t other);
+int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t other);
 uint16_t gdtInstallTSS(uint64_t base, uint64_t limit);
+void setGDTRing(int ring);
 
 extern int GDTIndexTable;
+
+
 extern "C" void LoadGDTKOT(GDTDescriptor* gdtDescriptor);

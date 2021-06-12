@@ -6,19 +6,18 @@ All credits go to him
 */
 
 static TSS TSSdescriptors[1];
-uint16_t TSSdescriptorsLocation[1];
 
 void TSSInit(){
     memset(TSSdescriptors, 0, sizeof(TSS) * 1);
-    TSSInstall(0);
 }
 
-void TSSInstall(int numCPU){
-   uint64_t tss_base = (uint64_t)&TSSdescriptors[numCPU];
+uint16_t TSSInstall(int numCPU){
+    uint64_t tss_base = (uint64_t)&TSSdescriptors[numCPU];
     memset((void *)tss_base, 0, sizeof(TSS));
 
     uint16_t location = gdtInstallTSS(tss_base, sizeof(TSS));
-    TSSdescriptorsLocation[numCPU] = location;
+    TSSdescriptors[numCPU].IOPBOffset = sizeof(TSS);
+    return location;
 }
 
 void TSSSetStack(int numCPU, void* stack){

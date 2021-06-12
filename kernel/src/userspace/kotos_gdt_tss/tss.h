@@ -21,7 +21,7 @@ struct TSS{
     uint64_t Reserved1;
 
     //IST
-    uint64_t IST[7];
+    uint64_t IST[6];
 
     uint64_t Reserved2;
     uint16_t Reserved3;
@@ -30,11 +30,9 @@ struct TSS{
 }__attribute__((packed));
 
 void TSSInit();
-void TSSInstall(int numCPU);
+uint16_t TSSInstall(int numCPU);
 
 extern "C" void TSSSetStack(int numCPU, void* stack);
 extern "C" uint64_t TSSGetStack(int numCPU);
-
-extern "C" uint16_t TSSdescriptorsLocation[];
 
 extern "C" void LoadTSS(uint16_t tss);

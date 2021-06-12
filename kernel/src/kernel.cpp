@@ -4,14 +4,20 @@
 /*
 Special Thanks to:
 - @borrrden - he fixed my buggy keyboard handler
-- @AbsurdPoncho - if he didn't do a osdev series i wouldn't started this project
+- @AbsurdPoncho - if he didn't do a osdev series I wouldn't started this project
 - @nothotscott - he has a very good tutorial on debugging that helped me (https://www.youtube.com/watch?v=llP7zB8HTls) and for some userspace tips
 - @keepkonect - he's my friend that helped me do this project
+- @pitust - he told me some things that I missed when doing the tss, and told me some terminology that I should fix
 */
 
 /*
 To-do list:
-- elf program loader
+- preemptive multitasking (CRITICAL)
+- llfs version 2
+- llexec header
+- basic shell
+- window manager
+- gui infrastructure
 */
 
 extern "C" int kernelMain(BootInfo* binfo) {
@@ -38,18 +44,14 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalAllocator.LockPages(llfs,fssize/4096+1);
 
 	//userspace stuff
-	Task userApp = {(uint64_t)(void*)UserAPP,(uint64_t*)GenerateUserspaceStack(),"Sample User Application",STATE_RUNNING};
-	Task idleTask = {(uint64_t)(void*)IdleTask,(uint64_t*)GenerateUserspaceStack(),"Idle Task",STATE_RUNNING};
-	//Task initApp = {(uint64_t)(void*)LLInit,(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING};
-	Task initApp = {(uint64_t)LoadFlatBinary(llfs,"llinit.llexec   "),(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING};
+	Task idleTask = {(uint64_t)(void*)IdleTask,(uint64_t*)GenerateUserspaceStack(),"Idle Task",STATE_RUNNING,TASK_USER};
+	Task initApp = {(uint64_t)LoadFlatBinary(llfs,"llinit.llexec   "),(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING,TASK_ADMIN};
 
 	GlobalTaskManager->AddTask(idleTask);
 	GlobalTaskManager->AddTask(initApp);
 
-	GlobalTaskManager->AddTask(userApp);
-
 	//jump in the userspace
-	RunInUserspace((void*)idleTask.instructionPointer,(void*)(idleTask.stack+USERSPACE_STACK_SIZE-16));
+	RunInUserspace((void*)idleTask.instructionPointer,(void*)(idleTask.stack+USERSPACE_STACK_SIZE));
 
 	LOOP;
 

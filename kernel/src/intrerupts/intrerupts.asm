@@ -43,24 +43,26 @@ InvalideOpcodeHandlerEntry:
     PUSH_REG
     call InvalideOpcodeHandler
     POP_REG
-	ret
+    jmp $
 
 GeneralProtectionFaultHandlerEntry:
     PUSH_REG
     call GeneralProtectionFaultHandler
     POP_REG
-	ret
+    jmp $
 
 PageFaultHandlerEntry:
 	PUSH_REG
     call PageFaultHandler
     POP_REG
-	ret
+    jmp $
+
 DoubleFaultHandlerEntry:
 	PUSH_REG
     call DoubleFaultHandler
     POP_REG
-	ret
+    jmp $
+
 KBHandlerEntry:
 	PUSH_REG
 	call KBHandler

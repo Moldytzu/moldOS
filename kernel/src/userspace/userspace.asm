@@ -67,12 +67,12 @@ RunInUserspace:
 	
 	pop		rcx	;restore our registers
 	pop		rsp
-	mov		r11, 0x0 ;set the x86 flags
+	mov		r11, 0x202 ;set the x86 flags
 	o64 sysret ; to userspace and beyond
 
 RunInUserspaceMultiTasking:
 	mov		rcx, rdi	
-	mov		r11, 0x0 ;set the x86 flags
+	mov		r11, 0x202 ;set the x86 flags
 	o64 sysret ; to userspace and beyond
 
 EXTERN TSSSetStack
