@@ -18,7 +18,7 @@ It aims to be easy to use, small and simple.
     - RTC (Real Time Clock) 
     - PS/2 Mouse&Keyboard
     - AHCI
-         - Read AHCI, SATA and SATAPI drives
+         - Read SATA and SATAPI drives
     - PCI
  - Hardware Communications:
     - Parallel Port (LPT1)
@@ -36,7 +36,7 @@ It aims to be easy to use, small and simple.
          - UEFI Runtime Services
     - Userspace
          - Cooperative Multitasking
-         - Fast System Calls
+         - System Calls
     - Kernel LibC
 
 # Photo Galery:
