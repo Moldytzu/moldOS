@@ -36,7 +36,7 @@ void TaskManager::RunNext() {
     void* rip = (void*)t.nextInstructionPointer;
     GlobalTableManager.MapUserspaceMemory((void*)t.nextInstructionPointer);
     GlobalTableManager.MapUserspaceMemory((void*)t.stack);
-    RunInUserspace(rip,t.stack + USERSPACE_STACK_SIZE);
+    RunInUserspace(rip,t.stack + USERSPACE_STACK_SIZE - 16);
 }
 
 uint64_t TaskManager::GetCurrentTaskEntryPoint() {

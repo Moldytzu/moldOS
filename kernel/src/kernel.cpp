@@ -51,7 +51,7 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalTaskManager->AddTask(initApp);
 
 	//jump in the userspace
-	RunInUserspace((void*)idleTask.instructionPointer,(void*)(idleTask.stack+USERSPACE_STACK_SIZE));
+	RunInUserspace((void*)idleTask.instructionPointer,(void*)(idleTask.stack+USERSPACE_STACK_SIZE-16));
 
 	LOOP;
 

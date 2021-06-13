@@ -9,6 +9,7 @@
         "limits": "cpp",
         "*.tcc": "cpp",
         "cstdint": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "userspace.h": "c"
     }
 }

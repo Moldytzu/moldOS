@@ -4,37 +4,12 @@
       {
         "label": "Build&Run",
         "type": "shell",
-        "command": "powershell.exe \"./build;Start-Process ./run\"",
-        "group": "build",
-        "presentation": {
-          "reveal": "always",
-          "panel": "new"
+        "command": "./build.sh;./run.sh",
+        "group": {
+          "kind":"build",
+          "isDefault": true
         },
-        "problemMatcher": []
-      },
 
-      {
-        "label": "Run",
-        "type": "shell",
-        "command": "powershell.exe ./run",
-        "group": "build",
-        "presentation": {
-          "reveal": "always",
-          "panel": "new"
-        },
-        "problemMatcher": []
       },
-
-      {
-        "label": "Build",
-        "type": "shell",
-        "command": "powershell.exe ./build",
-        "group": "build",
-        "presentation": {
-          "reveal": "always",
-          "panel": "new"
-        },
-        "problemMatcher": []
-      }
     ]
   }
