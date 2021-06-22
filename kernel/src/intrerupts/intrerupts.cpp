@@ -31,7 +31,7 @@ void MSHandler() {
     PIC_EndSlave();
 }
 
-void PITHandler() {
+void PITHandler(InterruptStack* istack) {
     PITTick();
     PIC_EndMaster();
 }

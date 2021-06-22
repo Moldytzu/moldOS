@@ -75,6 +75,7 @@ MSHandlerEntry:
 	iretq
 PITHandlerEntry:
 	PUSH_REG
+    mov rdi, rsp
 	call PITHandler
 	POP_REG
 	iretq

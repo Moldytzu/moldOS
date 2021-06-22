@@ -1,1 +1,1 @@
-qemu-system-x86_64 -drive format=raw,file=kernel/bin/disk.img -drive if=pflash,format=raw,unit=0,file=OVMFbin/NightlyOVMF/OVMF_CODE-pure-efi_old.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=OVMFbin/NightlyOVMF/OVMF_VARS-pure-efi.fd -serial stdio -soundhw pcspk -m 2G -machine q35
+qemu-system-x86_64 -drive format=raw,file=kernel/bin/disk.img -drive if=pflash,format=raw,unit=0,file=OVMFbin/NightlyOVMF/OVMF_CODE-pure-efi_old.fd,readonly=on -drive if=pflash,format=raw,unit=1,file=OVMFbin/NightlyOVMF/OVMF_VARS-pure-efi.fd -serial stdio -m 2G -machine q35

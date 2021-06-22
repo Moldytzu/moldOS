@@ -166,7 +166,7 @@ void InitIntrerupts() {
     outportb(PIC1_DATA, 0b11111000); //mouse and keyboard
     outportb(PIC2_DATA, 0b11101111);
 
-    asm volatile("sti");
+    asm volatile("cli");
 }
 
 SDT* xsdt;
@@ -179,6 +179,10 @@ void InitACPI(BootInfo* bootInfo) {
     FADT* fadt = (FADT*)acpi.FindTable(xsdt,(char*)"FACP");
     
     acpi.fadt = fadt;
+
+    //enable acpi mode to be sure it's enabled
+    outportb(fadt->SMI_CommandPort, fadt->AcpiEnable);
+    while (inportw(fadt->PM1aControlBlock) & 1 == 0);
 
     #ifndef Quiet
     LogInfo("Parsing MADT");
@@ -244,7 +248,7 @@ void InitDrivers(BootInfo* bootInfo) {
 
     gdtInit();
 	InitIntrerupts();
-    PITSetDivisor(1);
+    PITSetDivisor(0xFFFF);
 
     com1.Init();
 	GlobalCOM1 = &com1;
@@ -296,6 +300,7 @@ void InitDrivers(BootInfo* bootInfo) {
 	display.update();
 
 	GlobalDisplay = &display;
+    asm volatile("sti");
 	
     #ifndef Quiet
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
@@ -318,5 +323,6 @@ void InitDrivers(BootInfo* bootInfo) {
 
     LogInfo("Initialized Everything!");
     #endif
+
     com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
 }

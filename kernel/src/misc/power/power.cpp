@@ -11,9 +11,11 @@ void Power::InitPower(void* pdwn,void* rest) {
 //use acpi instead
 void Power::Shutdown() {
 	//((void(*)())PowerDownVoid)();
+    while(1);
 }
 
 //use acpi instead
 void Power::Restart() {
     //((void(*)())PowerRestartVoid)();
+    while(1);
 }

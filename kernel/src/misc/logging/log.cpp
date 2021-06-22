@@ -2,13 +2,7 @@
 #include "../../settings.h"
 
 void LogInfo(const char* text) {
-    GlobalDisplay->puts("[");
-    GlobalDisplay->setColour(LIGHTBLUE);
-    GlobalDisplay->puts("INFO");
-    GlobalDisplay->setColour(WHITE);
-    GlobalDisplay->puts("] ");
-    GlobalDisplay->puts(text);
-    GlobalDisplay->cursorNewLine();
+    printf("[%coINFO%co] %s\n",LIGHTBLUE,WHITE,text);
     GlobalDisplay->update();
     #ifdef Logging_Serial
     GlobalCOM1->Write(SERIALBLUE,"[INFO] ",SERIALWHITE,text,"\n");
@@ -16,13 +10,7 @@ void LogInfo(const char* text) {
 }
 
 void LogWarn(const char* text) {
-    GlobalDisplay->puts("[");
-    GlobalDisplay->setColour(YELLOW);
-    GlobalDisplay->puts("WARN");
-    GlobalDisplay->setColour(WHITE);
-    GlobalDisplay->puts("] ");
-    GlobalDisplay->puts(text);
-    GlobalDisplay->cursorNewLine();
+    printf("[%coWARN%co] %s\n",YELLOW,WHITE,text);
     GlobalDisplay->update();
     #ifdef Logging_Serial
     GlobalCOM1->Write(SERIALYELLOW,"[WARN] ",SERIALWHITE,text,"\n");
@@ -30,13 +18,7 @@ void LogWarn(const char* text) {
 }
 
 void LogError(const char* text) {
-    GlobalDisplay->puts("[");
-    GlobalDisplay->setColour(LIGHTRED);
-    GlobalDisplay->puts("ERROR");
-    GlobalDisplay->setColour(WHITE);
-    GlobalDisplay->puts("] ");
-    GlobalDisplay->puts(text);
-    GlobalDisplay->cursorNewLine();
+    printf("[%coERROR%co] %s\n",LIGHTRED,WHITE,text);
     GlobalDisplay->update();  
     #ifdef Logging_Serial
     GlobalCOM1->Write(SERIALRED,"[ERROR] ",SERIALRED,text,"\n");

@@ -6,6 +6,7 @@
 DisplayDriver* GlobalDisplay;
 
 void DisplayDriver::putc(char ch,unsigned int xx,unsigned int yy) {
+	if(!initialized) return;
     unsigned int* pixPtr = (unsigned int*)secondFrameBuffer->BaseAddr;
     char* fontPtr = (char*)globalFont->glyphBuffer + (ch * globalFont->psf1_Header->charsize);
     for (unsigned long y = yy; y < yy + 16; y++){
@@ -57,6 +58,7 @@ void DisplayDriver::setCursorPos(int x,int y) {
 
 void DisplayDriver::InitDoubleBuffer(DisplayBuffer* f) {
 	secondFrameBuffer = f;
+	initialized = true;
 }
 	
 void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font) {
@@ -154,6 +156,7 @@ void DisplayDriver::setColour(unsigned int colo) {
 }
 
 void DisplayDriver::update() {
+	if(!initialized) return;
 	asmmemcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
 }
 

@@ -14,6 +14,13 @@ unsigned long long inportl(unsigned long long port)
    return ret;
 }
 
+unsigned long long inportw(unsigned short int port)
+{
+   unsigned long long ret;
+   __asm__ volatile ("inw %%dx,%%ax":"=a" (ret):"d" (port));
+   return ret;
+}
+
 void outportb(unsigned int port,unsigned char value)
 {
    __asm__ volatile ("outb %%al,%%dx": :"d" (port), "a" (value));
