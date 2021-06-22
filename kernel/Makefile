@@ -8,10 +8,11 @@ LDS = kern.ld
 CC = gcc
 LD = ld
 ASM = nasm
-CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -Wno-pointer-arith -Wno-int-to-pointer-cast -pipe
+CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone
+
+CFLAGS += -Wno-pointer-arith -Wno-int-to-pointer-cast #surpress some warnings
 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
-ASMFLAGS = 
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
 
@@ -49,7 +50,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 	@ echo Assembling: $^
 	@ mkdir -p $(@D)
-	@ $(ASM) $(ASMFLAGS) $^ -f elf64 -o $@
+	@ $(ASM) $^ -f elf64 -o $@
 
 #other
 link: $(OBJS)
