@@ -16,16 +16,12 @@ SECTIONS
 	{
 		*(.rodata)
 	}
+	_BssStart = .;
 	.bss : ALIGN(0x1000)
 	{
 		*(COMMON)
 		*(.bss)
 	}
-	
+	_BssEnd = .;
 	_KernelEnd = .;
-
-	/DISCARD/ : {
-        *(.comment)
-		*(.note)
-    }
 }

@@ -3,14 +3,9 @@
 uint64_t freeMemory;
 uint64_t reservedMemory;
 uint64_t usedMemory;
-bool Initialized = false;
 PageFrameAllocator GlobalAllocator;
 
 void PageFrameAllocator::ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapSize, size_t mMapDescSize){
-    if (Initialized) return;
-
-    Initialized = true;
-
     uint64_t mMapEntries = mMapSize / mMapDescSize;
 
     void* largestFreeMemSeg = NULL;

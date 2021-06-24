@@ -16,8 +16,8 @@ To-do list:
 - llfs version 2
 - llexec header
 - basic shell
-- window manager
 - gui infrastructure
+- window manager
 */
 
 extern "C" int kernelMain(BootInfo* binfo) {

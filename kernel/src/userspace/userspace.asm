@@ -31,13 +31,11 @@ ALIGN	4096
 %endmacro
 
 syscall_entry:
-    SYSCALL_SAVE
     push r11
     push rcx
     call SyscallHandler
     pop rcx
     pop r11
-    SYSCALL_RESTORE
     o64 sysret
 
 EnableSCE:

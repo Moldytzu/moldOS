@@ -95,6 +95,9 @@ struct BootInfo {
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
+extern uint64_t _BssStart;
+extern uint64_t _BssEnd;
+
 char** CPUFeatures;
 
 BootInfo* GlobalInfo;
@@ -230,6 +233,9 @@ void InitACPI(BootInfo* bootInfo) {
 }
 
 void InitDrivers(BootInfo* bootInfo) {
+    //clear the bss so it will not have random values at startup
+    memset(&_BssStart,0,&_BssEnd-&_BssStart);
+    
     GlobalInfo = bootInfo;
     
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
@@ -237,18 +243,15 @@ void InitDrivers(BootInfo* bootInfo) {
     GlobalAllocator = PageFrameAllocator();
     GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
 
-    GlobalAllocator.LockPages((void*)0,1000);
-
     uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
     uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
 
     GlobalAllocator.LockPages(&_KernelStart, kernelPages);
 
-    GlobalAllocator.LockPages(bootInfo,sizeof(BootInfo)/4096+1);
-
     gdtInit();
 	InitIntrerupts();
     PITSetDivisor(0xFFFF);
+    asm volatile("sti");
 
     com1.Init();
 	GlobalCOM1 = &com1;
@@ -300,7 +303,6 @@ void InitDrivers(BootInfo* bootInfo) {
 	display.update();
 
 	GlobalDisplay = &display;
-    asm volatile("sti");
 	
     #ifndef Quiet
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");

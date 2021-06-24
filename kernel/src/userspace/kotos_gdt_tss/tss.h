@@ -21,7 +21,7 @@ struct TSS{
     uint64_t Reserved1;
 
     //IST
-    uint64_t IST[6];
+    uint64_t IST[7];
 
     uint64_t Reserved2;
     uint16_t Reserved3;
