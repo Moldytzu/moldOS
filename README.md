@@ -40,6 +40,8 @@ It aims to be easy to use, small and simple.
     - Kernel LibC
 
 # Photo Galery:
+NOTICE: The photos may be outdated!
+
 ![](https://i.imgur.com/nE6Pm7g.png)
 LLOS running 2 tasks (A and B)
 
