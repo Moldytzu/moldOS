@@ -3,4 +3,4 @@
 #include <elf.h>
 
 void* LoadELFExecutable(LLFSHeader* fs,const char* file);
-int CheckELF();
+int CheckELF(LLFSHeader* fs,const char* file);
