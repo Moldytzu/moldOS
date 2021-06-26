@@ -45,7 +45,7 @@ extern "C" int kernelMain(BootInfo* binfo) {
 
 	//userspace stuff
 	Task idleTask = {(uint64_t)(void*)IdleTask,(uint64_t*)GenerateUserspaceStack(),"Idle Task",STATE_RUNNING,TASK_USER};
-	Task initApp = {(uint64_t)LoadFlatBinary(llfs,"llinit.llexec   "),(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING,TASK_ADMIN};
+	Task initApp = {(uint64_t)LoadELFExecutable(llfs,"llinit.llexec   "),(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING,TASK_ADMIN};
 
 	GlobalTaskManager->AddTask(idleTask);
 	GlobalTaskManager->AddTask(initApp);

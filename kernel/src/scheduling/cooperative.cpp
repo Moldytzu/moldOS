@@ -17,6 +17,7 @@ void TaskManager::AddTask(Task t) {
 }
 
 void TaskManager::DoExitTask() {
+    GlobalCOM1->Write("The task ",tasks[currentTask].name," is going to a halt.\n");
     tasks[currentTask].state = STATE_HALTED;
 }
 

@@ -59,9 +59,6 @@
 //elf
 #include "elf/loader.h"
 
-//flat binary
-#include "flatbin/loader.h" 
-
 #include "settings.h"
 
 #define LOOP while(1)

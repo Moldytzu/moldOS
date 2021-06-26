@@ -1,5 +1,6 @@
 #include "efiMemory.h"
 #include <xmmintrin.h> // SSE
+
 const char* EFI_MEMORY_TYPE_STRINGS[] {
     "EfiReservedMemoryType",
     "EfiLoaderCode",

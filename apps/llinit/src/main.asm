@@ -8,12 +8,6 @@ llosMain:
     mov r8,  1    ; load the string from the executable 
     syscall
 
-    mov rdi, 0x1  ; write
-    mov rsi, SerialText ; the Offset
-    mov rdx, 0x2  ; stdout
-    mov r8,  1    ; load the string from the executable 
-    syscall
-
     mov rdi, 0xFF ; exit syscall
     mov rsi, 2021 ; exit code
     syscall
@@ -21,5 +15,4 @@ llosMain:
 WelcomeText:
     db "Welcome to LowLevelOS!",10,"Copyright Moldu' (Nov. 2020 - Jun. 2021)",0
 
-SerialText:
-    db "LLInit is running!",0
+global llosMain
