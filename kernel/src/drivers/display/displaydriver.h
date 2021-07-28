@@ -10,10 +10,10 @@
 
 typedef struct {
 	void* BaseAddr;
-	long long BufferSize;
-	unsigned int Width;
-	unsigned int Height;
-	unsigned int PixelPerScanLine;
+	uint64_t BufferSize;
+	uint64_t Width;
+	uint64_t Height;
+	uint64_t PixelPerScanLine;
 } DisplayBuffer;
 
 class DisplayDriver {

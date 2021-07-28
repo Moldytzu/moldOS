@@ -1,98 +1,96 @@
-#include "def.h"
+#include <stdint.h>
+#include <stddef.h>
+#include <efi.h>
+#include <efilib.h>
+#include <elf.h>
 
-framebuffer frambuf;
+typedef struct {
+	void* BaseAddr;
+	uint64_t BufferSize;
+	uint64_t Width;
+	uint64_t Height;
+	uint64_t PixelPerScanLine;
+} DisplayBuffer;
 
-void TriggerError(wchar_t *errstr) {
-	Print(errstr);
-	while (1);
-}
+typedef struct {
+	unsigned char magic[2];
+	unsigned char mode;
+	unsigned char charsize;
+} PSFHeader;
 
-EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
-framebuffer *InitGOP() {
-	EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
-	EFI_STATUS stat;
+typedef struct {
+    PSFHeader* header;
+	void* glyphBuffer;
+} PSFFont;
 
-	stat = BS->LocateProtocol(&gopGuid, ((void *)0), (void **)&gop);
-	if (EFI_ERROR(stat))
-		TriggerError(L"Cannot init GOP!\n");
+typedef struct {
+	DisplayBuffer* framebuffer;
+	PSFFont* font;
+	EFI_MEMORY_DESCRIPTOR *mMap;
+	UINTN mMapSize;
+	UINTN mMapDescSize;
+	void* RSDP;
+	void* LLFS;
+} BootInfo;
+
+EFI_HANDLE IH;
+
+EFI_FILE* OpenFile(EFI_FILE* Directory, wchar_t* File) {
+	EFI_FILE* LoadedFile = NULL;
+	EFI_LOADED_IMAGE_PROTOCOL* LoadedImage;
+    EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* FileSystem;
+
+	ST->BootServices->HandleProtocol(IH, &gEfiLoadedImageProtocolGuid, (void **)&LoadedImage);
+	ST->BootServices->HandleProtocol(LoadedImage->DeviceHandle, &gEfiSimpleFileSystemProtocolGuid, (void **)&FileSystem);
+
+	if (Directory == NULL) FileSystem->OpenVolume(FileSystem, &Directory);
+
+	EFI_STATUS status = Directory->Open(Directory, &LoadedFile, File, EFI_FILE_MODE_READ, EFI_FILE_READ_ONLY);
 	
-	frambuf.BaseAddr = (void *)gop->Mode->FrameBufferBase;
-	frambuf.BufferSize = gop->Mode->FrameBufferSize;
-	frambuf.Width = gop->Mode->Info->HorizontalResolution;
-	frambuf.Height = gop->Mode->Info->VerticalResolution;
-	frambuf.PixelPerScanLine = gop->Mode->Info->PixelsPerScanLine;
-	return &frambuf;
+    if (status != EFI_SUCCESS) LoadedFile = NULL;
+	return LoadedFile;
 }
 
-PSF1_FONT *LoadFont(EFI_FILE *Directory, CHAR16 *Path, EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
-	EFI_FILE *font = ReadFile(Directory, Path, ImageHandle, SystemTable);
-	if (font == NULL)
-		return NULL;
-
-	PSF1_HEADER *fontHeader;
-	SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_HEADER), (void **)&fontHeader);
-	UINTN size = sizeof(PSF1_HEADER);
-	font->Read(font, &size, fontHeader);
-
-	if (fontHeader->magic[0] != PSF1_MAGIC0 || fontHeader->magic[1] != PSF1_MAGIC1)
-		return NULL;
-
-	UINTN glyphBufferSize = fontHeader->charsize * 256;
-	if (fontHeader->mode == 1)
-		glyphBufferSize = fontHeader->charsize * 512;
-
-	void *glyphBuffer;
-	{
-		font->SetPosition(font, sizeof(PSF1_HEADER));
-		SystemTable->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void **)&glyphBuffer);
-		font->Read(font, &glyphBufferSize, glyphBuffer);
-	}
-
-	PSF1_FONT *finishedFont;
-	SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSF1_FONT), (void **)&finishedFont);
-	finishedFont->psf1_Header = fontHeader;
-	finishedFont->glyphBuffer = glyphBuffer;
-	return finishedFont;
+void DoError(wchar_t* error) {
+    Print(L"An error occured when loading LLOS!\n\r");
+    Print(error);
+    while(1)
+        __asm__ volatile ("hlt");
 }
 
-void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
-	Print(L"Starting LLOS...\n");
-	EFI_FILE* llosFolder = ReadFile(NULL,L"LLOS",ImageHandle,SystemTable);
-	if(llosFolder == NULL)
-		TriggerError(L"Cannot find \"LLOS\" folder!");
-	
-	Print(L"Loaded the LLOS folder\n");
+EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
+    //Initialize some things
+    InitializeLib(ImageHandle, SystemTable);
+    BS = SystemTable->BootServices;
+    ST = SystemTable;
+    IH = ImageHandle;
 
-	EFI_FILE *monkernel = ReadFile(llosFolder, L"kernel.llexec", ImageHandle, SystemTable);
-	if (monkernel == NULL)
-		TriggerError(L"Cannot find \"kernel.llexec\"!");
+    //Open the required files
+    EFI_FILE* llosFolder = OpenFile(NULL,L"LLOS");
+    if (llosFolder == NULL) DoError(L"Failed to open the LLOS folder!\n\r");
+    EFI_FILE* kernel = OpenFile(llosFolder,L"kernel.llexec");
+    if (kernel == NULL) DoError(L"Failed to open the kernel!\n\r");
+    EFI_FILE* font = OpenFile(llosFolder,L"font.psf");
+    if (font == NULL) DoError(L"Failed to open the font!\n\r");
+    EFI_FILE* llfs = OpenFile(llosFolder,L"ram.llfs");
+    if (llfs == NULL) DoError(L"Failed to open the LLFS!\n\r");
 
-	Print(L"Loaded the kernel\n");
+    //Read the ELF header
+    Elf64_Ehdr header;
+	UINTN size = sizeof(header);
+	kernel->Read(kernel, &size, &header);
 
-	Elf64_Ehdr header;
-	{
-		UINTN FileInfoSize;
-		EFI_FILE_INFO *FileInfo;
-		monkernel->GetInfo(monkernel, &gEfiFileInfoGuid, &FileInfoSize, NULL);
-		SystemTable->BootServices->AllocatePool(EfiLoaderData, FileInfoSize, (void **)&FileInfo);
-		monkernel->GetInfo(monkernel, &gEfiFileInfoGuid, &FileInfoSize, (void **)&FileInfo);
+    //Verify the header
+	if (header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64)
+		DoError(L"The kernel is corrupt or isn't supported!\n\r");
 
-		UINTN size = sizeof(header);
-		monkernel->Read(monkernel, &size, &header);
-	}
+    //Load the PHeaders
+	Elf64_Phdr* phdrs;
 
-	if (memcmp(&header.e_ident[EI_MAG0], ELFMAG, SELFMAG) != 0 || header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64 || header.e_version != EV_CURRENT)
-		TriggerError(L"Cannot verify the kernel!");
-
-	Print(L"Verified the kernel\n");
-
-	Elf64_Phdr *phdrs;
-	{
-		monkernel->SetPosition(monkernel, header.e_phoff);
-		UINTN size = header.e_phnum * header.e_phentsize;
-		SystemTable->BootServices->AllocatePool(EfiLoaderData, size, (void **)&phdrs);
-		monkernel->Read(monkernel, &size, phdrs);
-	}
+	kernel->SetPosition(kernel, header.e_phoff);
+	UINTN ksize = header.e_phnum * header.e_phentsize;
+	SystemTable->BootServices->AllocatePool(EfiLoaderData, ksize, (void **)&phdrs);
+	kernel->Read(kernel, &ksize, phdrs);
 
 	for (Elf64_Phdr *phdr = phdrs; (char *)phdr < (char *)phdrs + header.e_phnum * header.e_phentsize; phdr = (Elf64_Phdr *)((char *)phdr + header.e_phentsize)) {
 		switch (phdr->p_type) {
@@ -101,88 +99,100 @@ void RunKernel(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 				Elf64_Addr segment = phdr->p_paddr;
 				SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, pages, &segment);
 
-				monkernel->SetPosition(monkernel, phdr->p_offset);
+				kernel->SetPosition(kernel, phdr->p_offset);
 				UINTN size = phdr->p_filesz;
-				monkernel->Read(monkernel, &size, (void *)segment);
+				kernel->Read(kernel, &size, (void *)segment);
 				break;
 			}
 		}
 	}
-	Print(L"Found the entry point\n");
 
-	PSF1_FONT *newFont = LoadFont(llosFolder, L"font.psf", ImageHandle, SystemTable);
-	if (newFont == NULL)
-		TriggerError(L"Cannot find \"font.psf\"!");
+    //Load the font
+	PSFHeader* fontHeader;
+	SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSFHeader), (void **)&fontHeader);
+	UINTN psfsize = sizeof(PSFHeader);
+	font->Read(font, &psfsize, fontHeader);
 
-	Print(L"Loaded the font\n");
+	if (fontHeader->magic[0] != 0x36 || fontHeader->magic[1] != 0x04)
+		DoError(L"Unknown PSF font magic\n\r");
 
-	void* LLFS = ReadBytes(llosFolder, L"ram.llfs",ImageHandle,SystemTable);
+	UINTN glyphBufferSize = fontHeader->charsize * 256;
 
-	InitGOP();
-	Print(L"Loaded the GOP\n");
+	void* glyphBuffer;
+	font->SetPosition(font, sizeof(PSFHeader));
+	SystemTable->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void **)&glyphBuffer);
+	font->Read(font, &glyphBufferSize, glyphBuffer);
 
+	PSFFont* finishedFont;
+	SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSFFont), (void **)&finishedFont);
+	finishedFont->header = fontHeader;
+	finishedFont->glyphBuffer = glyphBuffer;
+
+    //Load LLFS
+	UINTN llfsSize = 0xFFFFFF;
+	void* llfsBuffer;
+	SystemTable->BootServices->AllocatePool(EfiLoaderData, llfsSize, (void **)&llfsBuffer);
+	llfs->Read(llfs, &llfsSize, llfsBuffer);
+
+    //Enable GOP
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
+    EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+    DisplayBuffer framebuffer;
+
+	if (BS->LocateProtocol(&gopGuid, ((void *)0), (void **)&gop) != EFI_SUCCESS)
+		DoError(L"Cannot init GOP!\n\r");
+	
+	framebuffer.BaseAddr = (void *)gop->Mode->FrameBufferBase;
+	framebuffer.BufferSize = gop->Mode->FrameBufferSize;
+	framebuffer.Width = gop->Mode->Info->HorizontalResolution;
+	framebuffer.Height = gop->Mode->Info->VerticalResolution;
+	framebuffer.PixelPerScanLine = gop->Mode->Info->PixelsPerScanLine;
+
+    //Get memory map
 	EFI_MEMORY_DESCRIPTOR *Map = NULL;
 	UINTN MapSize, MapKey;
 	UINTN DescriptorSize;
 	UINT32 DescriptorVersion;
-	{
-		SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-		SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
-		EFI_STATUS st;
-		do {
-			st = SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-		} while(st != EFI_SUCCESS);
-	}
+	BS->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+	BS->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
+	EFI_STATUS st;
+	do {
+			st = BS->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+	} while(st != EFI_SUCCESS);
 
-	Print(L"Got the memory map\n");
-
-	EFI_CONFIGURATION_TABLE* configTable = SystemTable->ConfigurationTable;
+    //Get RSDP
+	EFI_CONFIGURATION_TABLE* configTable = ST->ConfigurationTable;
 	void* RSDP = NULL;
 	EFI_GUID ACPITABLEGUID = ACPI_20_TABLE_GUID;
 
 	for(UINTN i = 0;i < SystemTable->NumberOfTableEntries;i++) {
 		if(CompareGuid(&configTable[i].VendorGuid, &ACPITABLEGUID))
-			if(strcmp((CHAR8*)"RSD PTR ", (CHAR8*)configTable->VendorTable,8))
+			if(strcmpa((CHAR8*)"RSD PTR ", (CHAR8*)configTable->VendorTable))
 				RSDP = (void*)configTable->VendorTable;
 		configTable++;
 	}
 
-	Print(L"Found the ACPI 2.0 table\n");
+    //Prepare to run the kernel
+    int (*EntryPoint)(BootInfo *) = ((__attribute__((sysv_abi)) int (*)(BootInfo *))header.e_entry);
+    
+    BootInfo binfo;
+    binfo.font = finishedFont;
+    binfo.framebuffer = &framebuffer;
+    binfo.LLFS = llfsBuffer;
+    
+    binfo.mMap = Map;
+    binfo.mMapDescSize = DescriptorSize;
+    binfo.mMapSize = MapSize;
 
-	int (*EntryPoint)(BootInfo *) = ((__attribute__((sysv_abi)) int (*)(BootInfo *))header.e_entry);
+    binfo.RSDP = RSDP;
 
-	UEFIFirmware f;
-	f.Vendor = SystemTable->FirmwareVendor;
-	f.Version = SystemTable->FirmwareRevision;
+    BS->ExitBootServices(IH, MapKey);
+    
+    EntryPoint(&binfo);
 
-	Power p;
-	p.PowerOff = PowerDown;
-	p.Restart = PowerRestart;
-
-	BootInfo info;
-	info.framebuf = &frambuf;
-	info.font = newFont;
-	info.pwr = &p;
-	info.mMap = Map;
-	info.mMapSize = MapSize;
-	
-	info.mMapDescSize = DescriptorSize;
-	info.firm = &f;
-	info.Key = 0xFFFFFF/0x800;
-	info.RSDP = RSDP;
-	info.ramfs = LLFS;
-	Print(L"Prepared the struct\n");
-
-	SystemTable->BootServices->ExitBootServices(ImageHandle, MapKey);
-
-	Print(L"Running the kernel!\n");
-	EntryPoint(&info);
-
-	TriggerError(L"Cannot run the kernel!");
-}
-
-EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
-	InitUEFI(ImageHandle, SystemTable);
-	RunKernel(ImageHandle,SystemTable);
+    while(1) {
+        __asm__ volatile ("hlt");
+    }
+        
 	return 1;
 }

@@ -70,17 +70,10 @@ struct BootInfo {
 	DisplayBuffer* GOPFrameBuffer;
 	PSF1_FONT* Font;
 
-	//misc
-	PowerInfo* Power;
-	UEFIFirmware* Efi;
-
 	//memory
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	uint64_t mMapSize;
 	uint64_t mMapDescSize;
-
-    //verify
-    uint64_t Key;
 
     //acpi
     RSDP2* RSDP;
@@ -216,9 +209,6 @@ void InitACPI(BootInfo* bootInfo) {
         acpi.ShutdownPossible = 1;
     }
 
-    acpi.ShutdownBackup = bootInfo->Power->PowerOff;
-    acpi.RebootBackup = bootInfo->Power->Restart;
-
     #ifndef Quiet
     LogInfo("Enumerating PCI");
     #endif
@@ -256,6 +246,7 @@ void InitDrivers(BootInfo* bootInfo) {
     com1.Write("Kernel intialized the Serial Port!\n");
 
 	EnablePaging(bootInfo);
+    com1.Write("Enabled Paging!\n");
 
     mouse.Init();
     GlobalKeyboard = &kb;
@@ -267,15 +258,6 @@ void InitDrivers(BootInfo* bootInfo) {
 
     display.EmptyScreenBuffer = malloc(display.globalFrameBuffer->BufferSize);
     memset(display.EmptyScreenBuffer,0,display.globalFrameBuffer->BufferSize);
-
-    if(bootInfo->Key*2048+2047 != 0xFFFFFF) {
-        display.InitDoubleBuffer(bootInfo->GOPFrameBuffer);
-        GlobalDisplay = &display;
-        display.clearScreen(0);
-        LogError("Key verification failed!");
-        LogError("Corrupt or non-compliant bootloader!");
-        while(1);
-    }
 
 #ifdef DoubleBuffer
     doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
@@ -301,6 +283,8 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	GlobalDisplay = &display;
 	
+    com1.Write("Kernel intialized the display!\n");
+
     #ifndef Quiet
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
     #endif
@@ -309,11 +293,14 @@ void InitDrivers(BootInfo* bootInfo) {
 	#ifndef Quiet
     LogInfo("Detected CPU features!");
     #endif
+    com1.Write("Kernel detected CPU features!\n");
 
-    InitACPI(bootInfo);
+    //InitACPI(bootInfo);
     #ifndef Quiet
     LogInfo("Initialized ACPI!");
     #endif
+    com1.Write("Kernel intialized ACPI!\n");
+
 
     EnableSCE();
     GlobalTaskManager = &tmgr;
@@ -322,6 +309,8 @@ void InitDrivers(BootInfo* bootInfo) {
 
     LogInfo("Initialized Everything!");
     #endif
+    com1.Write("Kernel intialized SCE!\n");
+
 
     com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
 }
