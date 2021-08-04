@@ -9,7 +9,7 @@ rm -rf gnu-efi/x86_64/bootloader
 #bootloader
 echo "Building bootloader"
 cd gnu-efi
-make -s -j bootloader
+make -j bootloader
 cd ..
 
 #apps
