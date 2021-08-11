@@ -88,9 +88,9 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	Elf64_Phdr* phdrs;
 
 	kernel->SetPosition(kernel, header.e_phoff);
-	UINTN ksize = header.e_phnum * header.e_phentsize;
-	SystemTable->BootServices->AllocatePool(EfiLoaderData, ksize, (void **)&phdrs);
-	kernel->Read(kernel, &ksize, phdrs);
+	UINTN kernelSize = header.e_phnum * header.e_phentsize;
+	SystemTable->BootServices->AllocatePool(EfiLoaderData, kernelSize, (void **)&phdrs);
+	kernel->Read(kernel, &kernelSize, phdrs);
 
 	for (Elf64_Phdr *phdr = phdrs; (char *)phdr < (char *)phdrs + header.e_phnum * header.e_phentsize; phdr = (Elf64_Phdr *)((char *)phdr + header.e_phentsize)) {
 		switch (phdr->p_type) {
@@ -100,8 +100,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 				SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, pages, &segment);
 
 				kernel->SetPosition(kernel, phdr->p_offset);
-				UINTN size = phdr->p_filesz;
-				kernel->Read(kernel, &size, (void *)segment);
+				UINTN phdrSize = phdr->p_filesz;
+				kernel->Read(kernel, &phdrSize, (void *)segment);
 				break;
 			}
 		}
@@ -110,14 +110,13 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     //Load the font
 	PSFHeader* fontHeader;
 	SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSFHeader), (void **)&fontHeader);
-	UINTN psfsize = sizeof(PSFHeader);
-	font->Read(font, &psfsize, fontHeader);
+	UINTN psfHeaderSize = sizeof(PSFHeader);
+	font->Read(font, &psfHeaderSize, fontHeader);
 
 	if (fontHeader->magic[0] != 0x36 || fontHeader->magic[1] != 0x04)
 		DoError(L"Unknown PSF font magic\n\r");
 
 	UINTN glyphBufferSize = fontHeader->charsize * 256;
-
 	void* glyphBuffer;
 	font->SetPosition(font, sizeof(PSFHeader));
 	SystemTable->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void **)&glyphBuffer);

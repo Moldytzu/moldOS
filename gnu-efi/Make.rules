@@ -46,9 +46,6 @@
 		$(FORMAT) $*.so $@
 
 %.so: %.o
-	@ tput setaf 3
-	@ echo Compilez: $^
-	@ tput sgr0
 	$(LD) $(LDFLAGS) $^ -o $@ $(LOADLIBES)
 
 %.o: %.c

@@ -6,7 +6,7 @@ mkdir kernel/bin
 
 #bootloader
 cd gnu-efi
-make -s -j bootloader
+make -j bootloader
 cd ..
 
 #apps
