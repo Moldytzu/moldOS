@@ -212,11 +212,11 @@ void InitACPI(BootInfo* bootInfo) {
     #ifndef Quiet
     LogInfo("Enumerating PCI");
     #endif
-    pci.EnumeratePCI(mcfg);
-    if(pci.DevicesIndex == 0) {
-        LogWarn("No MCFG found or no PCI devices!");
-        LogWarn("AHCI might not work.");
-    }
+    //pci.EnumeratePCI(mcfg);
+    //if(pci.DevicesIndex == 0) {
+    //    LogWarn("No MCFG found or no PCI devices!");
+    //    LogWarn("AHCI might not work.");
+    //}
 }
 
 void InitDrivers(BootInfo* bootInfo) {
@@ -295,7 +295,7 @@ void InitDrivers(BootInfo* bootInfo) {
     #endif
     com1.Write("Kernel detected CPU features!\n");
 
-    //InitACPI(bootInfo);
+    InitACPI(bootInfo);
     #ifndef Quiet
     LogInfo("Initialized ACPI!");
     #endif

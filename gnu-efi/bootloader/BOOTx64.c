@@ -35,6 +35,13 @@ typedef struct {
 
 EFI_HANDLE IH;
 
+UINTN strcmp(CHAR8* a,CHAR8* b,UINTN length) {
+	for(UINTN i = 0;i < length;i++)
+		if(*a != *b) return 0;
+	return 1;
+}
+
+
 EFI_FILE* OpenFile(EFI_FILE* Directory, wchar_t* File) {
 	EFI_FILE* LoadedFile = NULL;
 	EFI_LOADED_IMAGE_PROTOCOL* LoadedImage;
@@ -152,9 +159,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	UINTN MapSize, MapKey;
 	UINTN DescriptorSize;
 	UINT32 DescriptorVersion;
-	BS->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+	EFI_STATUS st = BS->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
 	BS->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
-	EFI_STATUS st;
 	do {
 			st = BS->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
 	} while(st != EFI_SUCCESS);
@@ -165,9 +171,10 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	EFI_GUID ACPITABLEGUID = ACPI_20_TABLE_GUID;
 
 	for(UINTN i = 0;i < SystemTable->NumberOfTableEntries;i++) {
-		if(CompareGuid(&configTable[i].VendorGuid, &ACPITABLEGUID))
-			if(strcmpa((CHAR8*)"RSD PTR ", (CHAR8*)configTable->VendorTable))
-				RSDP = (void*)configTable->VendorTable;
+		if(CompareGuid(&configTable[i].VendorGuid, &ACPITABLEGUID)) 
+			for(UINTN i = 0;i < 8;i++)
+				if(strcmp((CHAR8*)"RSD PTR ", (CHAR8*)configTable->VendorTable,8)) 
+					RSDP = (void*)configTable->VendorTable;
 		configTable++;
 	}
 
