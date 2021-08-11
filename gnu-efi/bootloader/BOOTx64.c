@@ -52,7 +52,8 @@ EFI_FILE* OpenFile(EFI_FILE* Directory, wchar_t* File) {
 }
 
 void DoError(wchar_t* error) {
-    Print(L"An error occured when loading LLOS!\n\r%s\n\r", error);
+    Print(L"An error occured when loading LLOS!\n\r");
+    Print(error);
     while(1)
         __asm__ volatile ("hlt");
 }
@@ -81,7 +82,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
     //Verify the header
 	if (header.e_ident[EI_CLASS] != ELFCLASS64 || header.e_ident[EI_DATA] != ELFDATA2LSB || header.e_type != ET_EXEC || header.e_machine != EM_X86_64)
-		DoError(L"The kernel is corrupt or isn't supported!");
+		DoError(L"The kernel is corrupt or isn't supported!\n\r");
 
     //Load the PHeaders
 	Elf64_Phdr* phdrs;
@@ -109,13 +110,14 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     //Load the font
 	PSFHeader* fontHeader;
 	SystemTable->BootServices->AllocatePool(EfiLoaderData, sizeof(PSFHeader), (void **)&fontHeader);
-	UINTN fontSize = sizeof(PSFHeader);
-	font->Read(font, &fontSize, fontHeader);
+	UINTN psfsize = sizeof(PSFHeader);
+	font->Read(font, &psfsize, fontHeader);
 
 	if (fontHeader->magic[0] != 0x36 || fontHeader->magic[1] != 0x04)
-		DoError(L"Unknown PSF font magic");
+		DoError(L"Unknown PSF font magic\n\r");
 
-	UINTN glyphBufferSize = fontHeader->charsize * 256; //256 characters
+	UINTN glyphBufferSize = fontHeader->charsize * 256;
+
 	void* glyphBuffer;
 	font->SetPosition(font, sizeof(PSFHeader));
 	SystemTable->BootServices->AllocatePool(EfiLoaderData, glyphBufferSize, (void **)&glyphBuffer);
@@ -126,15 +128,8 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	finishedFont->header = fontHeader;
 	finishedFont->glyphBuffer = glyphBuffer;
 
-    //Get LLFS size
-	EFI_FILE_INFO* llfsInfo = NULL;
-	EFI_GUID* FileInfoGUID = &gEfiFileInfoGuid;
-	UINTN FileInfoSize = sizeof(EFI_FILE_INFO);
-	SystemTable->BootServices->AllocatePool(EfiLoaderData, FileInfoSize, (void **)&llfsInfo);
-	llfs->GetInfo(llfs,FileInfoGUID,&FileInfoSize,llfsInfo);
-	UINTN llfsSize = llfsInfo->FileSize;
-	
-	//Read LLFS
+    //Load LLFS
+	UINTN llfsSize = 0xFFFFFF;
 	void* llfsBuffer;
 	SystemTable->BootServices->AllocatePool(EfiLoaderData, llfsSize, (void **)&llfsBuffer);
 	llfs->Read(llfs, &llfsSize, llfsBuffer);
@@ -145,7 +140,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     DisplayBuffer framebuffer;
 
 	if (BS->LocateProtocol(&gopGuid, ((void *)0), (void **)&gop) != EFI_SUCCESS)
-		DoError(L"Cannot init GOP!");
+		DoError(L"Cannot init GOP!\n\r");
 	
 	framebuffer.BaseAddr = (void *)gop->Mode->FrameBufferBase;
 	framebuffer.BufferSize = gop->Mode->FrameBufferSize;

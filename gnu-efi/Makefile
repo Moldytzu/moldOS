@@ -76,21 +76,21 @@ mkvars:
 	@echo TOPDIR=$(TOPDIR)
 
 $(SUBDIRS):
-	mkdir -p $(OBJDIR)/$@
-	$(MAKE) -C $(OBJDIR)/$@ -f $(SRCDIR)/$@/Makefile SRCDIR=$(SRCDIR)/$@ ARCH=$(ARCH)
+	@ mkdir -p $(OBJDIR)/$@
+	@ $(MAKE) -C $(OBJDIR)/$@ -f $(SRCDIR)/$@/Makefile SRCDIR=$(SRCDIR)/$@ ARCH=$(ARCH)
 
 clean:
-	rm -f *~
+	@ rm -f *~
 	@for d in $(SUBDIRS); do \
 		if [ -d $(OBJDIR)/$$d ]; then \
-			$(MAKE) -C $(OBJDIR)/$$d -f $(SRCDIR)/$$d/Makefile SRCDIR=$(SRCDIR)/$$d clean; \
+			@ $(MAKE) -C $(OBJDIR)/$$d -f $(SRCDIR)/$$d/Makefile SRCDIR=$(SRCDIR)/$$d clean; \
 		fi; \
 	done
 
 install:
 	@for d in $(SUBDIRS); do \
-		mkdir -p $(OBJDIR)/$$d; \
-		$(MAKE) -C $(OBJDIR)/$$d -f $(SRCDIR)/$$d/Makefile SRCDIR=$(SRCDIR)/$$d install; done
+		@ mkdir -p $(OBJDIR)/$$d; \
+		@ $(MAKE) -C $(OBJDIR)/$$d -f $(SRCDIR)/$$d/Makefile SRCDIR=$(SRCDIR)/$$d install; done
 
 .PHONY:	$(SUBDIRS) clean depend
 
@@ -116,7 +116,7 @@ test-archive:
 	@echo "The archive is in gnu-efi-$(VERSION).tar.bz2"
 
 tag:
-	git tag $(VERSION) refs/heads/master
+	@ git tag $(VERSION) refs/heads/master
 
 archive: tag
 	@rm -rf /tmp/gnu-efi-$(VERSION) /tmp/gnu-efi-$(VERSION)-tmp
@@ -126,3 +126,4 @@ archive: tag
 	@dir=$$PWD; cd /tmp; tar -c --bzip2 -f $$dir/gnu-efi-$(VERSION).tar.bz2 gnu-efi-$(VERSION)
 	@rm -rf /tmp/gnu-efi-$(VERSION)
 	@echo "The archive is in gnu-efi-$(VERSION).tar.bz2"
+
