@@ -2,9 +2,7 @@
 #include "PageMapIndexer.h"
 #include <stdint.h>
 #include "PageFrameAllocator.h"
-#include "efiMemory.h"
-
-
+#include "memory.h"
 
 PageTableManager GlobalTableManager = NULL;
 

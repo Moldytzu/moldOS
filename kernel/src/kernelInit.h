@@ -1,43 +1,42 @@
 #pragma once
 
-//definitii standard
+//standard definitions
 #include "stddef.h"
 #include "stdint.h"
 
-//drivere
+//drivers
 #include "drivers/display/displaydriver.h" //display
 #include "drivers/pci/pci.h" //pci
-#include "drivers/rtc/rtc.h" //realtimeclock
-#include "drivers/keyboard/keyboarddriver.h" // claviatura
+#include "drivers/rtc/rtc.h" //real time clock
+#include "drivers/keyboard/keyboarddriver.h" // keyboard
 #include "drivers/mouse/mouse.h" //ps/2 mouse
 #include "drivers/ahci/ahci.h" //disk
 
 //misc
 #include "misc/power/power.h" //power
 #include "misc/bitmap/bitmap.h" //bitmap
-#include "misc/cpu/cpu.h" //cpu
-#include "misc/colors.h" //culori
-#include "misc/uefi.h" //uefi
+#include "misc/colors.h" //colors
 #include "misc/logging/log.h" //logging
 #include "misc/power/acpi.h" //acpi
-#include "misc/edid.h" //edid (monitor info)
-#include "misc/bmp.h" //bitmap image
 
 //io
 #include "io/serial.h" //serial port
 #include "io/msr.h" //model specific registers
 
-//memorie
-#include "memory/efiMemory.h" //memorie
+//memory
+#include "memory/memory.h" //memory
 #include "memory/PageFrameAllocator.h" //pfa
 #include "memory/PageMapIndexer.h" //pmi
 #include "memory/paging.h" //paging
 #include "memory/PageTableManager.h" //ptm
 #include "memory/heap.h" //heap
 
-//intrerupturi
-#include "intrerupts/idt.h" //idt
-#include "intrerupts/intrerupts.h" //handlere
+//cpu
+#include "cpu/idt.h" //idt
+#include "cpu/intrerupts.h" //handlers
+#include "cpu/cpu.h" //cpu
+#include "cpu/gdt.h" //gdt
+#include "cpu/tss.h" //tss
 
 //libc
 #include "libc/stdio.h" //input / output
@@ -50,8 +49,6 @@
 
 //userspace
 #include "userspace/userspace.h" //userspace
-#include "userspace/kotos_gdt_tss/gdt.h"
-#include "userspace/kotos_gdt_tss/tss.h"
 
 //filesystem
 #include "filesystem/llfs.h" //llfs
@@ -59,6 +56,7 @@
 //elf
 #include "elf/loader.h"
 
+//settings
 #include "settings.h"
 
 #define LOOP while(1)
@@ -163,7 +161,6 @@ void InitIntrerupts() {
 }
 
 SDT* xsdt;
-BMPHeader* bootImg;
 void InitACPI(BootInfo* bootInfo) {
     xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
 

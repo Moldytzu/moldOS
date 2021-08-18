@@ -4,7 +4,7 @@
 #include "../../libc/stdio.h"
 #include "../../libc/math.h"
 #include "../../libc/time.h"
-#include "../../memory/efiMemory.h"
+#include "../../memory/memory.h"
 #include "../../memory/PageFrameAllocator.h"
 #include "../../misc/psf1.h"
 

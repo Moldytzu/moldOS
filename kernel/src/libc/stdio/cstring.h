@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include "../../memory/efiMemory.h"
+#include "../../memory/memory.h"
 
 #define streq(x,y) (strcmp(x,y)==0)
 
