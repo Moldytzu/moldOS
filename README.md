@@ -17,13 +17,10 @@ It aims to be easy to use, small and simple.
          - 32-bit Colours
     - RTC (Real Time Clock) 
     - PS/2 Mouse&Keyboard
-    - AHCI
-         - Read SATA and SATAPI drives
     - PCI
  - Hardware Communications:
-    - Parallel Port (LPT1)
-    - Serial Port (COM1)
-    - PCI (Peripheral Component Interconnect)
+    - Serial Port (COM)
+    - PCI
  - Misc:
     - CPU Info
          - Name
@@ -38,6 +35,12 @@ It aims to be easy to use, small and simple.
          - Cooperative Multitasking
          - System Calls
     - Kernel LibC
+
+# Building:
+To build LowLevelOS you need to run a Debian-based Linux distro. Run the prepare.sh script and then run build.sh to build the operating system.
+
+# Running:
+Run run.sh to start the virtual machine with LowLevelOS installed.
 
 # Photo Galery:
 NOTICE: The photos may be outdated!
