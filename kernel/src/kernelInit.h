@@ -277,7 +277,7 @@ void InitDrivers(BootInfo* bootInfo) {
     display.InitDoubleBuffer(bootInfo->GOPFrameBuffer);
 #endif
 
-	display.setColour(WHITE);
+	display.colour = WHITE;
 	display.clearScreen(0);
 	display.update();
 

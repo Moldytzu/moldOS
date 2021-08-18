@@ -26,21 +26,6 @@ DIRS = $(wildcard $(SRCDIR)/*)
 
 kernel: buildimg
 
-$(OBJDIR)/libc/stdio/cstring.o: $(SRCDIR)/libc/stdio/cstring.cpp
-	@ echo Compiling: $^
-	@ mkdir -p $(@D)
-	@ $(CC) $(CFLAGS) -c $^ -o $@
-
-$(OBJDIR)/libc/%.o: $(SRCDIR)/libc/%.cpp
-	@ echo Compiling: $^
-	@ mkdir -p $(@D)
-	@ $(CC) $(CFLAGS) -Ofast -c $^ -o $@
-
-$(OBJDIR)/misc/%.o: $(SRCDIR)/misc/%.cpp
-	@ echo Compiling: $^
-	@ mkdir -p $(@D)
-	@ $(CC) $(CFLAGS) -Ofast -c $^ -o $@
-
 #default
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@ echo Compiling: $^

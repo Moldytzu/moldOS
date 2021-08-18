@@ -21,19 +21,14 @@ public:
 
 //drawing pixels
 void putpix(int x,int y);
-void putpix(int x,int y,unsigned int clr);
-void putrect(int x,int y,int h,int w);
-void putrect(int xx,int yy,int h,int w,unsigned int clr);
-void putbox(int xx,int yy,int h,int w);
-void putbox(int xx,int yy,int h,int w,unsigned int clr);
-void scroll();
+void putpix(int x,int y,uint32_t clr);
 
 //text rendering
 void puts(const char* ch);
-void putc(char ch,unsigned int xx,unsigned int yy);
+void putc(char ch,uint32_t xx,uint32_t yy);
 void putc(char ch);
-void boxedputs(unsigned int highcolour,const char* ch);
-void highlightputs(unsigned int highcolour,const char* ch);
+void boxedputs(uint32_t highcolour,const char* ch);
+void highlightputs(uint32_t highcolour,const char* ch);
 
 //cursor
 void setCursorPos(int x,int y);
@@ -41,29 +36,26 @@ void cursorNewLine();
 void advanceCursor();
 
 //misc
-void clearScreen(unsigned int colour);
-void setColour(unsigned int colo);
+void clearScreen(uint32_t colour);
 void checkScroll();
+void scroll();
 
 //initializare
 void InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font);
 void InitDoubleBuffer(DisplayBuffer* f);
 
-//ceva geturi
 uint64_t getWidth();
 uint64_t getHeight();
 
-//chestii de double buffer
 void update();
 
-//variabile
+//vars
 DisplayBuffer* secondFrameBuffer;
 DisplayBuffer* globalFrameBuffer;
 PSF1_FONT* globalFont;
 Point CursorPos;
 uint64_t colour;
 void* EmptyScreenBuffer;
-int initialized = 0;
 };
 
 extern DisplayDriver* GlobalDisplay;

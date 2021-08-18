@@ -37,7 +37,7 @@ It aims to be easy to use, small and simple.
     - Kernel LibC
 
 # Building:
-To build LowLevelOS you need to run a Debian-based Linux distro. Run the prepare.sh script and then run build.sh to build the operating system.
+To build LowLevelOS you need to run a x86_64 Debian-based Linux distro. Run the prepare.sh script and then run build.sh to build the operating system.
 
 # Running:
 Run run.sh to start the virtual machine with LowLevelOS installed.
