@@ -5,10 +5,7 @@ void Sound::play(long long nFrequence) {
  	uint8_t tmp;
  
 	PIT2SetFreq(nFrequence);
-    tmp = inportb(0x61);
-  	if (tmp != (tmp | 3)) {
- 		outportb(0x61, tmp | 3);
- 	}
+ 	outportb(0x61, inportb(0x61) | 3);
 }
 
 void Sound::stop() {

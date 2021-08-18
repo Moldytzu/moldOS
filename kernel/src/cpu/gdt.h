@@ -66,4 +66,4 @@ void setGDTRing(int ring);
 extern int GDTIndexTable;
 
 
-extern "C" void LoadGDTKOT(GDTDescriptor* gdtDescriptor);
+extern "C" void LoadGDT(GDTDescriptor* gdtDescriptor);

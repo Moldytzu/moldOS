@@ -13,7 +13,6 @@
 #include "drivers/ahci/ahci.h" //disk
 
 //misc
-#include "misc/power/power.h" //power
 #include "misc/bitmap/bitmap.h" //bitmap
 #include "misc/colors.h" //colors
 #include "misc/logging/log.h" //logging

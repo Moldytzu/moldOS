@@ -3,7 +3,7 @@
 ;This file's author is KeepKonect.
 ;All credits go to him
 
-LoadGDTKOT:   
+LoadGDT:   
     lgdt [rdi]
     mov ax, 0x10
     mov ds, ax
@@ -16,4 +16,4 @@ LoadGDTKOT:
     push rax
     push rdi
     retfq
-GLOBAL LoadGDTKOT
+GLOBAL LoadGDT

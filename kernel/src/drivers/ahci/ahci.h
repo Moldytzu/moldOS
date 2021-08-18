@@ -3,13 +3,13 @@
 #include <stddef.h>
 #include "../pci/pcidefs.h"
 
-    #define ATA_DEV_BUSY 0x80
-    #define ATA_DEV_DRQ 0x08
-    #define ATA_CMD_READ_DMA_EX 0x25
-    #define ATA_CMD_MEDIA_EJECT 0xED
-    #define ATA_CMD_IDENTIFY 0xEC
+#define ATA_DEV_BUSY 0x80
+#define ATA_DEV_DRQ 0x08
+#define ATA_CMD_READ_DMA_EX 0x25
+#define ATA_CMD_MEDIA_EJECT 0xED
+#define ATA_CMD_IDENTIFY 0xEC
 
-    #define HBA_PxIS_TFES (1 << 30)
+#define HBA_PxIS_TFES (1 << 30)
 
 enum PortType
 {
@@ -20,22 +20,24 @@ enum PortType
     SATAPI = 4,
 };
 
-    enum FIS_TYPE{
-        FIS_TYPE_REG_H2D = 0x27,
-        FIS_TYPE_REG_D2H = 0x34,
-        FIS_TYPE_DMA_ACT = 0x39,
-        FIS_TYPE_DMA_SETUP = 0x41,
-        FIS_TYPE_DATA = 0x46,
-        FIS_TYPE_BIST = 0x58,
-        FIS_TYPE_PIO_SETUP = 0x5F,
-        FIS_TYPE_DEV_BITS = 0xA1,
-    };
+enum FIS_TYPE
+{
+    FIS_TYPE_REG_H2D = 0x27,
+    FIS_TYPE_REG_D2H = 0x34,
+    FIS_TYPE_DMA_ACT = 0x39,
+    FIS_TYPE_DMA_SETUP = 0x41,
+    FIS_TYPE_DATA = 0x46,
+    FIS_TYPE_BIST = 0x58,
+    FIS_TYPE_PIO_SETUP = 0x5F,
+    FIS_TYPE_DEV_BITS = 0xA1,
+};
 
-struct FIS_REG_H2D {
+struct FIS_REG_H2D
+{
     uint8_t fisType;
-    uint8_t portMultiplier:4;
-    uint8_t reserved:3;
-    uint8_t commandControl:1;
+    uint8_t portMultiplier : 4;
+    uint8_t reserved : 3;
+    uint8_t commandControl : 1;
     uint8_t command;
     uint8_t featureLow;
     uint8_t lba0;
@@ -53,16 +55,18 @@ struct FIS_REG_H2D {
     uint8_t reserved2[4];
 };
 
-struct HBAPRDTEntry {
+struct HBAPRDTEntry
+{
     uint32_t dataBaseAdress;
     uint32_t dataBaseAdressUpper;
     uint32_t reserved;
-    uint32_t byteCount:22;
-    uint32_t reserved2:9;
-    uint32_t intrerruptOnCompletion:1;
+    uint32_t byteCount : 22;
+    uint32_t reserved2 : 9;
+    uint32_t intrerruptOnCompletion : 1;
 };
 
-struct HBACommandTable {
+struct HBACommandTable
+{
     uint8_t commandFIS[64];
     uint8_t atapiCommand[16];
     uint8_t rsv[48];
@@ -110,46 +114,47 @@ struct HBAMemory
     HBAPort ports[1];
 };
 
-    struct HBACommandHeader {
-        uint8_t commandFISLength:5;
-        uint8_t atapi:1;
-        uint8_t write:1;
-        uint8_t prefetchable:1;
+struct HBACommandHeader
+{
+    uint8_t commandFISLength : 5;
+    uint8_t atapi : 1;
+    uint8_t write : 1;
+    uint8_t prefetchable : 1;
 
-        uint8_t reset:1;
-        uint8_t bist:1;
-        uint8_t clearBusy:1;
-        uint8_t rsv0:1;
-        uint8_t portMultiplier:4;
+    uint8_t reset : 1;
+    uint8_t bist : 1;
+    uint8_t clearBusy : 1;
+    uint8_t rsv0 : 1;
+    uint8_t portMultiplier : 4;
 
-        uint16_t prdtLength;
-        uint32_t prdbCount;
-        uint32_t commandTableBaseAddress;
-        uint32_t commandTableBaseAddressUpper;
-        uint32_t rsv1[4];
-    };
+    uint16_t prdtLength;
+    uint32_t prdbCount;
+    uint32_t commandTableBaseAddress;
+    uint32_t commandTableBaseAddressUpper;
+    uint32_t rsv1[4];
+};
 
-
-
-class Port {
+class Port
+{
 public:
-    HBAPort* hbaport;
+    HBAPort *hbaport;
     PortType portType;
-    uint8_t* buffer;
+    uint8_t *buffer;
     uint8_t portNumber;
     void Configure();
     void Start();
     void Stop();
-    bool Read(uint64_t sector,uint32_t sectorCount,void* buffer);
+    bool Read(uint64_t sector, uint32_t sectorCount, void *buffer);
 };
 
-class AHCIDriver {
+class AHCIDriver
+{
 public:
     AHCIDriver(PCIDevice *pciBaseAddress);
     ~AHCIDriver();
     PCIDevice *PCIBaseAdress;
-    HBAMemory* ABAR;
+    HBAMemory *ABAR;
     void ProbePorts();
-    Port* Ports[32];
+    Port *Ports[32];
     uint8_t PortCount;
 };

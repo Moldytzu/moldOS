@@ -45,7 +45,6 @@ void PIC_EndSlave(){
     outportb(PIC1_COMMAND, PIC_EOI);
 }
    
-
 void RemapPIC(){
     uint8_t a1, a2; 
 

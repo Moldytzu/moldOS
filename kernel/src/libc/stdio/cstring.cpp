@@ -1,8 +1,5 @@
 #include "cstring.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
-
 int strcmp (const char *p1, const char *p2) //https://code.woboq.org/userspace/glibc/string/strcmp.c.html
 {
   const unsigned char *s1 = (const unsigned char *) p1;
@@ -224,5 +221,3 @@ int strlen(char* str) {
         strlenOutput = i;
     return strlenOutput;
 }
-
-#pragma GCC diagnostic pop

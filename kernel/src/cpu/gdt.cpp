@@ -37,16 +37,13 @@ void gdtInit(){
 
     TSSInit();
     uint16_t TSSlocation = TSSInstall(0);
-    LoadGDTKOT(&gdtBaseInfo);    
+    LoadGDT(&gdtBaseInfo);    
 
-    asm("movw %%ax, %w0\n\t"
-                "ltr %%ax" :: "a" (TSSlocation));
+    asm volatile("ltr %0" :: "a" (TSSlocation));
 }
 
 int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t flags){
-    if(GDTIndexTable >= GDT_MAX_DESCRIPTORS) {
-        return 0;
-    }
+    if(GDTIndexTable >= GDT_MAX_DESCRIPTORS) return 0;
 
     GDTEntries[GDTIndexTable].Base0 = (uint16_t)(base & 0xFFFF);
     GDTEntries[GDTIndexTable].Base1 = (uint8_t)((base >> 16) & 0xFF);

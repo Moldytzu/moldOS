@@ -82,8 +82,8 @@ struct CPURegisters {
 class CPU
 {
 private:
-void addSupported(const char* sup);
-char* features[64];
+    void addSupported(const char* sup);
+    char* features[64];
 public:
     inline void cpuid(uint32_t reg, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx);
     char* getName();
