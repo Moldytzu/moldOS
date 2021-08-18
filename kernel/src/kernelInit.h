@@ -118,13 +118,13 @@ void EnablePaging(BootInfo* bootInfo) {
 
     GlobalTableManager = PageTableManager(PML4);
 
-    for (uint64_t t = 0; t < GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize); t+= 0x1000){
-        GlobalTableManager.MapMemory((void*)t, (void*)t);
+    for (uint64_t page = 0; page < GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize); page+= 0x1000){
+        GlobalTableManager.MapMemory((void*)page, (void*)page);
     }
 
     uint64_t fbBase = (uint64_t)bootInfo->GOPFrameBuffer->BaseAddr;
     uint64_t fbSize = (uint64_t)bootInfo->GOPFrameBuffer->BufferSize + 0x1000;
-    GlobalAllocator.LockPages((void*)fbBase, fbSize/ 0x1000 + 1);
+    GlobalAllocator.LockPages((void*)fbBase, fbSize / 0x1000 + 1);
     for (uint64_t t = fbBase; t < fbBase + fbSize; t += 4096){
         GlobalTableManager.MapMemory((void*)t, (void*)t);
     }
@@ -132,15 +132,15 @@ void EnablePaging(BootInfo* bootInfo) {
     asm volatile ("mov %0, %%cr3" : : "r" (PML4));
 }
 
-void CreateIntrerupt(void* handler,uint8_t offset,uint8_t t_a,uint8_t selector) {
+void CreateIntrerupt(void* handler,uint8_t offset,uint8_t typeAttributes,uint8_t selector) {
     IDTDescriptorEntry* int_NewInt = (IDTDescriptorEntry*)(idtr.Offset + offset * sizeof(IDTDescriptorEntry));
     int_NewInt->setOffset((uint64_t)handler);
-    int_NewInt->Type_Attributes = t_a;
+    int_NewInt->Type_Attributes = typeAttributes;
     int_NewInt->Selector = selector;
 }
 
 void InitIntrerupts() {
-	idtr.Limit = 0x0fff;
+	idtr.Limit = 0x0FFF;
 	idtr.Offset = (uint64_t)GlobalAllocator.RequestPage();
 
     CreateIntrerupt((void*)PageFaultHandlerEntry,0xE,IDT_TA_InterruptGate,0x08);
@@ -156,7 +156,7 @@ void InitIntrerupts() {
 
     RemapPIC();
 
-    outportb(PIC1_DATA, 0b11111000); //mouse and keyboard
+    outportb(PIC1_DATA, 0b11111000); //mouse, keyboard, timer
     outportb(PIC2_DATA, 0b11101111);
 
     asm volatile("cli");
@@ -180,18 +180,17 @@ void InitACPI(BootInfo* bootInfo) {
     #ifndef Quiet
     LogInfo("Parsing MADT");
     #endif
-    acpi.ParseMADT(madt);
+    //acpi.ParseMADT(madt);
 
     #ifndef Quiet
     LogInfo("Decoding DSDT");
     #endif
-    char *S5Addr = (char *) fadt->Dsdt +36;
+    char *S5Addr = (char*)fadt->Dsdt +36;
     int dsdtLength = fadt->Dsdt+1-36;
 
-    while(dsdtLength > 0) {
+    for(int len = dsdtLength;len > 0;len--) {
         if(memcmp(S5Addr,"_S5_",4) == 0)
             break;
-        dsdtLength--;
         S5Addr++;
     }
 
