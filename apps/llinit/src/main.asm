@@ -10,7 +10,8 @@ llosMain:
 
     mov rdi, 0xFF ; exit syscall
     mov rsi, 2021 ; exit code
-    syscall
+    ;syscall
+    jmp $
 
 WelcomeText:
     db "Welcome to LowLevelOS!",10,"Copyright Moldu' (Nov. 2020 - Jun. 2021)",0

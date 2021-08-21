@@ -44,7 +44,7 @@
 
 //scheduling
 #include "scheduling/pit.h" //pit
-#include "scheduling/cooperative.h"
+#include "scheduling/taskmgr.h"
 
 //userspace
 #include "userspace/userspace.h" //userspace
@@ -99,7 +99,6 @@ IDTR idtr;
 Keyboard kb;
 Mouse mouse;
 ACPI acpi;
-TaskManager tmgr;
 
 void* GenerateUserspaceStack() {
     void* UserspacePage = GlobalAllocator.RequestPage();
@@ -232,8 +231,7 @@ void InitDrivers(BootInfo* bootInfo) {
 
     gdtInit();
 	InitIntrerupts();
-    PITSetDivisor(0xFFFF);
-    asm volatile("sti");
+    PITSetFrequency(1);
 
     com1.Init();
 	GlobalCOM1 = &com1;
@@ -298,7 +296,6 @@ void InitDrivers(BootInfo* bootInfo) {
 
 
     EnableSCE();
-    GlobalTaskManager = &tmgr;
     #ifndef Quiet
     LogInfo("Initialized Task Switching and System Calls!");
 

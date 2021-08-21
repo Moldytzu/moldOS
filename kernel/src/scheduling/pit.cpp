@@ -15,7 +15,6 @@ void PITSleep(uint64_t ms) {
 }
 
 void PITSetDivisor(uint16_t divisor) {
-    if(divisor < 100) divisor = 100;
     Divisor = divisor;
     outportb(0x40,(uint8_t)(divisor & 0x00FF));
     io_wait();

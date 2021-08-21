@@ -33,6 +33,7 @@ void MSHandler() {
 
 void PITHandler(InterruptStack* istack) {
     PITTick();
+    GlobalTaskManager->Schedule(istack);
     PIC_EndMaster();
 }
 

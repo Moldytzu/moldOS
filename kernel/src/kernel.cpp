@@ -43,19 +43,19 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	//and lock the pages
 	GlobalAllocator.LockPages(llfs,fssize/4096+1);
 
-	//userspace stuff
-	Task idleTask = {(uint64_t)(void*)IdleTask,(uint64_t*)GenerateUserspaceStack(),"Idle Task",STATE_RUNNING,TASK_USER};
-	Task initApp = {(uint64_t)LoadELFExecutable(llfs,"llinit.llexec   "),(uint64_t*)GenerateUserspaceStack(),"LLInit",STATE_RUNNING,TASK_ADMIN};
+	TaskManager tmgr;
+	GlobalTaskManager = &tmgr;
+	
+	//userspace
+	//if(initApp.instructionPointer == 1 || initApp.instructionPointer == 2) {
+	//	KernelPanic("LLInit is missing or corrupt.");
+	//}
 
-	if(initApp.instructionPointer == 1 || initApp.instructionPointer == 2) {
-		KernelPanic("LLInit is missing or corrupt.");
-	}
-
-	GlobalTaskManager->AddTask(idleTask);
-	GlobalTaskManager->AddTask(initApp);
+	GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_ADMIN);
+	GlobalTaskManager->AddTask(LoadELFExecutable(llfs,"llinit.llexec   "),GenerateUserspaceStack(),"LLInit",TASK_ADMIN);
 
 	//jump in the userspace
-	RunInUserspace((void*)idleTask.instructionPointer,(void*)(idleTask.stack+USERSPACE_STACK_SIZE-16));
+	RunInUserspace((void*)IdleTask,GenerateUserspaceStack());
 
 	LOOP;
 
