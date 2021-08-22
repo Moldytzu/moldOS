@@ -1,8 +1,9 @@
-# LLFS packager
+# LLFS version 1 packager
 import os
+import sys
 
-inputfolder = "ramfs/"
-output = "kernel/bin/ram.llfs"
+inputfolder = sys.argv[1]
+output = sys.argv[2]
 
 def AddFile(ofile,name,size,content):
     print("Adding file " + name)

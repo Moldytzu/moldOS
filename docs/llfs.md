@@ -32,7 +32,6 @@ The Low Level File System is a file system designed to be small and to be used a
  - 4 bytes signature (always "LLFS")
  - 1 byte version (always 2)
  - 8 bytes number of entries
- - 4 bytes padding
 
 ### Entry header:
  - 1 byte type (1 for file, 2 for directory, 3 metadata)
@@ -46,11 +45,7 @@ The Low Level File System is a file system designed to be small and to be used a
  - 8 bytes file size
  - File contents
 
-### Entry type 2: (directory)
- - 1 byte directory name size
- - directory name with the size declared above
-
-### Entry type 3: (metadata)
+### Entry type 2: (metadata)
  - 1 byte creation date year
  - 1 byte creation date month
  - 1 byte creation date day
@@ -62,14 +57,10 @@ The Low Level File System is a file system designed to be small and to be used a
     - Number of entries: 3
     - Padding: 0000
   - Entry:
-    - Type: 3
+    - Type: 2
     - Year: 2020
     - Month: 2
     - Day: 10
-  - Entry:
-    - Type: 2
-    - Directory name size: 3
-    - Directory name: Dir
   - Entry:
     - Type: 1
     - File name size: 8

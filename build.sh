@@ -10,7 +10,7 @@ cd ..
 for d in ./apps/* ; do (cd "$d" && echo "Compilling $d" && make && cp ./bin/* ../../ramfs/); done
 
 #ramfs
-python3 buildramfs.py
+python3 tools/buildllfs.py ./ramfs/ ./kernel/bin/ram.llfs 
 
 #kernel
 cd kernel
