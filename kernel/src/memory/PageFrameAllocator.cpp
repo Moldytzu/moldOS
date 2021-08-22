@@ -61,6 +61,27 @@ void* PageFrameAllocator::RequestPage(){
     return NULL;
 }
 
+void* PageFrameAllocator::RequestPages(uint64_t pages) {
+	while(pageBitmapIndex < PageBitmap.Size) {
+		for(size_t j = 0; j < pages; j++) {
+			if(PageBitmap[pageBitmapIndex + j] == true) {
+				pageBitmapIndex += j + 1;
+				goto not_free;
+			}
+		}
+		goto exit;
+		not_free:
+			continue;
+		exit: {
+			void* page = (void*)(pageBitmapIndex * 4096);	// transform the index into the physical page address
+			pageBitmapIndex += pages;
+			LockPages(page, pages);
+			return page;
+		}
+	}
+	return NULL;
+}
+
 void PageFrameAllocator::FreePage(void* address){
     uint64_t index = (uint64_t)address / 4096;
     if (PageBitmap[index] == false) return;

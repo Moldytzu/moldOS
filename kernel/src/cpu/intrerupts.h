@@ -7,6 +7,7 @@
 #include "../drivers/mouse/mouse.h"
 #include "../scheduling/pit.h"
 #include "../scheduling/taskmgr.h"
+#include "idt.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21
@@ -37,3 +38,5 @@ extern "C" void PITHandlerEntry();
 void RemapPIC();
 void PIC_EndMaster();
 void PIC_EndSlave();
+
+void CreateIntrerupt(void* handler,uint8_t offset,uint8_t typeAttributes,uint8_t selector);

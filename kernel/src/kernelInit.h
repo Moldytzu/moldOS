@@ -93,14 +93,13 @@ PCI pci;
 RealTimeClock rtc;
 SerialPort com1;
 DisplayBuffer* doubleBuffer;
-IDTR idtr;
 Keyboard kb;
 Mouse mouse;
 ACPI acpi;
 
 void* GenerateUserspaceStack() {
-    void* Stack = GlobalAllocator.RequestPage();
-    uint64_t StackSize = 0x1000*1;
+    void* Stack = GlobalAllocator.RequestPages(4);
+    uint64_t StackSize = 0x1000*4;
     for (uint64_t t = (uint64_t)Stack; t < (uint64_t)(Stack + StackSize); t += 4096){
         GlobalTableManager.MapUserspaceMemory((void*)t);
     }
@@ -129,16 +128,9 @@ void EnablePaging(BootInfo* bootInfo) {
     asm volatile ("mov %0, %%cr3" : : "r" (PML4));
 }
 
-void CreateIntrerupt(void* handler,uint8_t offset,uint8_t typeAttributes,uint8_t selector) {
-    IDTDescriptorEntry* int_NewInt = (IDTDescriptorEntry*)(idtr.Offset + offset * sizeof(IDTDescriptorEntry));
-    int_NewInt->setOffset((uint64_t)handler);
-    int_NewInt->Type_Attributes = typeAttributes;
-    int_NewInt->Selector = selector;
-}
-
 void InitIntrerupts() {
-	idtr.Limit = 0x0FFF;
-	idtr.Offset = (uint64_t)GlobalAllocator.RequestPage();
+	idt->Limit = 0x0FFF;
+	idt->Offset = (uint64_t)GlobalAllocator.RequestPage();
 
     CreateIntrerupt((void*)PageFaultHandlerEntry,0xE,IDT_TA_InterruptGate,0x08);
     CreateIntrerupt((void*)DoubleFaultHandlerEntry,0x8,IDT_TA_InterruptGate,0x08);
@@ -149,7 +141,7 @@ void InitIntrerupts() {
     CreateIntrerupt((void*)MSHandlerEntry,0x2C,IDT_TA_InterruptGate,0x08);
     CreateIntrerupt((void*)PITHandlerEntry,0x20,IDT_TA_InterruptGate,0x08);
 
-	asm volatile ("lidt %0" : : "m" (idtr));
+	asm volatile ("lidt %0" : : "m" (*idt));
 
     RemapPIC();
 
@@ -164,54 +156,15 @@ void InitACPI(BootInfo* bootInfo) {
     xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
 
     MCFG* mcfg = (MCFG*)acpi.FindTable(xsdt,(char*)"MCFG");
-    MADT* madt = (MADT*)acpi.FindTable(xsdt,(char*)"APIC");
-    FADT* fadt = (FADT*)acpi.FindTable(xsdt,(char*)"FACP");
-    
-    acpi.fadt = fadt;
-
-    //enable acpi mode to be sure it's enabled
-    outportb(fadt->SMI_CommandPort, fadt->AcpiEnable);
-    while (inportw(fadt->PM1aControlBlock) & 1 == 0);
-
-    #ifndef Quiet
-    LogInfo("Parsing MADT");
-    #endif
-    //acpi.ParseMADT(madt);
-
-    #ifndef Quiet
-    LogInfo("Decoding DSDT");
-    #endif
-    char *S5Addr = (char*)fadt->Dsdt +36;
-    int dsdtLength = fadt->Dsdt+1-36;
-
-    for(int len = dsdtLength;len > 0;len--) {
-        if(memcmp(S5Addr,"_S5_",4) == 0)
-            break;
-        S5Addr++;
-    }
-
-    if(dsdtLength > 0) {
-        S5Addr+=5;
-        S5Addr += ((*S5Addr &0xC0)>>6) +2;
-        if(*S5Addr == 0x0A)
-            S5Addr++;
-        acpi.SLP_TYPa = *(S5Addr)<<10;
-        S5Addr++;
-        if(*S5Addr == 0x0A)
-            S5Addr++;
-        acpi.SLP_TYPb = *(S5Addr)<<10;
-        acpi.SLP_EN = 1<<13;
-        acpi.ShutdownPossible = 1;
-    }
 
     #ifndef Quiet
     LogInfo("Enumerating PCI");
     #endif
-    //pci.EnumeratePCI(mcfg);
-    //if(pci.DevicesIndex == 0) {
-    //    LogWarn("No MCFG found or no PCI devices!");
-    //    LogWarn("AHCI might not work.");
-    //}
+    pci.EnumeratePCI(mcfg);
+    if(pci.DevicesIndex == 0) {
+        LogWarn("No MCFG found or no PCI devices!");
+        LogWarn("AHCI might not work.");
+    }
 }
 
 void InitDrivers(BootInfo* bootInfo) {
@@ -254,13 +207,11 @@ void InitDrivers(BootInfo* bootInfo) {
     memset(display.EmptyScreenBuffer,0,display.globalFrameBuffer->BufferSize);
 
 #ifdef DoubleBuffer
-    doubleBuffer->BaseAddr = GlobalAllocator.RequestPage();
+    doubleBuffer->BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096);
 	doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;
 	doubleBuffer->Height = display.globalFrameBuffer->Height;
 	doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
 	doubleBuffer->Width = display.globalFrameBuffer->Width;
-
-    GlobalAllocator.LockPages((void*)((uint64_t)doubleBuffer->BaseAddr-0x1000), (display.globalFrameBuffer->BufferSize / 4096) + 100);
 
     for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096){
         GlobalTableManager.MapMemory((void*)t, (void*)t);

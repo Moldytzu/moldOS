@@ -4,7 +4,6 @@
 #define SYSCALL_WRITE 0x1
 #define SYSCALL_READ 0x2
 #define SYSCALL_EXIT 0xFF
-#define SYSCALL_YELD 0x21
 
 #define USERSPACE_STACK_SIZE 4096
 

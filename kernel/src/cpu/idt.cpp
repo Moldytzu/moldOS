@@ -1,5 +1,7 @@
 #include "idt.h"
 
+IDTR* idt;
+
 void IDTDescriptorEntry::setOffset(uint64_t Offset) {
     Offset0 = (uint16_t)(Offset & 0x000000000000ffff);
     Offset1 = (uint16_t)((Offset & 0x00000000ffff0000) >> 16);

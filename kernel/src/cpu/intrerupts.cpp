@@ -79,3 +79,10 @@ void RemapPIC(){
     outportb(PIC2_DATA, a2);
 
 }
+
+void CreateIntrerupt(void* handler,uint8_t offset,uint8_t typeAttributes,uint8_t selector) {
+    IDTDescriptorEntry* int_NewInt = (IDTDescriptorEntry*)(idt->Offset + offset * sizeof(IDTDescriptorEntry));
+    int_NewInt->setOffset((uint64_t)handler);
+    int_NewInt->Type_Attributes = typeAttributes;
+    int_NewInt->Selector = selector;
+}

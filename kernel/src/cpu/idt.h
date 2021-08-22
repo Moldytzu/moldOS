@@ -21,3 +21,5 @@ struct IDTR {
     uint16_t Limit;
     uint64_t Offset;
 } __attribute__((packed));
+
+extern IDTR* idt;
