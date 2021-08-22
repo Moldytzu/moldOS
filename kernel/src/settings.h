@@ -7,7 +7,7 @@
 //=========
 //Debugging
 //=========
-//#define Debugging_Messages //enables things like displaying what's in the MADT or what drives are connected to the AHCI controller
+//#define Debugging_ACPI //shows ACPI-related stuff
 //#define Debugging_Scheduler //shows in the serial console what task is running
 
 //========
