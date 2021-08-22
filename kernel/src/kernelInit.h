@@ -31,8 +31,7 @@
 #include "memory/heap.h" //heap
 
 //cpu
-#include "cpu/idt.h" //idt
-#include "cpu/intrerupts.h" //handlers
+#include "cpu/intrerupts.h" //idt
 #include "cpu/cpu.h" //cpu
 #include "cpu/gdt.h" //gdt
 #include "cpu/tss.h" //tss

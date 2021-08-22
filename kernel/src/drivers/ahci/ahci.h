@@ -11,6 +11,11 @@
 
 #define HBA_PxIS_TFES (1 << 30)
 
+#define ATA_ATAPI 0xEB140101
+#define ATA_ATA   0x101
+#define ATA_SEMB  0xC33C0101
+#define ATA_PM    0x96690101
+
 enum PortType
 {
     None = 0,
@@ -151,7 +156,6 @@ class AHCIDriver
 {
 public:
     AHCIDriver(PCIDevice *pciBaseAddress);
-    ~AHCIDriver();
     PCIDevice *PCIBaseAdress;
     HBAMemory *ABAR;
     void ProbePorts();

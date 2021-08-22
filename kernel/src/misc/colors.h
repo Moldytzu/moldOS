@@ -1,6 +1,6 @@
 #pragma once
 
-//gop
+//frame buffer
 #define BLACK  0
 #define BLUE  0x080064
 #define GREEN  0x006400

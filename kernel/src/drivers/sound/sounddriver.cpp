@@ -1,17 +1,12 @@
 #include "sounddriver.h"
 
 void Sound::play(long long nFrequence) {
- 	uint32_t Div;
- 	uint8_t tmp;
- 
 	PIT2SetFreq(nFrequence);
  	outportb(0x61, inportb(0x61) | 3);
 }
 
 void Sound::stop() {
-    int tmp = inportb(0x61) & 0xFC;
- 
- 	outportb(0x61, tmp);
+ 	outportb(0x61, inportb(0x61) & 0xFC);
 }
 
 int abs(int num) {

@@ -27,6 +27,7 @@ void PageFrameAllocator::ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR* mMap, size_t mM
     uint64_t bitmapSize = memorySize / 4096 / 8 + 1;
 
     InitBitmap(bitmapSize, largestFreeMemSeg);
+    ReservePages(largestFreeMemSeg,(memorySize / 4096 / 8+1)/4096);
 
     ReservePages(0,memorySize/4096+1);
 
@@ -46,6 +47,7 @@ void PageFrameAllocator::InitBitmap(size_t bitmapSize, void* bufferAddress){
     PageBitmap.Buffer = (uint8_t*)bufferAddress;
     memset(PageBitmap.Buffer,0,bitmapSize);
 }
+
 uint64_t pageBitmapIndex = 0;
 void* PageFrameAllocator::RequestPage(){
     for (; pageBitmapIndex < PageBitmap.Size * 8; pageBitmapIndex++){

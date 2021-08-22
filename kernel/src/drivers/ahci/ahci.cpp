@@ -5,11 +5,6 @@
 #include "../../settings.h"
 
 PortType CheckPortType(HBAPort* port) {
-    #define atapi 0xEB140101
-    #define ata 0x101
-    #define semb 0xC33C0101
-    #define pm 0x96690101
-    
     uint32_t sataStatus = port->sataStatus;
     uint8_t interfacePowerManagement = (sataStatus >> 8) & 0b111;
     uint8_t deviceDetection = sataStatus & 0b111;
@@ -18,13 +13,13 @@ PortType CheckPortType(HBAPort* port) {
     
     switch (port->signature)
     {
-        case atapi:
+        case ATA_ATAPI:
             return PortType::SATAPI;
-        case ata:
+        case ATA_ATA:
             return PortType::SATA;
-        case pm:
+        case ATA_PM:
             return PortType::PM;
-        case semb:
+        case ATA_SEMB:
             return PortType::SEMB;
         default:
             return PortType::None;
@@ -158,14 +153,14 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
     GlobalTableManager.MapMemory(ABAR,ABAR);
     ProbePorts();
 
-    #ifdef Debugging_Messages
+    #ifdef Debugging_AHCI
     printf("Configuring ports...\n");
     #endif
     for(int i=0;i < PortCount;i++) {
         Port* port = Ports[i];
         port->Configure();       
     }
-    #ifdef Debugging_Messages
+    #ifdef Debugging_AHCI
     printf("Detected drives:\n");
     for(int i=0;i<PortCount;i++) {
         Port* port = Ports[i];
@@ -186,8 +181,4 @@ AHCIDriver::AHCIDriver(PCIDevice* pciBaseAddress) {
         GlobalDisplay->update();*/
     }
     #endif
-}
-
-AHCIDriver::~AHCIDriver() {
-    
 }

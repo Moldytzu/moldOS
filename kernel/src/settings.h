@@ -7,8 +7,9 @@
 //=========
 //Debugging
 //=========
+//#define Debugging_AHCI //display AHCI ports
 //#define Debugging_ACPI //shows ACPI-related stuff
-//#define Debugging_Scheduler //shows in the serial console what task is running
+//#define Debugging_Scheduler //show how the tasks are switched
 
 //========
 //Hardware
