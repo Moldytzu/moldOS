@@ -10,7 +10,7 @@ llosMain:
 
     mov rdi, 0xFF ; exit syscall
     mov rsi, 2021 ; exit code
-    ;syscall
+    syscall
     jmp $
 
 WelcomeText:

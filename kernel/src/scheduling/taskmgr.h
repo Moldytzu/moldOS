@@ -3,12 +3,15 @@
 #include "../memory/PageTableManager.h"
 #include "../cpu/gdt.h"
 #include "../io/serial.h"
+#include "../memory/memory.h"
+#include "../settings.h"
 
 #define STATE_RUNNING 1
 #define STATE_HALTED 0
 
 #define TASK_USER 1
 #define TASK_ADMIN 2
+#define TASK_SYSTEM 3
 
 struct InterruptStack {
     uint64_t rax; uint64_t rbx; uint64_t rcx; uint64_t rdx; uint64_t KernelRsp; uint64_t rsi; uint64_t rdi; uint64_t rbp;
@@ -32,7 +35,7 @@ struct Task {
 
 class TaskManager {
  public:
-    Task tasks[2];
+    Task tasks[1024];
     int currentTask = 0;
     int taskNum = 0;
 

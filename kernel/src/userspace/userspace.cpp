@@ -24,6 +24,7 @@ void SerialWrite(char* text,uint64_t resource) {
 void Exit(uint64_t code) {
     printf("\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
     GlobalDisplay->update();
+    GlobalTaskManager->ExitCurrentTask();
 }
 
                     //    RDX        RDI        RSI                       R8

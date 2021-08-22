@@ -4,6 +4,6 @@ SECTION .text
 ALIGN 4096
 
 IdleTask:
-    jmp $
+    hlt
 
 GLOBAL IdleTask
