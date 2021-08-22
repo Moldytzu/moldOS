@@ -32,6 +32,7 @@ class TaskManager {
     Task tasks[1024];
     int currentTask = 0;
     int taskNum = 0;
+    int isEnabled = 0;
 
     void Schedule(InterruptStack* registers);
     void AddTask(void* entry,void* stack,const char* name,uint8_t privilege);

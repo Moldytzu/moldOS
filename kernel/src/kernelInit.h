@@ -155,16 +155,25 @@ SDT* xsdt;
 void InitACPI(BootInfo* bootInfo) {
     xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
 
+    if(memcmp(&xsdt->Signature,"XSDT",4) != 0) {
+        LogWarn("Wrong XSDT signature! ACPI is disabled.");
+        return;
+    }
+
     MCFG* mcfg = (MCFG*)acpi.FindTable(xsdt,(char*)"MCFG");
 
     #ifndef Quiet
     LogInfo("Enumerating PCI");
     #endif
-    pci.EnumeratePCI(mcfg);
-    if(pci.DevicesIndex == 0) {
-        LogWarn("No MCFG found or no PCI devices!");
-        LogWarn("AHCI might not work.");
+    if(mcfg != nullptr) {
+        pci.EnumeratePCI(mcfg);
+        if(pci.DevicesIndex == 0) {
+            LogWarn("No PCI devices!");
+        }
+    } else {
+        LogWarn("No MCFG found!");
     }
+
 }
 
 void InitDrivers(BootInfo* bootInfo) {
@@ -185,7 +194,8 @@ void InitDrivers(BootInfo* bootInfo) {
 
     gdtInit();
 	InitIntrerupts();
-    PITSetFrequency(1);
+    PITSetDivisor(0xFFFF);
+    asm volatile ("sti");
 
     com1.Init();
 	GlobalCOM1 = &com1;
@@ -207,7 +217,7 @@ void InitDrivers(BootInfo* bootInfo) {
     memset(display.EmptyScreenBuffer,0,display.globalFrameBuffer->BufferSize);
 
 #ifdef DoubleBuffer
-    doubleBuffer->BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096);
+    doubleBuffer->BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1);
 	doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;
 	doubleBuffer->Height = display.globalFrameBuffer->Height;
 	doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;

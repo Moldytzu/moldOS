@@ -56,6 +56,7 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalTaskManager->AddTask(LLInit,GenerateUserspaceStack(),"LLInit",TASK_USER);
 
 	//jump in the userspace
+	GlobalTaskManager->isEnabled = 1;
 	RunInUserspace((void*)IdleTask,GenerateUserspaceStack());
 
 	while(1);

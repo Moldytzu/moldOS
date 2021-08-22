@@ -3,6 +3,7 @@
 TaskManager* GlobalTaskManager;
 
 void TaskManager::Schedule(InterruptStack* registers) {
+    if(!isEnabled) return;
     //Save registers
     #ifdef Debugging_Scheduler 
         GlobalCOM1->Write("Saving registers for task: ",tasks[currentTask].name,"\n");
