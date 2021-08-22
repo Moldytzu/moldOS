@@ -17,24 +17,23 @@ It aims to be easy to use, small and simple.
          - 32-bit Colours
     - RTC (Real Time Clock) 
     - PS/2 Mouse&Keyboard
-    - PCI
  - Hardware Communications:
     - Serial Port (COM)
     - PCI
+    - ACPI
  - Misc:
     - CPU Info
          - Name
          - Vendor
          - Features
          - Temperature
-    - Paging
-    - Shutdown&Reboot
-         - ACPI
-         - UEFI Runtime Services
     - Userspace
-         - Cooperative Multitasking
+         - Preemptive Multitasking
          - System Calls
+         - ELF
     - Kernel LibC
+ - Filesystem:
+     - LLFS 1.0
 
 # Building:
 To build LowLevelOS you need to run a x86_64 Debian-based Linux distro. Run the prepare.sh script and then run build.sh to build the operating system.
