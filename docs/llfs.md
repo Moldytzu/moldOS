@@ -2,19 +2,19 @@ The Low Level File System is a file system designed to be small and to be used a
 
 # Version 1
 
-# Header:
- - 4 byte signature (always "LLFS")
- - 1 byte version (llfs version)
- - 64-bit unsigned int number of entries
- - 4 byte padding
+### Header:
+ - 4 bytes signature (always "LLFS")
+ - 1 byte version (filesystem version)
+ - 8 bytes number of entries
+ - 4 bytes padding
 
-# Entry:
-  - 16 byte filename
-  - 64-bit unsigned int file size in bytes
+### Entry:
+  - 16 bytes filename
+  - 8 bytes file size in bytes
   - 1 byte padding
   - File content
 
-# Examples:
+### Examples:
   - Header:
     - Signature: LLFS
     - Version: 1
