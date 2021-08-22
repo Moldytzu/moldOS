@@ -38,13 +38,13 @@
 #include "cpu/tss.h" //tss
 
 //libc
-#include "libc/stdio.h" //input / output
-#include "libc/math.h" //matematica
-#include "libc/time.h" //timp
+#include "libc/stdio.h" //standard i/o
+#include "libc/math.h" //maths
+#include "libc/time.h" //time
 
 //scheduling
 #include "scheduling/pit.h" //pit
-#include "scheduling/taskmgr.h"
+#include "scheduling/taskmgr.h" //task manager
 
 //userspace
 #include "userspace/userspace.h" //userspace
@@ -57,8 +57,6 @@
 
 //settings
 #include "settings.h"
-
-#define LOOP while(1)
 
 #define DoubleBuffer
 
@@ -101,9 +99,12 @@ Mouse mouse;
 ACPI acpi;
 
 void* GenerateUserspaceStack() {
-    void* UserspacePage = GlobalAllocator.RequestPage();
-    GlobalTableManager.MapUserspaceMemory(UserspacePage);
-    return UserspacePage;
+    void* Stack = GlobalAllocator.RequestPage();
+    uint64_t StackSize = 0x1000*1;
+    for (uint64_t t = (uint64_t)Stack; t < (uint64_t)(Stack + StackSize); t += 4096){
+        GlobalTableManager.MapUserspaceMemory((void*)t);
+    }
+    return Stack;
 }
 
 void EnablePaging(BootInfo* bootInfo) {

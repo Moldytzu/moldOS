@@ -4,13 +4,11 @@ TaskManager* GlobalTaskManager;
 
 void TaskManager::Schedule(InterruptStack* registers) {
     //Save registers
-    if(tasks[currentTask].state != STATE_HALTED) {
-        #ifdef Debugging_Scheduler 
-            GlobalCOM1->Write("Saving registers for task: ",tasks[currentTask].name,"\n");
-        #endif
+    #ifdef Debugging_Scheduler 
+        GlobalCOM1->Write("Saving registers for task: ",tasks[currentTask].name,"\n");
+    #endif
 
-        asmmemcpy(&tasks[currentTask].registers,(void*)registers,sizeof(InterruptStack));
-    }
+    asmmemcpy(&tasks[currentTask].registers,(void*)registers,sizeof(InterruptStack));
 
     //Get next task
     do {
@@ -29,21 +27,18 @@ void TaskManager::Schedule(InterruptStack* registers) {
 
 void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privilege) {
     Task task;
-    task.instructionPointer = (uint64_t)entry;
     task.entryPoint = (uint64_t)entry;
     task.privilege = privilege;
-    task.stack = (uint64_t*)(stack+4096);
     task.state = STATE_RUNNING;
     task.name = name;
-    task.registers = {0};
     task.registers.rip = (uint64_t)entry;
-    task.registers.rsp = (uint64_t)stack;
+    task.registers.rsp = (uint64_t)(stack+0x1000);
     task.registers.rflags = 0x202; //interrupts
-    task.registers.cs = GDTInfoSelectors.UCode;
-    task.registers.ss = GDTInfoSelectors.UData;
+    task.registers.cs = GDTInfoSelectors.KCode;
+    task.registers.ss = GDTInfoSelectors.KData;
+
     tasks[taskNum++] = task;
     GlobalTableManager.MapUserspaceMemory(entry);
-    GlobalTableManager.MapUserspaceMemory(stack);
     
 }
 

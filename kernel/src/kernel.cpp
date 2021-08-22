@@ -12,9 +12,8 @@ Special Thanks to:
 
 /*
 To-do list:
-- preemptive multitasking (CRITICAL)
 - llfs version 2
-- llexec header
+- better elf loader
 - basic shell
 - gui infrastructure
 - window manager
@@ -47,17 +46,19 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalTaskManager = &tmgr;
 	
 	//userspace
-	//if(initApp.instructionPointer == 1 || initApp.instructionPointer == 2) {
-	//	KernelPanic("LLInit is missing or corrupt.");
-	//}
+	void* LLInit = LoadELFExecutable(llfs,"llinit.llexec   ");
+	
+	if(LLInit == (void*)1 || LLInit == (void*)2) {
+		KernelPanic("LLInit is missing or corrupt.");
+	}
 
-	GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_ADMIN);
-	GlobalTaskManager->AddTask(LoadELFExecutable(llfs,"llinit.llexec   "),GenerateUserspaceStack(),"LLInit",TASK_ADMIN);
+	GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
+	GlobalTaskManager->AddTask(LLInit,GenerateUserspaceStack(),"LLInit",TASK_USER);
 
 	//jump in the userspace
 	RunInUserspace((void*)IdleTask,GenerateUserspaceStack());
 
-	LOOP;
+	while(1);
 
 	return 0;
 } 
