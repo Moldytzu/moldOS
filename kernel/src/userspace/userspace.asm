@@ -31,6 +31,7 @@ ALIGN	4096
 %endmacro
 
 syscall_entry:
+	cli
     push r11
     push rcx
     call SyscallHandler

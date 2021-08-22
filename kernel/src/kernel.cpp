@@ -22,23 +22,22 @@ To-do list:
 extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
 
-	LLFSHeader* llfs = binfo->RamFS;
-
-	if((void*)llfs == (void*)0) {
+	if((void*)binfo->RamFS == (void*)0) {
 		LogError("No ram filesystem loaded!");
 		while(1);
 	}
 
-	if(!LLFSCheck(llfs)) {
+	if(!LLFSCheck(binfo->RamFS)) {
 		LogError("Corrupt or unsupported ram filesystem!");
 		while(1);
 	}
 
-	//map the llfs as userspace memory
-	uint64_t fssize = LLFSGetFileSystemSize(llfs);
-	for(int i = 0;i<fssize/4096+1;i++) {
-		GlobalTableManager.MapUserspaceMemory((void*)llfs+(i*4096));
-	}
+	//llfs
+	uint64_t fssize = LLFSGetFileSystemSize(binfo->RamFS);
+	LLFSHeader* llfs = (LLFSHeader*)GlobalAllocator.RequestPages(fssize/4096+1);
+	memcpy(llfs,binfo->RamFS,fssize);
+	LLFSMap(llfs); //map as user memory
+
 	//and lock the pages
 	GlobalAllocator.LockPages(llfs,fssize/4096+1);
 
@@ -52,6 +51,7 @@ extern "C" int kernelMain(BootInfo* binfo) {
 		KernelPanic("LLInit is missing or corrupt.");
 	}
 
+	GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
 	GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
 	GlobalTaskManager->AddTask(LLInit,GenerateUserspaceStack(),"LLInit",TASK_USER);
 

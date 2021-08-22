@@ -31,3 +31,12 @@ int LLFSCheck(LLFSHeader* fs) {
     if(fs->Version != 1) return 0;
     return 1;
 }
+
+void LLFSMap(LLFSHeader* fs) {
+    LLFSEntry* firstEntry = (LLFSEntry*)((uint64_t)fs+sizeof(LLFSHeader));
+    uint64_t fsize = sizeof(LLFSHeader);
+    for(int i = 0;i<fs->Entries;i++) {
+        GlobalTableManager.MapUserspaceMemory(firstEntry);
+        firstEntry = (LLFSEntry*)((uint64_t)firstEntry+sizeof(LLFSEntry)+firstEntry->FileSize);
+    }
+}

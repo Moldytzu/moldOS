@@ -37,10 +37,10 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
     task.registers.rflags = 0x202; //interrupts
     task.registers.cs = GDTInfoSelectors.KCode;
     task.registers.ss = GDTInfoSelectors.KData;
-
     tasks[taskNum++] = task;
+
     GlobalTableManager.MapUserspaceMemory(entry);
-    
+    GlobalTableManager.MapUserspaceMemory(stack);
 }
 
 void TaskManager::ExitCurrentTask() {

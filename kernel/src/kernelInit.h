@@ -97,8 +97,8 @@ Mouse mouse;
 ACPI acpi;
 
 void* GenerateUserspaceStack() {
-    void* Stack = GlobalAllocator.RequestPages(4);
-    uint64_t StackSize = 0x1000*4;
+    void* Stack = GlobalAllocator.RequestPages(8);
+    uint64_t StackSize = 0x1000*8; //32k
     for (uint64_t t = (uint64_t)Stack; t < (uint64_t)(Stack + StackSize); t += 4096){
         GlobalTableManager.MapUserspaceMemory((void*)t);
     }
