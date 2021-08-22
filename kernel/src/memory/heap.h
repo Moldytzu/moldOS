@@ -10,14 +10,14 @@ struct HeapSegHdr{
     void volatile CombineForward();
     void volatile CombineBackward();
     HeapSegHdr* volatile Split(size_t splitLength);
-};
+} __attribute__((packed));
 
 void volatile InitializeHeap(void* heapAddress, size_t pageCount);
 
- void* volatile malloc(size_t size);
- void volatile free(void* address);
+void* volatile malloc(size_t size);
+void volatile free(void* address);
 
- void volatile ExpandHeap(size_t length);
+void volatile ExpandHeap(size_t length);
 
 inline void* operator new(size_t size) {return malloc(size);}
 inline void* operator new[](size_t size) {return malloc(size);}
