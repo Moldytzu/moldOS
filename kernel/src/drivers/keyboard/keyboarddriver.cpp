@@ -46,8 +46,10 @@ void Keyboard::Handle(uint8_t keycode) {
             break;
         default:
             char translated = Translate(keycode,(KeyState)((int)LeftShift | (int)RightShift),CapsLock);
-            if(translated)
+            if(translated) {
+                if(bufferIndex+1 >= 0xFFFF) bufferIndex = 0; //prevent buffer overflow
                 buffer[bufferIndex++] = translated;
+            }
             break;
     }
 }

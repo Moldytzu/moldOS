@@ -38,6 +38,9 @@ outfile.write("LLFS".encode()) # signature
 outfile.write(b"\x02") # version
 outfile.write(filecount) # file count
 
+for i in range(4):
+    outfile.write(b"\x00") # padding
+
 today = str(datetime.date.today()).split('-')
 today[0] = today[0][2:]
 # write metadata

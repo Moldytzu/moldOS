@@ -32,6 +32,7 @@ The Low Level File System is a file system designed to be small and to be used a
  - 4 bytes signature (always "LLFS")
  - 1 byte version (always 2)
  - 8 bytes number of entries
+ - 4 bytes padding
 
 ### Entry header:
  - 1 byte type (1 for file, 2 for directory, 3 metadata)
