@@ -79,17 +79,9 @@ struct CPURegisters {
     uint64_t r15;
 };
 
-class CPU
-{
-private:
-    void addSupported(const char* sup);
-    char* features[57];
-public:
-    inline void cpuid(uint32_t reg, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx);
-    char* getName();
-    char* getVendor();
-    char** getFeatures();
-    int cpuFeatures = 0;
-};
+inline void CPUcpuid(uint32_t reg, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx);
+char* CPUgetName();
+char* CPUgetVendor();
+char** CPUgetFeatures();
 
 CPURegisters DumpRegisters();

@@ -40,9 +40,4 @@ struct DeviceConfig
     uint32_t Reserved;
 }__attribute__((packed));
 
-class ACPI
-{
-public:
-    void* FindTable(SDT* sdt, char* sign); 
-    
-};
+    void* ACPIFindTable(SDT* sdt, char* sign); 

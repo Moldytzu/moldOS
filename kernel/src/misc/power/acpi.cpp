@@ -5,7 +5,7 @@
 #include "../../io/serial.h"
 #include "../../settings.h"
 
-void* ACPI::FindTable(SDT* sdt, char* sign) {
+void* ACPIFindTable(SDT* sdt, char* sign) {
     int entries = (sdt->Lenght - sizeof(SDT)) / 8;
     for(int t = 0;t<entries;t++) {
         SDT* h = (SDT*)*(uint64_t*)((uint64_t)sdt + sizeof(SDT) + (t*8));

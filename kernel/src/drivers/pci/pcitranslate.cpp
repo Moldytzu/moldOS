@@ -1,24 +1,24 @@
 #include "pcitranslate.h"
 #include "../../libc/stdio/cstring.h"
 
-TranslatedPCIDevice PCITranslate::TranslateDevice(PCIDevice* device) {
+TranslatedPCIDevice PCITranslateDevice(PCIDevice* device) {
     TranslatedPCIDevice newDevice;
     newDevice.BIST = device->BIST;
     newDevice.CacheLineSize = device->CacheLineSize;
-    newDevice.Class = TranslateClass(device->Class);
+    newDevice.Class = PCITranslateClass(device->Class);
     newDevice.Command = device->Command;
-    newDevice.DeviceID = TranslateDeviceID(device->VendorID,device->DeviceID);
+    newDevice.DeviceID = PCITranslateDeviceID(device->VendorID,device->DeviceID);
     newDevice.HeaderType = device->HeaderType;
     newDevice.LatencyTimer = device->LatencyTimer;
     newDevice.ProgramInterface = device->ProgramInterface;
     newDevice.RevisionID = device->RevisionID;
     newDevice.Status = device->Status;
-    newDevice.Subclass = TranslateSubClass(device->Class,device->Subclass);
-    newDevice.VendorID = TranslateVendor(device->VendorID); 
+    newDevice.Subclass = PCITranslateSubClass(device->Class,device->Subclass);
+    newDevice.VendorID = PCITranslateVendor(device->VendorID); 
     return newDevice;
 }
 
-const char* PCITranslate::TranslateClass(uint8_t classid) {
+const char* PCITranslateClass(uint8_t classid) {
     switch (classid)
     {
     case 0:
@@ -89,7 +89,7 @@ const char* PCITranslate::TranslateClass(uint8_t classid) {
         break;
     }
 }
-const char* PCITranslate::TranslateSubClass(uint8_t classid,uint8_t subclassid) {
+const char* PCITranslateSubClass(uint8_t classid,uint8_t subclassid) {
     switch (classid)
     {
     case 0:
@@ -517,7 +517,7 @@ const char* PCITranslate::TranslateSubClass(uint8_t classid,uint8_t subclassid) 
     }
     return "";
 }
-const char* PCITranslate::TranslateVendor(uint16_t vendorid) {
+const char* PCITranslateVendor(uint16_t vendorid) {
     switch (vendorid)
     {
     case 0x8086:
@@ -534,7 +534,7 @@ const char* PCITranslate::TranslateVendor(uint16_t vendorid) {
         break;
     }
 }
-const char* PCITranslate::TranslateDeviceID(uint16_t vendorid,uint16_t deviceid) {
+const char* PCITranslateDeviceID(uint16_t vendorid,uint16_t deviceid) {
     switch (vendorid)
     {
     case 0x1234:

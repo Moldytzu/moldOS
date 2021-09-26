@@ -1,62 +1,62 @@
 #include "rtc.h"
 
-void RealTimeClock::waitUpdate() {
-    int old = getRegister(0x0);
-    while(getRegister(0x0)==old);
+void RTCwaitUpdate() {
+    int old = RTCgetRegister(0x0);
+    while(RTCgetRegister(0x0)==old);
 }
 
-int RealTimeClock::getUpdateInProgress() {
+int RTCgetUpdateInProgress() {
     outportb(0x70, 0x0A);
     return (inportb(0x71) & 0x80);
 }
 
-unsigned char RealTimeClock::getRegister(int reg) {
+unsigned char RTCgetRegister(int reg) {
     outportb(0x70, reg);
     return inportb(0x71);
 }
 
-uint32_t RealTimeClock::readSeconds() {
-    while(getUpdateInProgress());
-    int second = getRegister(0x0);
+uint32_t RTCreadSeconds() {
+    while(RTCgetUpdateInProgress());
+    int second = RTCgetRegister(0x0);
     return (second & 0x0F) + ((second / 16) * 10);
 }
 
-uint32_t RealTimeClock::readHours() {
-    while(getUpdateInProgress());
-    int second = getRegister(0x4);
+uint32_t RTCreadHours() {
+    while(RTCgetUpdateInProgress());
+    int second = RTCgetRegister(0x4);
     return (second & 0x0F) + ((second / 16) * 10);
 }
 
-uint32_t RealTimeClock::readMinutes() {
-    while(getUpdateInProgress());
-    int second = getRegister(0x2);
+uint32_t RTCreadMinutes() {
+    while(RTCgetUpdateInProgress());
+    int second = RTCgetRegister(0x2);
     return (second & 0x0F) + ((second / 16) * 10);
 }
 
-uint32_t RealTimeClock::readDay() {
-    while(getUpdateInProgress());
-    int second = getRegister(0x7);
+uint32_t RTCreadDay() {
+    while(RTCgetUpdateInProgress());
+    int second = RTCgetRegister(0x7);
     return (second & 0x0F) + ((second / 16) * 10);
 }
 
-uint32_t RealTimeClock::readMonth() {
-    while(getUpdateInProgress());
-    int second = getRegister(0x8);
+uint32_t RTCreadMonth() {
+    while(RTCgetUpdateInProgress());
+    int second = RTCgetRegister(0x8);
     return (second & 0x0F) + ((second / 16) * 10);
 }
 
-uint32_t RealTimeClock::readYear() {
-    while(getUpdateInProgress());
-    int second = getRegister(0x9);
+uint32_t RTCreadYear() {
+    while(RTCgetUpdateInProgress());
+    int second = RTCgetRegister(0x9);
     return (second & 0x0F) + ((second / 16) * 10);
 }
 
-uint32_t RealTimeClock::readTime() {
-    return readHours()*3600+readMinutes()*60+readSeconds();
+uint32_t RTCreadTime() {
+    return RTCreadHours()*3600+RTCreadMinutes()*60+RTCreadSeconds();
 }
 
-void RealTimeClock::waitSeconds(uint32_t secs) {
-    waitUpdate();
-    int lastsec = readTime()+secs;
-    while(lastsec != readTime()){}
+void RTCwaitSeconds(uint32_t secs) {
+    RTCwaitUpdate();
+    int lastsec = RTCreadTime()+secs;
+    while(lastsec != RTCreadTime()){}
 }

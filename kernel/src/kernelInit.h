@@ -87,13 +87,10 @@ char** CPUFeatures;
 BootInfo* GlobalInfo;
 
 DisplayDriver display;
-CPU cpu;
 PCI pci;
-RealTimeClock rtc;
 DisplayBuffer* doubleBuffer;
 Keyboard kb;
 Mouse mouse;
-ACPI acpi;
 
 void* GenerateUserspaceStack() {
     void* Stack = GlobalAllocator.RequestPages(8);
@@ -158,7 +155,7 @@ void InitACPI(BootInfo* bootInfo) {
         return;
     }
 
-    MCFG* mcfg = (MCFG*)acpi.FindTable(xsdt,(char*)"MCFG");
+    MCFG* mcfg = (MCFG*)ACPIFindTable(xsdt,(char*)"MCFG");
 
     #ifndef Quiet
     LogInfo("Enumerating PCI");
@@ -240,7 +237,7 @@ void InitDrivers(BootInfo* bootInfo) {
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
     #endif
 
-	CPUFeatures = cpu.getFeatures();
+	CPUFeatures = CPUgetFeatures();
 	#ifndef Quiet
     LogInfo("Detected CPU features!");
     #endif
