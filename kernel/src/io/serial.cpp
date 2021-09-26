@@ -2,77 +2,64 @@
 #include "../settings.h"
 #define COM1 0x3f8
 
-SerialPort* GlobalCOM1;
-
-void SerialPort::Init() {
-   outportb(COM1 + 1, 0x00);    // Disable all interrupts
-   outportb(COM1 + 3, 0x80);    // Enable DLAB (set baud rate divisor)
-   outportb(COM1 + 0, 0x03);    // Set divisor to 3 (lo byte) 38400 baud
-   outportb(COM1 + 1, 0x00);    //                  (hi byte)
-   outportb(COM1 + 3, 0x03);    // 8 bits, no parity, one stop bit
-   outportb(COM1 + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
-   outportb(COM1 + 4, 0x0B);    // IRQs enabled, RTS/DSR set
-   outportb(COM1 + 4, 0x0F);    // Set in normal mode
-}
-
-int SerialPort::isTransmitEmpty() {
+int SerialisTransmitEmpty() {
     return inportb(COM1 + 5) & 0x20;
 }
 
-int SerialPort::isReceived() {
+int SerialisReceived() {
     return inportb(COM1 + 5) & 1;
 }
 
-char SerialPort::Read() {
-    while(!isReceived());
+char SerialRead() {
+    while(!SerialisReceived());
 
     return inportb(COM1);
 }
 
-void SerialPort::Write(char chr) {
+void SerialWrite(char chr) {
     #ifdef Serial_Console
     outportb(COM1, chr);
     #endif
 }
 
-void SerialPort::Write(const char* chr) {
+void SerialWrite(const char* chr) {
     #ifdef Serial_Console
     for(int i = 0;chr[i] != '\0';i++){
-        Write(chr[i]);
-        if(chr[i] == '\n') Write('\r');   
+        SerialWrite(chr[i]);
+        if(chr[i] == '\n') SerialWrite('\r');   
     }
     #endif
 }
 
-void SerialPort::ClearMonitor() {
-    Write(27);
-    Write("[2J");
-    Write(27);
-    Write("[H");
+void SerialClearMonitor() {
+    SerialWrite(27);
+    SerialWrite("[2J");
+    SerialWrite(27);
+    SerialWrite("[H");
 }
 
-void SerialPort::Write(const char* chr,const char* chr2) {
-    Write(chr);
-    Write(chr2);
+void SerialWrite(const char* chr,const char* chr2) {
+    SerialWrite(chr);
+    SerialWrite(chr2);
 }
 
-void SerialPort::Write(const char* chr,const char* chr2,const char* chr3) {
-    Write(chr);
-    Write(chr2);
-    Write(chr3);
+void SerialWrite(const char* chr,const char* chr2,const char* chr3) {
+    SerialWrite(chr);
+    SerialWrite(chr2);
+    SerialWrite(chr3);
 }
 
-void SerialPort::Write(const char* chr,const char* chr2,const char* chr3,const char* chr4) {
-    Write(chr);
-    Write(chr2);
-    Write(chr3);
-    Write(chr4);
+void SerialWrite(const char* chr,const char* chr2,const char* chr3,const char* chr4) {
+    SerialWrite(chr);
+    SerialWrite(chr2);
+    SerialWrite(chr3);
+    SerialWrite(chr4);
 }
 
-void SerialPort::Write(const char* chr,const char* chr2,const char* chr3,const char* chr4,const char* chr5) {
-    Write(chr);
-    Write(chr2);
-    Write(chr3);
-    Write(chr4);
-    Write(chr5);
+void SerialWrite(const char* chr,const char* chr2,const char* chr3,const char* chr4,const char* chr5) {
+    SerialWrite(chr);
+    SerialWrite(chr2);
+    SerialWrite(chr3);
+    SerialWrite(chr4);
+    SerialWrite(chr5);
 }

@@ -16,9 +16,9 @@ void ConsoleWrite(uint64_t* text,uint64_t resource) {
 
 void SerialWrite(char* text,uint64_t resource) {
     if(resource)
-        GlobalCOM1->Write((GlobalTaskManager->tasks[GlobalTaskManager->currentTask].entryPoint+(uint64_t)text));
+        SerialWrite((GlobalTaskManager->tasks[GlobalTaskManager->currentTask].entryPoint+(uint64_t)text));
     else
-        GlobalCOM1->Write(text);
+        SerialWrite(text);
 }
 
 void Exit(uint64_t code) {

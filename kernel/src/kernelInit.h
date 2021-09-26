@@ -90,7 +90,6 @@ DisplayDriver display;
 CPU cpu;
 PCI pci;
 RealTimeClock rtc;
-SerialPort com1;
 DisplayBuffer* doubleBuffer;
 Keyboard kb;
 Mouse mouse;
@@ -196,13 +195,11 @@ void InitDrivers(BootInfo* bootInfo) {
     PITSetDivisor(0xFFFF);
     asm volatile ("sti");
 
-    com1.Init();
-	GlobalCOM1 = &com1;
-	com1.ClearMonitor();
-    com1.Write("Kernel intialized the Serial Port!\n");
+	SerialClearMonitor();
+    SerialWrite("Kernel intialized the Serial Port!\n");
 
 	EnablePaging(bootInfo);
-    com1.Write("Enabled Paging!\n");
+    SerialWrite("Enabled Paging!\n");
 
     mouse.Init();
     GlobalKeyboard = &kb;
@@ -237,7 +234,7 @@ void InitDrivers(BootInfo* bootInfo) {
 
 	GlobalDisplay = &display;
 	
-    com1.Write("Kernel intialized the display!\n");
+    SerialWrite("Kernel intialized the display!\n");
 
     #ifndef Quiet
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
@@ -247,13 +244,13 @@ void InitDrivers(BootInfo* bootInfo) {
 	#ifndef Quiet
     LogInfo("Detected CPU features!");
     #endif
-    com1.Write("Kernel detected CPU features!\n");
+    SerialWrite("Kernel detected CPU features!\n");
 
     InitACPI(bootInfo);
     #ifndef Quiet
     LogInfo("Initialized ACPI!");
     #endif
-    com1.Write("Kernel intialized ACPI!\n");
+    SerialWrite("Kernel intialized ACPI!\n");
 
 
     EnableSCE();
@@ -262,8 +259,8 @@ void InitDrivers(BootInfo* bootInfo) {
 
     LogInfo("Initialized Everything!");
     #endif
-    com1.Write("Kernel intialized SCE!\n");
+    SerialWrite("Kernel intialized SCE!\n");
 
 
-    com1.Write("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
+    SerialWrite("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
 }

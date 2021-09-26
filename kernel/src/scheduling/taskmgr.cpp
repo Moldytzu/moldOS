@@ -6,7 +6,7 @@ void TaskManager::Schedule(InterruptStack* registers) {
     if(!isEnabled) return;
     //Save registers
     #ifdef Debugging_Scheduler 
-        GlobalCOM1->Write("Saving registers for task: ",tasks[currentTask].name,"\n");
+        SerialWrite("Saving registers for task: ",tasks[currentTask].name,"\n");
     #endif
 
     asmmemcpy(&tasks[currentTask].registers,(void*)registers,sizeof(InterruptStack));
@@ -19,7 +19,7 @@ void TaskManager::Schedule(InterruptStack* registers) {
 
     //Load new registers
     #ifdef Debugging_Scheduler 
-        GlobalCOM1->Write("Loading registers for task: ",tasks[currentTask].name,"\n");
+        SerialWrite("Loading registers for task: ",tasks[currentTask].name,"\n");
     #endif
     int kernelStack = registers->KernelRsp;
     asmmemcpy((void*)registers,&tasks[currentTask].registers,sizeof(InterruptStack));
@@ -44,6 +44,6 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
 }
 
 void TaskManager::ExitCurrentTask() {
-    GlobalCOM1->Write("The task ",tasks[currentTask].name," is going to a halt.\n");
+    SerialWrite("The task ",tasks[currentTask].name," is going to a halt.\n");
     tasks[currentTask].state = STATE_HALTED;
 }
