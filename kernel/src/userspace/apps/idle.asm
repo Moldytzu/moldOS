@@ -4,6 +4,8 @@ SECTION .text
 ALIGN 4096
 
 IdleTask:
-    jmp $
+    mov rdi, 0x3 ; update screen syscall
+    syscall
+    jmp IdleTask
 
 GLOBAL IdleTask

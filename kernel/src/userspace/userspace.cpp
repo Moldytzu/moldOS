@@ -11,7 +11,7 @@ void ConsoleWrite(uint64_t* text,uint64_t resource) {
         printf("%s",(GlobalTaskManager->tasks[GlobalTaskManager->currentTask].entryPoint+(uint64_t)text));
     else
         printf("%s",text);
-    GlobalDisplay->update();
+    //GlobalDisplay->update();
 }
 
 void SerialWrite(char* text,uint64_t resource) {
@@ -23,7 +23,7 @@ void SerialWrite(char* text,uint64_t resource) {
 
 void Exit(uint64_t code) {
     printf("\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
-    GlobalDisplay->update();
+    //GlobalDisplay->update();
     GlobalTaskManager->ExitCurrentTask();
 }
 
@@ -38,10 +38,16 @@ void SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) 
     case SYSCALL_EXIT:
         Exit(arg1);
         break;
+    case SYSCALL_UPDATESCREEN:
+        if(GlobalTaskManager->tasks[GlobalTaskManager->currentTask].privilege == TASK_SYSTEM)
+            GlobalDisplay->update();
+        else
+            Exit(ERROR_ACCESS_DENIED);
+        break;
     default:
         LogWarn(inttohstr((uint64_t)syscall));
         LogWarn("Unknown syscall! Forcing userspace exit!");
-        Exit(2550);
+        Exit(ERROR_UNKNOWN_SYSCALL);
         break;
     }
 }
