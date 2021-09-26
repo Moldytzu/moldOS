@@ -11,6 +11,9 @@
 #define BTN_MIDDLE 0b00000100
 #define BTN_RIGHT  0b00000010
 
+#define PS2_STATUS 0x64
+#define PS2_DATA 0x60
+
 struct MouseState {
     int X;
     int Y;

@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include "../../io/ports.h"
 
+#define CMOS_ADDRESS 0x70
+#define CMOS_DATA 0x71
+
 unsigned char RTCgetRegister(int reg);
 int RTCgetUpdateInProgress();
 void RTCwaitUpdate();
@@ -13,3 +16,4 @@ uint32_t RTCreadTime();
 uint32_t RTCreadDay();
 uint32_t RTCreadMonth();
 uint32_t RTCreadYear();
+uint32_t BCDToBinary(uint32_t bcd);

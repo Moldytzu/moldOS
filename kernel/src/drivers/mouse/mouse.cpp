@@ -8,7 +8,7 @@ Mouse* GlobalMouse;
 void Wait() {
     uint64_t timeout = 100000;
     while (timeout--){
-        if ((inportb(0x64) & 0b10) == 0){
+        if ((inportb(PS2_STATUS) & 0b10) == 0){
             return;
         }
     }
@@ -17,7 +17,7 @@ void Wait() {
 void WaitInput() {
     uint64_t timeout = 100000;
     while (timeout--){
-        if (inportb(0x64) & 0b1){
+        if (inportb(PS2_STATUS) & 0b1){
             return;
         }
     }
@@ -25,14 +25,14 @@ void WaitInput() {
 
 void Mouse::Send(int val) {
     Wait();
-    outb(0x64, 0xD4);
+    outb(PS2_STATUS, 0xD4);
     Wait();
-    outb(0x60, val);
+    outb(PS2_DATA, val);
 }
 
 int Mouse::Read() {
     WaitInput();
-    return inb(0x60);
+    return inb(PS2_DATA);
 }
 
 void Mouse::HandlePacket() {
@@ -121,17 +121,17 @@ void Mouse::Handle(uint8_t data) {
 }
 
 void Mouse::Init() {
-    outb(0x64, 0xA8);
+    outb(PS2_STATUS, 0xA8);
 
     Wait();
-    outb(0x64, 0x20);
+    outb(PS2_STATUS, 0x20);
     WaitInput();
-    uint8_t status = inb(0x60);
+    uint8_t status = inb(PS2_DATA);
     status |= 0b10;
     Wait();
-    outb(0x64, 0x60);
+    outb(PS2_STATUS, PS2_DATA);
     Wait();
-    outb(0x60, status);
+    outb(PS2_DATA, status);
 
     Send(0xF6);
     Read();
