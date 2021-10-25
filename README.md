@@ -1,6 +1,6 @@
 # LowLevelOS (LLOS)
 
-LLOS is a W.I.P operating system writen in C and C++ that targets x86_64 hardware.
+LLOS is a retired operating system writen in C and C++ that targets x86_64 hardware.
 
 It aims to be easy to use, small and simple.
 
