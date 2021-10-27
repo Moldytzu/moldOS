@@ -51,22 +51,22 @@ buildimg: stripbinaries
 	@ dd if=/dev/zero of=$(BUILDDIR)/disk.img bs=1024 count=32768
 	@ mkfs.vfat $(BUILDDIR)/disk.img
 	@ mmd -i $(BUILDDIR)/disk.img ::/EFI
-	@ mmd -i $(BUILDDIR)/disk.img ::/LLOS
+	@ mmd -i $(BUILDDIR)/disk.img ::/moldOS
 	@ mmd -i $(BUILDDIR)/disk.img ::/EFI/BOOT
 	@ mcopy -i $(BUILDDIR)/disk.img $(GNUEFI)/x86_64/bootloader/BOOTx64.efi ::/EFI/BOOT
-	@ mcopy -i $(BUILDDIR)/disk.img font.psf ::/LLOS
-	@ mcopy -i $(BUILDDIR)/disk.img $(BUILDDIR)/ram.llfs ::/LLOS
-	@ mcopy -i $(BUILDDIR)/disk.img $(BUILDDIR)/kernel.llexec ::/LLOS
+	@ mcopy -i $(BUILDDIR)/disk.img font.psf ::/moldOS
+	@ mcopy -i $(BUILDDIR)/disk.img $(BUILDDIR)/ram.llfs ::/moldOS
+	@ mcopy -i $(BUILDDIR)/disk.img $(BUILDDIR)/kernel.llexec ::/moldOS
 
 	@ echo Creating iso image
 	@ mkdir -p $(BUILDDIR)/iso
-	@ mkdir -p $(BUILDDIR)/iso/LLOS
+	@ mkdir -p $(BUILDDIR)/iso/moldOS
 	@ mkdir -p $(BUILDDIR)/iso/EFI
 	@ mkdir -p $(BUILDDIR)/iso/EFI/BOOT
 	@ cp $(GNUEFI)/x86_64/bootloader/BOOTx64.efi $(BUILDDIR)/iso/EFI/BOOT
-	@ cp font.psf $(BUILDDIR)/iso/LLOS/
-	@ cp $(BUILDDIR)/kernel.llexec $(BUILDDIR)/iso/LLOS/
-	@ cp $(BUILDDIR)/ram.llfs $(BUILDDIR)/iso/LLOS/
+	@ cp font.psf $(BUILDDIR)/iso/moldOS/
+	@ cp $(BUILDDIR)/kernel.llexec $(BUILDDIR)/iso/moldOS/
+	@ cp $(BUILDDIR)/ram.llfs $(BUILDDIR)/iso/moldOS/
 	@ cd $(BUILDDIR)
 	@ xorrisofs -r -J -o $(BUILDDIR)/cdrom.iso $(BUILDDIR)/iso
 	

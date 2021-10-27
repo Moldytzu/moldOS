@@ -1,6 +1,6 @@
-# LowLevelOS (LLOS)
+# moldOS
 
-LLOS is a retired operating system writen in C and C++ that targets x86_64 hardware.
+moldOS is a basic operating system writen in C and C++ that targets x86_64 hardware.
 
 It aims to be easy to use, small and simple.
 
@@ -36,16 +36,16 @@ It aims to be easy to use, small and simple.
      - LLFS 1.0
 
 # Building:
-To build LowLevelOS you need to run a x86_64 Debian-based Linux distro. Run the prepare.sh script and then run build.sh to build the operating system.
+To build moldOS you need to run a x86_64 Debian-based Linux distro. Run the prepare.sh script and then run build.sh to build the operating system.
 
 # Running:
-Run run.sh to start the virtual machine with LowLevelOS installed.
+Run run.sh to start the virtual machine with moldOS installed.
 
 # Photo Galery:
 NOTICE: The photos may be outdated!
 
 ![](https://i.imgur.com/nE6Pm7g.png)
-LLOS running 2 tasks (A and B)
+moldOS running 2 tasks (A and B)
 
 ![](https://i.imgur.com/7539MjY.png)
-LLOS kernel panic
+moldOS kernel panic

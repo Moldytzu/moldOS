@@ -14,6 +14,6 @@ llosMain:
     jmp $
 
 WelcomeText:
-    db "Welcome to LowLevelOS!",10,"Copyright Moldu' (Nov. 2020 - Jun. 2021)",0
+    db "Welcome to moldOS!",10,"By Moldu' (Nov. 2020 - Oct. 2021)",0
 
 global llosMain

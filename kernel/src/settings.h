@@ -1,6 +1,6 @@
 #pragma once
 
-//LLOS Build Settings
+//moldOS Build Settings
 //Comment to disable an option
 //Uncomment to enable
 

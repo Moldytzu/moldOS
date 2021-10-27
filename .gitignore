@@ -3,3 +3,6 @@
 *.llexec
 *.img
 *.iso
+*.llfs2
+*.llfs
+*.efi

@@ -59,7 +59,7 @@ EFI_FILE* OpenFile(EFI_FILE* Directory, wchar_t* File) {
 }
 
 void DoError(wchar_t* error) {
-    Print(L"An error occured when loading LLOS!\n\r");
+    Print(L"An error occured when loading moldOS!\n\r");
     Print(error);
     while(1)
         __asm__ volatile ("hlt");
@@ -73,13 +73,13 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     IH = ImageHandle;
 
     //Open the required files
-    EFI_FILE* llosFolder = OpenFile(NULL,L"LLOS");
-    if (llosFolder == NULL) DoError(L"Failed to open the LLOS folder!\n\r");
-    EFI_FILE* kernel = OpenFile(llosFolder,L"kernel.llexec");
+    EFI_FILE* moldOSFolder = OpenFile(NULL,L"moldOS");
+    if (moldOSFolder == NULL) DoError(L"Failed to open the moldOS folder!\n\r");
+    EFI_FILE* kernel = OpenFile(moldOSFolder,L"kernel.llexec");
     if (kernel == NULL) DoError(L"Failed to open the kernel!\n\r");
-    EFI_FILE* font = OpenFile(llosFolder,L"font.psf");
+    EFI_FILE* font = OpenFile(moldOSFolder,L"font.psf");
     if (font == NULL) DoError(L"Failed to open the font!\n\r");
-    EFI_FILE* llfs = OpenFile(llosFolder,L"ram.llfs");
+    EFI_FILE* llfs = OpenFile(moldOSFolder,L"ram.llfs");
     if (llfs == NULL) DoError(L"Failed to open the LLFS!\n\r");
 
     //Read the ELF header

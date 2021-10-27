@@ -1,4 +1,4 @@
-To issue a system call in LLOS you need to set some registers and then issue the 'syscall' instruction.
+To issue a system call in moldOS you need to set some registers and then issue the 'syscall' instruction.
 
 # Table o' registers
     - RDX is the syscall number
