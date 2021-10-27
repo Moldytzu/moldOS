@@ -5,9 +5,6 @@
 
 GLOBAL LoadTSS
 
-LoadTSS:
-    push rbp
-    mov rbp, rsp
-    ltr di    
-    leave
+LoadTSS: ; RDI=offset
+    ltr di
     ret

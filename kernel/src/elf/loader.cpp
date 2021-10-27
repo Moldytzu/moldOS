@@ -5,7 +5,7 @@
 #include "../memory/heap.h"
 
 int CheckELF(LLFSHeader* fs,const char* file) {
-    LLFSEntryV1* entry = LLFSOpenFile(fs,file);
+    LLFSEntry* entry = LLFSOpenFile(fs,file);
 
     if((void*)entry == (void*)0) {
         return 0;
@@ -20,7 +20,7 @@ int CheckELF(LLFSHeader* fs,const char* file) {
 }
 
 void* LoadELFExecutable(LLFSHeader* fs,const char* file) {
-    LLFSEntryV1* entry = LLFSOpenFile(fs,file);
+    LLFSEntry* entry = LLFSOpenFile(fs,file);
 
     if((void*)entry == (void*)0) {
         return (void*)1;

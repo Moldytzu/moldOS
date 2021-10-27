@@ -3,7 +3,7 @@
 ;This file's author is KeepKonect.
 ;All credits go to him
 
-LoadGDT:   
+LoadGDT: ;RDI = offset
     lgdt [rdi]
     mov ax, 0x10
     mov ds, ax

@@ -3,7 +3,7 @@
 DisplayDriver* GlobalDisplay;
 
 void DisplayDriver::putc(char ch,uint32_t xx,uint32_t yy) {
-    char* fontPtr = (char*)globalFont->glyphBuffer + (ch * globalFont->psf1_Header->charsize);
+    char* fontPtr = (char*)globalFont->glyphBuffer + (ch * globalFont->header->charsize);
     for (unsigned long y = yy; y < yy + 16; y++){
         for (unsigned long x = xx; x < xx+8; x++){
             if ((*fontPtr & (0b10000000 >> (x - xx))) > 0) {
@@ -52,7 +52,7 @@ void DisplayDriver::InitDoubleBuffer(DisplayBuffer* f) {
 	secondFrameBuffer = f;
 }
 	
-void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font) {
+void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSFFont* font) {
 	globalFont = font;
 	globalFrameBuffer = framebuf;
 	colour = 0xffffff;

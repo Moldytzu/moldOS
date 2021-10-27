@@ -10,7 +10,6 @@
 #include "drivers/rtc/rtc.h" //real time clock
 #include "drivers/keyboard/keyboarddriver.h" // keyboard
 #include "drivers/mouse/mouse.h" //ps/2 mouse
-#include "drivers/ahci/ahci.h" //disk
 
 //misc
 #include "misc/bitmap/bitmap.h" //bitmap
@@ -39,7 +38,6 @@
 //libc
 #include "libc/stdio.h" //standard i/o
 #include "libc/math.h" //maths
-#include "libc/time.h" //time
 
 //scheduling
 #include "scheduling/pit.h" //pit
@@ -62,7 +60,7 @@
 struct BootInfo {
 	//display
 	DisplayBuffer* GOPFrameBuffer;
-	PSF1_FONT* Font;
+	PSFFont* Font;
 
 	//memory
 	EFI_MEMORY_DESCRIPTOR* mMap;
@@ -236,12 +234,6 @@ void InitDrivers(BootInfo* bootInfo) {
     #ifndef Quiet
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
     #endif
-
-	CPUFeatures = CPUgetFeatures();
-	#ifndef Quiet
-    LogInfo("Detected CPU features!");
-    #endif
-    SerialWrite("Kernel detected CPU features!\n");
 
     InitACPI(bootInfo);
     #ifndef Quiet

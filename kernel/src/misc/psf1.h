@@ -1,12 +1,13 @@
 #pragma once
+#include <stdint.h>
 
-typedef struct {
-	unsigned char magic[2];
-	unsigned char mode;
-	unsigned char charsize;
-} PSF1_HEADER;
+struct PSFHeader{
+	uint8_t magic[2];
+	uint8_t mode;
+	uint8_t charsize;
+};
 
-typedef struct {
-	PSF1_HEADER* psf1_Header;
+struct PSFFont{
+	PSFHeader* header;
 	void* glyphBuffer;
-} PSF1_FONT;
+};

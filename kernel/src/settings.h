@@ -7,7 +7,6 @@
 //=========
 //Debugging
 //=========
-#define Debugging_AHCI //display AHCI ports
 #define Debugging_ACPI //shows ACPI-related stuff
 #define Debugging_Scheduler //show how the tasks are switched
 

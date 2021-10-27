@@ -2,7 +2,6 @@
 #include "../../memory/PageTableManager.h"
 #include "../../drivers/display/displaydriver.h"
 #include "../../libc/stdio.h"
-#include "../ahci/ahci.h"
 #include "../../memory/heap.h"
 
 void PCI::EnumFunc(uint64_t addr,uint64_t function) {
@@ -11,23 +10,13 @@ void PCI::EnumFunc(uint64_t addr,uint64_t function) {
     uint64_t busAddress = addr + offset;
     GlobalTableManager.MapMemory((void*)busAddress,(void*)busAddress);
 
-    PCIDevice* deviceZ = (PCIDevice*)busAddress;
+    PCIDevice* originalDevice = (PCIDevice*)busAddress;
 
-    if(deviceZ->DeviceID == 0) return;
-    if(deviceZ->DeviceID == 0xFFFF) return;
+    if(originalDevice->DeviceID == 0) return;
+    if(originalDevice->DeviceID == 0xFFFF) return;
     
-    Devices[DevicesIndex] = PCITranslateDevice(deviceZ);
+    Devices[DevicesIndex] = PCITranslateDevice(originalDevice);
     DevicesIndex++;
-    switch (deviceZ->Class){
-        case 0x01:
-            switch (deviceZ->Subclass){
-                case 0x06:
-                    switch (deviceZ->ProgramInterface){
-                        case 0x01:
-                            new AHCIDriver(deviceZ);
-                    }
-            }
-    }
 
 }
 
@@ -37,10 +26,10 @@ void PCI::EnumDevice(uint64_t addr, uint64_t device) {
     uint64_t busAddress = addr + offset;
     GlobalTableManager.MapMemory((void*)busAddress,(void*)busAddress);
 
-    PCIDevice* deviceZ = (PCIDevice*)busAddress;
+    PCIDevice* originalDevice = (PCIDevice*)busAddress;
 
-    if(deviceZ->DeviceID == 0) return;
-    if(deviceZ->DeviceID == 0xFFFF) return;
+    if(originalDevice->DeviceID == 0) return;
+    if(originalDevice->DeviceID == 0xFFFF) return;
 
     for(uint64_t device = 0; device < 8;device++) {
         EnumFunc(busAddress,device);

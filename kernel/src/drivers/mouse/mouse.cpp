@@ -6,21 +6,15 @@
 Mouse* GlobalMouse;
 
 void Wait() {
-    uint64_t timeout = 100000;
-    while (timeout--){
-        if ((inportb(PS2_STATUS) & 0b10) == 0){
+    for(int timeout = 100000;timeout > 0;timeout--)
+        if(inportb(PS2_STATUS) & 0b10 == 0)
             return;
-        }
-    }
 }
 
 void WaitInput() {
-    uint64_t timeout = 100000;
-    while (timeout--){
-        if (inportb(PS2_STATUS) & 0b1){
+    for(int timeout = 100000;timeout > 0;timeout--)
+        if(inportb(PS2_STATUS) & 0b1)
             return;
-        }
-    }
 }
 
 void Mouse::Send(int val) {

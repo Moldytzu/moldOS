@@ -3,7 +3,6 @@
 #include "stddef.h"
 #include "../../libc/stdio.h"
 #include "../../libc/math.h"
-#include "../../libc/time.h"
 #include "../../memory/memory.h"
 #include "../../memory/PageFrameAllocator.h"
 #include "../../misc/psf1.h"
@@ -41,7 +40,7 @@ void checkScroll();
 void scroll();
 
 //initializare
-void InitDisplayDriver(DisplayBuffer* framebuf, PSF1_FONT* font);
+void InitDisplayDriver(DisplayBuffer* framebuf, PSFFont* font);
 void InitDoubleBuffer(DisplayBuffer* f);
 
 uint64_t getWidth();
@@ -52,7 +51,7 @@ void update();
 //vars
 DisplayBuffer* secondFrameBuffer;
 DisplayBuffer* globalFrameBuffer;
-PSF1_FONT* globalFont;
+PSFFont* globalFont;
 Point CursorPos;
 uint64_t colour;
 void* EmptyScreenBuffer;
