@@ -7,9 +7,10 @@ LDS = linker.ld
 CC = gcc
 LD = ld
 ASM = nasm
+AR = ar
 CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static
 
-OUTFILE = $(BUILDDIR)/minit.melf
+OUTFILE = $(BUILDDIR)/mlib.a
 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
 ASMFLAGS = 
@@ -38,4 +39,4 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 #other
 link: $(OBJS)
 	@ echo Linking: $(OBJS)
-	@ $(LD) $(LDFLAGS) -o $(OUTFILE) $(OBJS) ../../mlib/bin/mlib.a
+	@ $(AR) rcs $(OUTFILE) $(OBJS)

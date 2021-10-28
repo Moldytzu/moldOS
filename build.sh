@@ -6,6 +6,11 @@ cd gnu-efi
 make -j bootloader
 cd ..
 
+#lib
+cd mlib
+make
+cd ..
+
 #apps
 for d in ./apps/* ; do (cd "$d" && echo "Compilling $d" && make && cp ./bin/* ../../ramfs/); done
 
