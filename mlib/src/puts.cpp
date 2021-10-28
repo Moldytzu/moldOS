@@ -2,5 +2,5 @@
 
 void puts(const char* str) {
     for(int i = 0;str[i] != 0;i++)
-        isyscall(0x1,str[i],1,0);
+        isyscall(SYS_WRITEC,str[i],COUT,0);
 }
