@@ -1,6 +1,6 @@
 ### compiled files
 *.o
-*.llexec
+*.melf
 *.img
 *.iso
 *.llfs2

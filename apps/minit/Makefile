@@ -9,7 +9,7 @@ LD = ld
 ASM = nasm
 CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static
 
-OUTFILE = $(BUILDDIR)/llinit.llexec
+OUTFILE = $(BUILDDIR)/minit.melf
 
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 ASMFLAGS = 

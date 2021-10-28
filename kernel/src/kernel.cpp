@@ -45,15 +45,15 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalTaskManager = &tmgr;
 	
 	//userspace
-	void* LLInit = LoadELFExecutable(llfs,"llinit.llexec   ");
+	void* moldInit = LoadELFExecutable(llfs,"minit.melf      ");
 	
-	if(LLInit == (void*)1 || LLInit == (void*)2) {
-		KernelPanic("LLInit is missing or corrupt.");
+	if(moldInit == (void*)1 || moldInit == (void*)2) {
+		KernelPanic("moldInit is missing or corrupt.");
 	}
 
 	GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
 	GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
-	GlobalTaskManager->AddTask(LLInit,GenerateUserspaceStack(),"LLInit",TASK_USER);
+	GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"moldInit",TASK_USER);
 
 	//jump in the userspace
 	GlobalTaskManager->isEnabled = 1;
