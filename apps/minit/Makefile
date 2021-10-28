@@ -7,7 +7,7 @@ LDS = linker.ld
 CC = gcc
 LD = ld
 ASM = nasm
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static -I../../mlib/inc/
 
 OUTFILE = $(BUILDDIR)/minit.melf
 

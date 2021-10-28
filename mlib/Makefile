@@ -8,7 +8,7 @@ CC = gcc
 LD = ld
 ASM = nasm
 AR = ar
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static -Iinc/
 
 OUTFILE = $(BUILDDIR)/mlib.a
 
