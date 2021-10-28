@@ -3,20 +3,21 @@ ENTRY(moldMain)
 
 SECTIONS
 {
-	.text : ALIGN(0x1000)
+	. = 0x0000100000200004;
+	.text :
 	{
 		*(.text)
 	}
-	.data : ALIGN(0x1000)
+	.data :
 	{
 		*(.data)
 	}
-	.rodata : ALIGN(0x1000)
+	.rodata :
 	{
 		*(.rodata)
 	}
 	_BssStart = .;
-	.bss : ALIGN(0x1000)
+	.bss :
 	{
 		*(COMMON)
 		*(.bss)

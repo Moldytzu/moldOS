@@ -12,8 +12,8 @@ Special Thanks to:
 
 /*
 To-do list:
-- llfs version 2
 - better elf loader
+- llfs version 2
 - basic shell
 - gui infrastructure
 - window manager
@@ -44,8 +44,12 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	TaskManager tmgr;
 	GlobalTaskManager = &tmgr;
 	
+	void* lastAddr = malloc(1);
+	void* offset = malloc(0x0000100000200000-(uint64_t)lastAddr-sizeof(HeapSegHdr)*3);
+	void* address = malloc(1*1024*1024); //1 mb
+
 	//userspace
-	void* moldInit = LoadELFExecutable(llfs,"minit.melf      ");
+	void* moldInit = LoadELFExecutable(llfs,"minit.melf      ",0);
 	
 	if(moldInit == (void*)1 || moldInit == (void*)2) {
 		KernelPanic("moldInit is missing or corrupt.");

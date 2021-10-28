@@ -11,7 +11,7 @@ CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static
 
 OUTFILE = $(BUILDDIR)/minit.melf
 
-LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
+LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax
 ASMFLAGS = 
 
 rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))

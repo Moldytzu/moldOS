@@ -6,24 +6,16 @@
 #include "../misc/logging/log.h"
 #include "../scheduling/taskmgr.h"
 
-void ConsoleWrite(uint64_t* text,uint64_t resource) {
-    if(resource)
-        printf("%s",(GlobalTaskManager->tasks[GlobalTaskManager->currentTask].entryPoint+(uint64_t)text));
-    else
-        printf("%s",text);
-    //GlobalDisplay->update();
+void SysConsoleWrite(char text) {
+    printf("%c",text);
 }
 
-void SerialWrite(char* text,uint64_t resource) {
-    if(resource)
-        SerialWrite((GlobalTaskManager->tasks[GlobalTaskManager->currentTask].entryPoint+(uint64_t)text));
-    else
-        SerialWrite(text);
+void SysSerialWrite(char text) {
+    SerialWrite(text);
 }
 
 void Exit(uint64_t code) {
     printf("\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
-    //GlobalDisplay->update();
     GlobalTaskManager->ExitCurrentTask();
 }
 
@@ -32,8 +24,8 @@ void SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) 
     switch (syscall)
     {
     case SYSCALL_WRITE:
-        if(arg2 == SOUT) SerialWrite((char*)(uint64_t*)arg1,arg3);
-        else ConsoleWrite((uint64_t*)arg1,arg3);
+        if(arg2 == SOUT) SysSerialWrite((char)arg1);
+        else SysConsoleWrite((char)arg1);
         break;
     case SYSCALL_EXIT:
         Exit(arg1);

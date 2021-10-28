@@ -19,7 +19,7 @@ int CheckELF(LLFSHeader* fs,const char* file) {
     return 1;
 }
 
-void* LoadELFExecutable(LLFSHeader* fs,const char* file) {
+void* LoadELFExecutable(LLFSHeader* fs,const char* file, bool pie) {
     LLFSEntry* entry = LLFSOpenFile(fs,file);
 
     if((void*)entry == (void*)0) {
@@ -38,10 +38,12 @@ void* LoadELFExecutable(LLFSHeader* fs,const char* file) {
     for (uint64_t i = 0;i < header->e_phnum;i++) {
         if(phdrs->p_type == PT_LOAD) {
             void* segmentStart = offset+phdrs->p_vaddr; //get the segment start
+            if(!pie) segmentStart -= (uint64_t)offset;
             memcpy(segmentStart,Contents + phdrs->p_offset,phdrs->p_filesz); 
         }
         phdrs++;
     }
 
+    if(!pie) return (void*)header->e_entry;
     return (void*)offset+header->e_entry;
 }
