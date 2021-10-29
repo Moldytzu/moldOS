@@ -10,7 +10,7 @@
 #define BROWN  0x643000
 #define GRAY  0x858585
 #define DARKGRAY  0x646464
-#define LIGHTBLUE  0x0000ff
+#define LIGHTBLUE  0x6060ff
 #define LIGHTGREEN  0x00ff00
 #define LIGHTTURQOISE  0x00ffff
 #define LIGHTRED  0xff0000

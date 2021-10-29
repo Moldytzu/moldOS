@@ -1,8 +1,9 @@
 #include "log.h"
 #include "../../settings.h"
+#include "../../drivers/rtc/rtc.h"
 
 void LogInfo(const char* text) {
-    printf("[%coINFO%co] %s\n",LIGHTBLUE,WHITE,text);
+    printf("[%co%d:%d:%d/INFO%co] %s\n",LIGHTBLUE,RTCreadHours(),RTCreadMinutes(),RTCreadSeconds(),WHITE,text);
     GlobalDisplay->update();
     #ifdef Logging_Serial
     SerialWrite(SERIAL_BLUE,"[INFO] ",SERIAL_WHITE,text,"\n");
@@ -10,7 +11,7 @@ void LogInfo(const char* text) {
 }
 
 void LogWarn(const char* text) {
-    printf("[%coWARN%co] %s\n",YELLOW,WHITE,text);
+    printf("[%co%d:%d:%d/WARN%co] %s\n",YELLOW,RTCreadHours(),RTCreadMinutes(),RTCreadSeconds(),WHITE,text);
     GlobalDisplay->update();
     #ifdef Logging_Serial
     SerialWrite(SERIAL_YELLOW,"[WARN] ",SERIAL_WHITE,text,"\n");
@@ -18,7 +19,7 @@ void LogWarn(const char* text) {
 }
 
 void LogError(const char* text) {
-    printf("[%coERROR%co] %s\n",LIGHTRED,WHITE,text);
+    printf("[%co%d:%d:%d/ERROR%co] %s\n",LIGHTRED,RTCreadHours(),RTCreadMinutes(),RTCreadSeconds(),WHITE,text);
     GlobalDisplay->update();  
     #ifdef Logging_Serial
     SerialWrite(SERIAL_RED,"[ERROR] ",SERIAL_RED,text,"\n");
