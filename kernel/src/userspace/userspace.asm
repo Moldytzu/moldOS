@@ -1,5 +1,4 @@
 [bits 64]
-ALIGN	4096
 
 %macro	SYSCALL_SAVE	0
 	push	r15
