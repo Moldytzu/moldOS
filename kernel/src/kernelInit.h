@@ -31,7 +31,6 @@
 
 //cpu
 #include "cpu/intrerupts.h" //idt
-#include "cpu/cpu.h" //cpu
 #include "cpu/gdt.h" //gdt
 #include "cpu/tss.h" //tss
 
@@ -170,35 +169,43 @@ void InitACPI(BootInfo* bootInfo) {
 }
 
 void InitDrivers(BootInfo* bootInfo) {
+    GlobalInfo = bootInfo;
+
+    //anounce kernel loaded successfully
+    SerialWrite(SERIAL_WHITE);
+    SerialWrite("Kernel pre-display phase has begun!\n");
+
     //clear the bss so it will not have random values at startup
     memset(&_BssStart,0,&_BssEnd-&_BssStart);
     
-    GlobalInfo = bootInfo;
-    
-    uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
-
+    //read memory map
     GlobalAllocator = PageFrameAllocator();
     GlobalAllocator.ReadEFIMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
+    SerialWrite("Readed memory map!\n");
 
+    //lock kernel pages
     uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
     uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
 
     GlobalAllocator.LockPages(&_KernelStart, kernelPages);
+    SerialWrite("Locked kernel pages\n");
 
+    //gdt and intrerupts
     gdtInit();
 	InitIntrerupts();
     PITSetDivisor(0xFFFF);
     asm volatile ("sti");
+    SerialWrite("Loaded the GDT and intrerrupts!\n");
 
-	SerialClearMonitor();
-    SerialWrite("Kernel intialized the Serial Port!\n");
-
+    //enable paging
 	EnablePaging(bootInfo);
     SerialWrite("Enabled Paging!\n");
 
+    //enable mouse and keyboard
     mouse.Init();
     GlobalKeyboard = &kb;
     GlobalMouse = &mouse;
+    SerialWrite("Enabled mouse and keyboard!\n");
 
 	display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);	
 

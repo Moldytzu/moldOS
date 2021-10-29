@@ -9,5 +9,4 @@ void SerialWrite(const char* chr,const char* chr2,const char* chr3,const char* c
 void SerialWrite(const char* chr,const char* chr2,const char* chr3,const char* chr4,const char* chr5);
 char SerialRead();
 void SerialClearMonitor();
-int SerialisTransmitEmpty();
 int SerialisReceived();

@@ -22,11 +22,11 @@
 #define LIGHTMAGENTA  0x7e38ff
 
 //serial
-#define SERIALWHITE  "\033[1;37m"
-#define SERIALBLACK  "\033[1;30m"
-#define SERIALRED  "\033[1;31m"
-#define SERIALGREEN  "\033[1;32m"
-#define SERIALYELLOW  "\033[1;33m"
-#define SERIALBLUE  "\033[1;34m"
-#define SERIALPINK  "\033[1;35m"
-#define SERIALCYAN  "\033[1;36m"
+#define SERIAL_WHITE  "\033[1;37m"
+#define SERIAL_BLACK  "\033[1;30m"
+#define SERIAL_RED  "\033[1;31m"
+#define SERIAL_GREEN  "\033[1;32m"
+#define SERIAL_YELLOW  "\033[1;33m"
+#define SERIAL_BLUE  "\033[1;34m"
+#define SERIAL_PINK  "\033[1;35m"
+#define SERIAL_CYAN  "\033[1;36m"

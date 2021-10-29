@@ -2,18 +2,15 @@
 #include "../settings.h"
 #define COM1 0x3f8
 
-int SerialisTransmitEmpty() {
-    return inportb(COM1 + 5) & 0x20;
-}
-
 int SerialisReceived() {
     return inportb(COM1 + 5) & 1;
 }
 
 char SerialRead() {
-    while(!SerialisReceived());
-
-    return inportb(COM1);
+    if(SerialisReceived())
+        return inportb(COM1);
+    else
+        return 0;
 }
 
 void SerialWrite(char chr) {

@@ -7,8 +7,8 @@
 //=========
 //Debugging
 //=========
-#define Debugging_ACPI //shows ACPI-related stuff
-#define Debugging_Scheduler //show how the tasks are switched
+//#define Debugging_ACPI //shows ACPI-related stuff
+//#define Debugging_Scheduler //show how the tasks are switched
 
 //========
 //Hardware
