@@ -3,6 +3,6 @@
 *.melf
 *.img
 *.iso
-*.llfs2
-*.llfs
+ram.llfs
+ram.llfs2
 *.efi
