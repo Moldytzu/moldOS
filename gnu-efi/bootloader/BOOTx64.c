@@ -75,7 +75,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     //Open the required files
     EFI_FILE* moldOSFolder = OpenFile(NULL,L"moldOS");
     if (moldOSFolder == NULL) DoError(L"Failed to open the moldOS folder!\n\r");
-    EFI_FILE* kernel = OpenFile(moldOSFolder,L"kernel.llexec");
+    EFI_FILE* kernel = OpenFile(moldOSFolder,L"kernel.melf");
     if (kernel == NULL) DoError(L"Failed to open the kernel!\n\r");
     EFI_FILE* font = OpenFile(moldOSFolder,L"font.psf");
     if (font == NULL) DoError(L"Failed to open the font!\n\r");
