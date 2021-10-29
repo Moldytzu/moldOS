@@ -1,9 +1,9 @@
-#include "acpi.h"
-#include "../../libc/stdio.h"
-#include "../../memory/PageTableManager.h"
-#include "../../drivers/display/displaydriver.h"
-#include "../../io/serial.h"
-#include "../../settings.h"
+#include <misc/power/acpi.h>
+#include <libc/stdio.h>
+#include <memory/PageTableManager.h>
+#include <drivers/display/display.h>
+#include <io/serial.h>
+#include <settings.h>
 
 void* ACPIFindTable(SDT* sdt, char* sign) {
     int entries = (sdt->Lenght - sizeof(SDT)) / 8;

@@ -1,4 +1,4 @@
-#include "keyboarddriver.h"
+#include <drivers/keyboard/keyboard.h>
 
 Keyboard* GlobalKeyboard;
 

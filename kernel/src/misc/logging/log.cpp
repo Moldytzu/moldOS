@@ -1,6 +1,6 @@
-#include "log.h"
-#include "../../settings.h"
-#include "../../drivers/rtc/rtc.h"
+#include <misc/logging/log.h>
+#include <settings.h>
+#include <drivers/rtc/rtc.h>
 
 void LogInfo(const char* text) {
     printf("[%co%d:%d:%d/INFO%co] %s\n",LIGHTBLUE,RTCreadHours(),RTCreadMinutes(),RTCreadSeconds(),WHITE,text);

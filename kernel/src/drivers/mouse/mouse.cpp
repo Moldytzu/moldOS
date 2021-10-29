@@ -1,4 +1,4 @@
-#include "mouse.h"
+#include <drivers/mouse/mouse.h>
 
 #define outb(x,y) outportb(x,y)
 #define inb(x) inportb(x)

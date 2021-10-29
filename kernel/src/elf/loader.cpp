@@ -1,8 +1,8 @@
-#include "loader.h"
+#include <elf/loader.h>
 #include <stddef.h>
-#include "../libc/stdio.h"
-#include "../memory/PageTableManager.h"
-#include "../memory/heap.h"
+#include <libc/stdio.h>
+#include <memory/PageTableManager.h>
+#include <memory/heap.h>
 
 int CheckELF(LLFSHeader* fs,const char* file) {
     LLFSEntry* entry = LLFSOpenFile(fs,file);

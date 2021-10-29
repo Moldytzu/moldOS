@@ -1,5 +1,5 @@
-#include "llfs.h"
-#include "../memory/memory.h"
+#include <filesystem/llfs.h>
+#include <memory/memory.h>
 
 LLFSEntry* LLFSOpenFile(LLFSHeader* fs,const char* filename) {
     LLFSEntry* firstEntry = (LLFSEntry*)((uint64_t)fs+sizeof(LLFSHeader));

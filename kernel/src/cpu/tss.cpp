@@ -1,4 +1,4 @@
-#include "tss.h"
+#include <cpu/tss.h>
 
 /*
 This file's author is KeepKonect.

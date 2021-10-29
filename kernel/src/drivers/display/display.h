@@ -1,11 +1,11 @@
 #pragma once
-#include "stdint.h"
-#include "stddef.h"
-#include "../../libc/stdio.h"
-#include "../../libc/math.h"
-#include "../../memory/memory.h"
-#include "../../memory/PageFrameAllocator.h"
-#include "../../misc/psf1.h"
+#include <stdint.h>
+#include <stddef.h>
+#include <libc/stdio.h>
+#include <libc/math.h>
+#include <memory/memory.h>
+#include <memory/PageFrameAllocator.h>
+#include <misc/psf1.h>
 
 typedef struct {
 	void* BaseAddr;

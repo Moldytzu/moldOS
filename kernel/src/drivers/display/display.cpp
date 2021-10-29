@@ -1,4 +1,4 @@
-#include "displaydriver.h"
+#include <drivers/display/display.h>
 
 DisplayDriver* GlobalDisplay;
 

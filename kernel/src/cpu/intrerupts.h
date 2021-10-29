@@ -1,12 +1,12 @@
 #pragma once
-#include "../io/ports.h"
-#include "../drivers/keyboard/keyboarddriver.h"
-#include "../io/serial.h"
-#include "../panic.h"
-#include "../drivers/display/displaydriver.h"
-#include "../drivers/mouse/mouse.h"
-#include "../scheduling/pit.h"
-#include "../scheduling/taskmgr.h"
+#include <io/ports.h>
+#include <drivers/keyboard/keyboard.h>
+#include <io/serial.h>
+#include <panic.h>
+#include <drivers/display/display.h>
+#include <drivers/mouse/mouse.h>
+#include <scheduling/pit.h>
+#include <scheduling/taskmgr.h>
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21

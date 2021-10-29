@@ -8,7 +8,7 @@ LDS = kern.ld
 CC = gcc
 LD = ld
 ASM = nasm
-CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone
+CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -I./src/
 
 CFLAGS += -Wno-pointer-arith -Wno-int-to-pointer-cast #surpress some warnings
 

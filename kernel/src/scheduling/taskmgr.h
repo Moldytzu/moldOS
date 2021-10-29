@@ -1,10 +1,10 @@
 #pragma once
 #include <stdint.h>
-#include "../memory/PageTableManager.h"
-#include "../cpu/gdt.h"
-#include "../io/serial.h"
-#include "../memory/memory.h"
-#include "../settings.h"
+#include <memory/PageTableManager.h>
+#include <cpu/gdt.h>
+#include <io/serial.h>
+#include <memory/memory.h>
+#include <settings.h>
 
 #define STATE_RUNNING 1
 #define STATE_HALTED 0

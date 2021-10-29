@@ -1,6 +1,6 @@
 #pragma once
-#include "../../io/ports.h"
-#include "../display/displaydriver.h"
+#include <io/ports.h>
+#include <drivers/display/display.h>
 
 #define X_SIGN 0b00010000
 #define Y_SIGN 0b00100000

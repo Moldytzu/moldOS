@@ -1,4 +1,4 @@
-#include "bitmap.h"
+#include <misc/bitmap/bitmap.h>
 
 bool Bitmap::operator[](uint64_t index){
     return Get(index);

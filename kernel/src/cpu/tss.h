@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
-#include "gdt.h"
-#include "../memory/memory.h"
+#include <cpu/gdt.h>
+#include <memory/memory.h>
 
 /*
 This file's author is KeepKonect.

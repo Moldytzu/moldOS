@@ -1,5 +1,5 @@
 #pragma once
-#include "paging.h"
+#include <memory/paging.h>
 
 // x86_64 multi-level addressing
 struct PageLevelIndexes {

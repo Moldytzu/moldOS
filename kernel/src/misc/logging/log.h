@@ -1,7 +1,7 @@
 #pragma once
-#include "../../drivers/display/displaydriver.h"
-#include "../colors.h"
-#include "../../io/serial.h"
+#include <drivers/display/display.h>
+#include <misc/colors.h>
+#include <io/serial.h>
 
 void LogInfo(const char* text);
 void LogWarn(const char* text);

@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
-#include "../display/displaydriver.h"
-#include "../../io/ports.h"
+#include <drivers/display/display.h>
+#include <io/ports.h>
 
 #define KEY_BACKSPACE 0x0E
 #define KEY_LEFTSHIFT 0x2A

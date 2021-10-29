@@ -1,4 +1,4 @@
-#include "rtc.h"
+#include <drivers/rtc/rtc.h>
 
 uint32_t BCDToBinary(uint32_t bcd) {
     return (bcd & 0x0F) + ((bcd / 16) * 10);

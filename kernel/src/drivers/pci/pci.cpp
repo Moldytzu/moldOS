@@ -1,8 +1,8 @@
-#include "pci.h"
-#include "../../memory/PageTableManager.h"
-#include "../../drivers/display/displaydriver.h"
-#include "../../libc/stdio.h"
-#include "../../memory/heap.h"
+#include <drivers/pci/pci.h>
+#include <memory/PageTableManager.h>
+#include <drivers/display/display.h>
+#include <libc/stdio.h>
+#include <memory/heap.h>
 
 void PCI::EnumFunc(uint64_t addr,uint64_t function) {
     uint64_t offset = function << 12;

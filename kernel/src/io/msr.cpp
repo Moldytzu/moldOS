@@ -1,4 +1,4 @@
-#include "msr.h"
+#include <io/msr.h>
 
 void ReadMSR(uint32_t msr,uint32_t* low,uint32_t* high) {
     asm volatile("rdmsr" : "=a"(*low), "=d"(*high) : "c"(msr));

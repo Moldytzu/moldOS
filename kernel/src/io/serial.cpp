@@ -1,5 +1,5 @@
-#include "serial.h"
-#include "../settings.h"
+#include <io/serial.h>
+#include <settings.h>
 #define COM1 0x3f8
 
 int SerialisReceived() {

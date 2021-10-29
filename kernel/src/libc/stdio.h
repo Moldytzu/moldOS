@@ -1,3 +1,3 @@
 #pragma once
-#include "stdio/printf.h"
-#include "stdio/cstring.h"
+#include <libc/stdio/cstring.h>
+#include <libc/stdio/printf.h>

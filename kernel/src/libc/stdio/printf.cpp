@@ -1,4 +1,4 @@
-#include "printf.h"
+#include <libc/stdio/printf.h>
 
 void printf(const char* str, ...) {
     va_list args;

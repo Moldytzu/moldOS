@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include "../../io/ports.h"
+#include <io/ports.h>
 
 #define CMOS_ADDRESS 0x70
 #define CMOS_DATA 0x71

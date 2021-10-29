@@ -1,5 +1,5 @@
-#include "pcitranslate.h"
-#include "../../libc/stdio/cstring.h"
+#include <drivers/pci/pcitranslate.h>
+#include <libc/stdio/cstring.h>
 
 TranslatedPCIDevice PCITranslateDevice(PCIDevice* device) {
     TranslatedPCIDevice newDevice;

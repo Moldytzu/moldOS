@@ -1,4 +1,4 @@
-#include "cstring.h"
+#include <libc/stdio/cstring.h>
 
 int strcmp (const char *p1, const char *p2) //https://code.woboq.org/userspace/glibc/string/strcmp.c.html
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
-#include "../../misc/power/acpi.h"
-#include "pcitranslate.h"
+#include <misc/power/acpi.h>
+#include <drivers/pci/pcitranslate.h>
 
 class PCI {
 private:

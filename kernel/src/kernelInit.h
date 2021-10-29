@@ -1,58 +1,58 @@
 #pragma once
 
 //standard definitions
-#include "stddef.h"
-#include "stdint.h"
+#include <stddef.h>
+#include <stdint.h>
 
 //drivers
-#include "drivers/display/displaydriver.h" //display
-#include "drivers/pci/pci.h" //pci
-#include "drivers/rtc/rtc.h" //real time clock
-#include "drivers/keyboard/keyboarddriver.h" // keyboard
-#include "drivers/mouse/mouse.h" //ps/2 mouse
+#include <drivers/display/display.h> //display
+#include <drivers/pci/pci.h> //pci
+#include <drivers/rtc/rtc.h> //real time clock
+#include <drivers/keyboard/keyboard.h> // keyboard
+#include <drivers/mouse/mouse.h> //ps/2 mouse
 
 //misc
-#include "misc/bitmap/bitmap.h" //bitmap
-#include "misc/colors.h" //colors
-#include "misc/logging/log.h" //logging
-#include "misc/power/acpi.h" //acpi
+#include <misc/bitmap/bitmap.h> //bitmap
+#include <misc/colors.h> //colors
+#include <misc/logging/log.h> //logging
+#include <misc/power/acpi.h> //acpi
 
 //io
-#include "io/serial.h" //serial port
-#include "io/msr.h" //model specific registers
+#include <io/serial.h> //serial port
+#include <io/msr.h> //model specific registers
 
 //memory
-#include "memory/memory.h" //memory
-#include "memory/PageFrameAllocator.h" //pfa
-#include "memory/PageMapIndexer.h" //pmi
-#include "memory/paging.h" //paging
-#include "memory/PageTableManager.h" //ptm
-#include "memory/heap.h" //heap
+#include <memory/memory.h> //memory
+#include <memory/PageFrameAllocator.h> //pfa
+#include <memory/PageMapIndexer.h> //pmi
+#include <memory/paging.h> //paging
+#include <memory/PageTableManager.h> //ptm
+#include <memory/heap.h> //heap
 
 //cpu
-#include "cpu/intrerupts.h" //idt
-#include "cpu/gdt.h" //gdt
-#include "cpu/tss.h" //tss
+#include <cpu/intrerupts.h> //idt
+#include <cpu/gdt.h> //gdt
+#include <cpu/tss.h> //tss
 
 //libc
-#include "libc/stdio.h" //standard i/o
-#include "libc/math.h" //maths
+#include <libc/stdio.h> //standard i/o
+#include <libc/math.h> //maths
 
 //scheduling
-#include "scheduling/pit.h" //pit
-#include "scheduling/taskmgr.h" //task manager
+#include <scheduling/pit.h> //pit
+#include <scheduling/taskmgr.h> //task manager
 
 //userspace
-#include "userspace/userspace.h" //userspace
+#include <userspace/userspace.h> //userspace
 
 //filesystem
-#include "filesystem/llfs.h" //llfs
+#include <filesystem/llfs.h> //llfs
 
 //elf
-#include "elf/loader.h"
+#include <elf/loader.h>
 
 //settings
-#include "settings.h"
+#include <settings.h>
 
 #define DoubleBuffer
 
