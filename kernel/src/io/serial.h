@@ -1,5 +1,8 @@
 #pragma once
 #include <io/ports.h>
+#include <settings.h>
+
+#define COM1 0x3F8
 
 void SerialWrite(char chr);
 void SerialWrite(const char* chr);

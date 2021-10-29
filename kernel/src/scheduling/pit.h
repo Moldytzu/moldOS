@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <io/ports.h>
 
 extern double TimeSinceBoot;
 const uint64_t PITBaseFrequency = 1193182;

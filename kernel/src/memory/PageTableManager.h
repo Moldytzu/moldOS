@@ -1,5 +1,9 @@
 #pragma once
 #include <memory/paging.h>
+#include <memory/PageMapIndexer.h>
+#include <stdint.h>
+#include <memory/PageFrameAllocator.h>
+#include <memory/memory.h>
 
 // x86_64 multi-level addressing
 struct PageLevelIndexes {

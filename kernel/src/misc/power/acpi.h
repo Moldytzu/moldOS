@@ -1,5 +1,10 @@
 #pragma once
 #include <stdint.h>
+#include <libc/stdio.h>
+#include <memory/PageTableManager.h>
+#include <drivers/display/display.h>
+#include <io/serial.h>
+#include <settings.h>
 
 struct RSDP2 {
     unsigned char Signature[8];

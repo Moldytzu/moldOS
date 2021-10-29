@@ -1,5 +1,11 @@
 #pragma once
 #include <stdint.h>
+#include <libc/stdio.h>
+#include <drivers/display/display.h>
+#include <io/serial.h>
+#include <drivers/keyboard/keyboard.h>
+#include <misc/logging/log.h>
+#include <scheduling/taskmgr.h>
 
 #define SYSCALL_WRITE 0x1
 #define SYSCALL_READ 0x2

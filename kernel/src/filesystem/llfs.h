@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <memory/PageTableManager.h>
+#include <memory/memory.h>
 
 struct LLFSHeader {
     char Signature[4];

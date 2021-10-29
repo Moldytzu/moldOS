@@ -1,6 +1,4 @@
 #include <memory/heap.h>
-#include <memory/PageTableManager.h>
-#include <memory/PageFrameAllocator.h>
 
 void* heapStart;
 void* heapEnd;

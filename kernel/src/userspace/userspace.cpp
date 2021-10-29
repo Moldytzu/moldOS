@@ -1,10 +1,4 @@
 #include <userspace/userspace.h>
-#include <libc/stdio.h>
-#include <drivers/display/display.h>
-#include <io/serial.h>
-#include <drivers/keyboard/keyboard.h>
-#include <misc/logging/log.h>
-#include <scheduling/taskmgr.h>
 
 void SysConsoleWrite(char text) {
     printf("%c",text);

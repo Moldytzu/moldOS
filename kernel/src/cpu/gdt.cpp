@@ -1,5 +1,4 @@
 #include <cpu/gdt.h>
-#include <cpu/tss.h>
 
 /*
 This file's author is KeepKonect.

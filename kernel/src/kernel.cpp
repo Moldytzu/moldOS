@@ -1,5 +1,4 @@
 #include <kernelInit.h>
-#include <userspace/apps.h>
 
 /*
 Special Thanks to:

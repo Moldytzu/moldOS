@@ -1,6 +1,4 @@
 #include <io/serial.h>
-#include <settings.h>
-#define COM1 0x3f8
 
 int SerialisReceived() {
     return inportb(COM1 + 5) & 1;

@@ -7,6 +7,7 @@
 #include <drivers/mouse/mouse.h>
 #include <scheduling/pit.h>
 #include <scheduling/taskmgr.h>
+#include <userspace/userspace.h>
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21

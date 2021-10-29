@@ -1,5 +1,4 @@
 #include <scheduling/pit.h>
-#include <io/ports.h>
 
 double TimeSinceBoot = 0;
 uint16_t Divisor = 65535;

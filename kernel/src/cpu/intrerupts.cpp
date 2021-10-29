@@ -1,5 +1,4 @@
 #include <cpu/intrerupts.h>
-#include <userspace/userspace.h>
 
 IDTR* idt;
 

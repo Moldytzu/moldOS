@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <memory/PageTableManager.h>
+#include <memory/PageFrameAllocator.h>
+
 struct HeapSegHdr{
     size_t length;
     HeapSegHdr* next;
