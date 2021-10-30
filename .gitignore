@@ -6,3 +6,4 @@
 ram.llfs
 ram.llfs2
 *.efi
+mlib.a
