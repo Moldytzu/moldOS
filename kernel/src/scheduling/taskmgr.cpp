@@ -34,7 +34,7 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
     task.name = name;
     memset(&task.registers,0,sizeof(InterruptStack));
     task.registers.rip = (uint64_t)entry;
-    task.registers.rsp = (uint64_t)(stack+0x1000);
+    task.registers.rsp = (uint64_t)stack+0x1000;
     task.registers.rflags = 0x202; //interrupts
     task.registers.cs = GDTInfoSelectors.UCode;
     task.registers.ss = GDTInfoSelectors.UData;

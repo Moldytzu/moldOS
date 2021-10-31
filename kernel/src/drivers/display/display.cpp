@@ -20,8 +20,8 @@ void DisplayDriver::putc(char ch) {
 }
 
 void DisplayDriver::scroll() {
-	asmmemcpy(secondFrameBuffer->BaseAddr-((uint64_t)secondFrameBuffer->BufferSize%4),(void*)((uint64_t)secondFrameBuffer->BaseAddr+((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4)),globalFrameBuffer->BufferSize-((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4));
-	memset(secondFrameBuffer->BaseAddr+globalFrameBuffer->BufferSize-((getWidth()*4)*16)-((uint64_t)secondFrameBuffer->BufferSize%4),0,(getWidth()*4*16)-((uint64_t)secondFrameBuffer->BufferSize%4));
+	asmmemcpy((void*)((uint64_t)secondFrameBuffer->BaseAddr-(secondFrameBuffer->BufferSize%4)),(void*)((uint64_t)secondFrameBuffer->BaseAddr+((getWidth()*4)*16)-(secondFrameBuffer->BufferSize%4)),globalFrameBuffer->BufferSize-((getWidth()*4)*16)-(secondFrameBuffer->BufferSize%4));
+	memset((void*)((uint64_t)secondFrameBuffer->BaseAddr+globalFrameBuffer->BufferSize-((getWidth()*4)*16)-(secondFrameBuffer->BufferSize%4)),0,(getWidth()*4*16)-(secondFrameBuffer->BufferSize%4));
 }
 
 void DisplayDriver::checkScroll() {

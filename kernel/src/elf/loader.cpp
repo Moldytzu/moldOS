@@ -25,7 +25,7 @@ void* LoadELFExecutable(LLFSHeader* fs,const char* file, bool pie) {
     void* Contents = LLFSReadFile(entry);
 
     Elf64_Ehdr* header = (Elf64_Ehdr*)Contents;
-    Elf64_Phdr *phdrs = (Elf64_Phdr *)(Contents+header->e_phoff);
+    Elf64_Phdr *phdrs = (Elf64_Phdr *)((uint64_t)Contents+header->e_phoff);
 
     if(!CheckELF(fs,file)) return (void*)2;
 
@@ -33,13 +33,13 @@ void* LoadELFExecutable(LLFSHeader* fs,const char* file, bool pie) {
 
     for (uint64_t i = 0;i < header->e_phnum;i++) {
         if(phdrs->p_type == PT_LOAD) {
-            void* segmentStart = offset+phdrs->p_vaddr; //get the segment start
+            void* segmentStart = (void*)((uint64_t)offset+phdrs->p_vaddr); //get the segment start
             if(!pie) segmentStart -= (uint64_t)offset;
-            memcpy(segmentStart,Contents + phdrs->p_offset,phdrs->p_filesz); 
+            memcpy(segmentStart,(void*)((uint64_t)Contents+phdrs->p_offset),phdrs->p_filesz); 
         }
         phdrs++;
     }
 
     if(!pie) return (void*)header->e_entry;
-    return (void*)offset+header->e_entry;
+    return (void*)((uint64_t)offset+header->e_entry);
 }
