@@ -2,12 +2,14 @@
 SRCDIR := src
 OBJDIR := lib
 BUILDDIR = bin
+CROSSCOMPILERBIN = $(HOME)/cross_compiler/bin
+PREFIX = $(CROSSCOMPILERBIN)/x86_64-elf-
 
 LDS = linker.ld
-CC = gcc
-LD = ld
+CC = $(PREFIX)gcc
+LD = $(PREFIX)ld
 ASM = nasm
-AR = ar
+AR = $(PREFIX)ar
 CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static -Iinc/
 
 OUTFILE = $(BUILDDIR)/mlib.a

@@ -1,28 +1,14 @@
-#defs
-SRCDIR := src
-OBJDIR := lib
-BUILDDIR = bin
+include ../std.mk
 
 GNUEFI = ../gnu-efi
-LDS = kern.ld
-CC = gcc
-LD = ld
-ASM = nasm
-CFLAGS = -fno-exceptions -ffreestanding -fshort-wchar -mno-red-zone -I./src/
 
-CFLAGS += -Wno-pointer-arith -Wno-int-to-pointer-cast #surpress some warnings
-
-LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
-
-rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(subst *,%,$2),$d))
-
+# sources
 SRC = $(call rwildcard,$(SRCDIR),*.cpp)     
 ASMSRC = $(call rwildcard,$(SRCDIR),*.asm)
 
+# objects
 OBJS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
 OBJS += $(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%_asm.o, $(ASMSRC))
-
-DIRS = $(wildcard $(SRCDIR)/*)
 
 kernel: buildimg
 

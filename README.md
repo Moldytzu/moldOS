@@ -36,7 +36,7 @@ It aims to be easy to use, small and simple.
      - LLFS 1.0
 
 # Building:
-To build moldOS you need to run a x86_64 Debian-based Linux distro. Run the prepare.sh script and then run build.sh to build the operating system.
+To build moldOS you need to run a x86_64 Debian-based Linux distro. Run the prepare.sh script, then run buildtoolchain.sh (it will take a while), and then run ./build.sh
 
 # Running:
 Run run.sh to start the virtual machine with moldOS installed.

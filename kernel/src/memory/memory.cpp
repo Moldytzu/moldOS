@@ -1,5 +1,4 @@
 #include <memory/memory.h>
-#include <xmmintrin.h> // SSE
 
 const char* EFI_MEMORY_TYPE_STRINGS[] {
     "EfiReservedMemoryType",
@@ -89,33 +88,6 @@ __attribute__((optimize("-fno-tree-loop-distribute-patterns"))) void memcpy(void
 void slowmemset(void* start, uint8_t value, uint64_t num){
     for (uint64_t i = 0; i < num; i++){
         *(uint8_t*)((uint64_t)start + i) = value;
-    }
-}
-
-__attribute__((optimize("-fno-tree-loop-distribute-patterns"))) void ssememcpy(void* dst, void* src, size_t size) {
-    size_t stride = 8 * sizeof(__m128i);
-    while (size)
-    {
-        __m128 a = _mm_load_ps((float*)(src + 0*sizeof(__m128)));
-        __m128 b = _mm_load_ps((float*)(src + 1*sizeof(__m128)));
-        __m128 c = _mm_load_ps((float*)(src + 2*sizeof(__m128)));
-        __m128 d = _mm_load_ps((float*)(src + 3*sizeof(__m128)));
-        __m128 e = _mm_load_ps((float*)(src + 4*sizeof(__m128)));
-        __m128 f = _mm_load_ps((float*)(src + 5*sizeof(__m128)));
-        __m128 g = _mm_load_ps((float*)(src + 6*sizeof(__m128)));
-        __m128 h = _mm_load_ps((float*)(src + 7*sizeof(__m128)));
-        _mm_store_ps((float*)(dst + 0*sizeof(__m128)), a);
-        _mm_store_ps((float*)(dst + 1*sizeof(__m128)), b);
-        _mm_store_ps((float*)(dst + 2*sizeof(__m128)), c);
-        _mm_store_ps((float*)(dst + 3*sizeof(__m128)), d);
-        _mm_store_ps((float*)(dst + 4*sizeof(__m128)), e);
-        _mm_store_ps((float*)(dst + 5*sizeof(__m128)), f);
-        _mm_store_ps((float*)(dst + 6*sizeof(__m128)), g);
-        _mm_store_ps((float*)(dst + 7*sizeof(__m128)), h);
-
-        size -= stride;
-        src += stride;
-        dst += stride;
     }
 }
 

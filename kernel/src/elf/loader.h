@@ -1,6 +1,6 @@
 #pragma once
 #include <filesystem/llfs.h>
-#include <elf.h>
+#include <elf/elf.h>
 #include <stddef.h>
 #include <libc/stdio.h>
 #include <memory/PageTableManager.h>
