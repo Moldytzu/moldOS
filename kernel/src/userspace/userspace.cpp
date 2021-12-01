@@ -14,7 +14,7 @@ void Exit(uint64_t code) {
 }
 
                     //    RDX        RDI        RSI                       R8
-void SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) {
+uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) {
     switch (syscall)
     {
     case SYSCALL_WRITE:
@@ -28,12 +28,13 @@ void SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) 
         if(GlobalTaskManager->tasks[GlobalTaskManager->currentTask].privilege == TASK_SYSTEM)
             GlobalDisplay->update();
         else
-            Exit(ERROR_ACCESS_DENIED);
+            return ERROR_ACCESS_DENIED;
         break;
     default:
         LogWarn(inttohstr((uint64_t)syscall));
-        LogWarn("Unknown syscall! Forcing userspace exit!");
-        Exit(ERROR_UNKNOWN_SYSCALL);
+        LogWarn("Unknown syscall!");
+        return ERROR_UNKNOWN_SYSCALL;
         break;
     }
+    return 512;
 }

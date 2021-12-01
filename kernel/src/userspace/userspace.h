@@ -23,5 +23,5 @@
 extern "C" void EnableSCE();
 extern "C" void RunInUserspace(void* function,void* stack); 
 
-extern "C" void SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3);
+extern "C" uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3);
 
