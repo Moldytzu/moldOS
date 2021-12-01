@@ -1,4 +1,4 @@
-isyscall: ;RDI=syscall number ;RSI=arg1 ;RDX=arg2 ;r8=arg3
+sys_call: ;RDI=syscall number ;RSI=arg1 ;RDX=arg2 ;r8=arg3
     push rbp
     mov rbp, rsp
 
@@ -8,4 +8,4 @@ isyscall: ;RDI=syscall number ;RSI=arg1 ;RDX=arg2 ;r8=arg3
     pop rbp
     ret
 
-global isyscall
+global sys_call

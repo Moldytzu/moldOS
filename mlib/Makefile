@@ -10,7 +10,7 @@ CC = $(PREFIX)gcc
 LD = $(PREFIX)ld
 ASM = nasm
 AR = $(PREFIX)ar
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static -Iinc/
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static -Iinc/ -mcmodel=large
 
 OUTFILE = $(BUILDDIR)/mlib.a
 
