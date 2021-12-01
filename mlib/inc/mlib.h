@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <stdio.h>
+#include <ctype.h>
+
 #include "assert.h"
 
 #define isyscall sys_call
