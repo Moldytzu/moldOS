@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "assert.h"
+
 #define isyscall sys_call
 
 #define SYS_EXIT 0xFF
