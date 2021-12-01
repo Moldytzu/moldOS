@@ -18,6 +18,8 @@ To-do list:
 - window manager
 */
 
+extern "C" void IdleTask();
+
 extern "C" int kernelMain(BootInfo* binfo) {
 	InitDrivers(binfo);
 

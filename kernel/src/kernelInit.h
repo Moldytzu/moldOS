@@ -44,7 +44,6 @@
 
 //userspace
 #include <userspace/userspace.h> //userspace
-#include <userspace/apps.h>
 
 //filesystem
 #include <filesystem/llfs.h> //llfs
