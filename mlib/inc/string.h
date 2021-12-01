@@ -1,6 +1,9 @@
 #pragma once
 #include <mlib.h>
 
+#ifdef NULL
+#undef NULL
+#endif
 #define NULL (void*)0
 
 #define strcpy(dest,src) memcpy(dest,src,strlen(src))
