@@ -9,6 +9,7 @@ struct VirtualTerminal {
     const char* buffer;
     uint32_t maxLen;
     uint32_t index;
+    bool initialized;
 };
 
 extern VirtualTerminal VirtualTerminals[];

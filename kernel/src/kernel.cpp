@@ -58,15 +58,6 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
 	GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
 	GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"moldInit",TASK_USER);
-
-	VirtualTerminal testTerminal;
-	testTerminal.init(4096);
-	testTerminal.append("This is a test of the terminal");
-	testTerminal.append(" that works appending stuff");
-	testTerminal.append(" on the buffer!\n");
-
-	printf("%s",testTerminal.buffer);
-
 	//jump in the userspace
 	GlobalTaskManager->isEnabled = 1;
 	RunInUserspace((void*)IdleTask,GenerateUserspaceStack());

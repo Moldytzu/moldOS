@@ -6,7 +6,7 @@ void* ACPIFindTable(SDT* sdt, char* sign) {
         SDT* h = (SDT*)*(uint64_t*)((uint64_t)sdt + sizeof(SDT) + (t*8));
 
         #ifdef Debugging_ACPI
-            printf("Found table: %c%c%c%c\n",h->Signature[0],h->Signature[1],h->Signature[2],h->Signature[3]);GlobalDisplay->update();
+            printf("Found table: %c%c%c%c\n",h->Signature[0],h->Signature[1],h->Signature[2],h->Signature[3]);
         #endif
 
         for(int i = 0;i<4;i++) {

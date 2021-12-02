@@ -146,9 +146,15 @@ void InitIntrerupts() {
     asm volatile("cli");
 }
 
-SDT* xsdt;
+void InitVTerminals() {
+    GlobalAllocator.RequestPages(64); // padding so we don't allocate in crap
+    for(int i = 0;i < 0x800;i++) {
+        VirtualTerminals[i].init(0x1000);
+    }
+}
+
 void InitACPI(BootInfo* bootInfo) {
-    xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
+    SDT* xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
 
     if(memcmp(&xsdt->Signature,"XSDT",4) != 0) {
         LogWarn("Wrong XSDT signature! ACPI is disabled.");
@@ -240,6 +246,9 @@ void InitDrivers(BootInfo* bootInfo) {
 	GlobalDisplay = &display;
 	
     SerialWrite("Kernel intialized the display!\n");
+
+    InitVTerminals();
+    SerialWrite("Kernel intialized the terminals!\n");
 
     #ifndef Quiet
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
