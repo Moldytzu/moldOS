@@ -29,7 +29,7 @@ char* shorttostr(unsigned short* sh);
 char* chartostr(char c);
 
 //string lenght
-int strlen(char* str);
+int strlen(const char* str);
 
 //string compare
 int strcmp(const char* p1, const char* p2);

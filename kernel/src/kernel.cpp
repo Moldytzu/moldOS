@@ -48,7 +48,6 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	void* lastAddr = malloc(1);
 	void* offset = malloc(0x0000100000200000-(uint64_t)lastAddr-sizeof(HeapSegHdr)*3);
 	void* address = malloc(1*1024*1024); //1 mb
-
 	//userspace
 	void* moldInit = LoadELFExecutable(llfs,"minit.melf      ",0);
 	
@@ -59,6 +58,14 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
 	GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
 	GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"moldInit",TASK_USER);
+
+	VirtualTerminal testTerminal;
+	testTerminal.init(4096);
+	testTerminal.append("This is a test of the terminal");
+	testTerminal.append(" that works appending stuff");
+	testTerminal.append(" on the buffer!\n");
+
+	printf("%s",testTerminal.buffer);
 
 	//jump in the userspace
 	GlobalTaskManager->isEnabled = 1;

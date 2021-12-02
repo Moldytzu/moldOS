@@ -216,7 +216,7 @@ char* chartostr(char c) {
 }
 
 int strlenOutput = 0;
-int strlen(char* str) {
+int strlen(const char* str) {
     for(int i = 0;str[i] != 0;i++)
         strlenOutput = i;
     return strlenOutput;

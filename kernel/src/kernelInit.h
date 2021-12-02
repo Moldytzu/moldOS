@@ -51,6 +51,9 @@
 //elf
 #include <elf/loader.h>
 
+//virtual terminal
+#include <terminal/terminal.h>
+
 //settings
 #include <settings.h>
 
