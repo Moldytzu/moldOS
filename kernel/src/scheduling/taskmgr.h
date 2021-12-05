@@ -25,6 +25,7 @@ struct Task {
     int state;
     uint8_t privilege;
     InterruptStack registers;
+    int terminal = 0;
 };
 
 class TaskManager {

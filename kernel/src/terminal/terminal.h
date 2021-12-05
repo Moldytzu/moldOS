@@ -13,3 +13,4 @@ struct VirtualTerminal {
 };
 
 extern VirtualTerminal VirtualTerminals[];
+inline uint32_t CurrentTerminal;

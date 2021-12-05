@@ -1,7 +1,9 @@
 #include <userspace/userspace.h>
 
+#define CurrentTask GlobalTaskManager->tasks[GlobalTaskManager->currentTask]
+
 void SysConsoleWrite(char text) {
-    printf("%c",text);
+    printf(CurrentTask.terminal,"%c",text);
 }
 
 void SysSerialWrite(char text) {
@@ -9,7 +11,7 @@ void SysSerialWrite(char text) {
 }
 
 void Exit(uint64_t code) {
-    printf("\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
+    printf(1,"\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
     GlobalTaskManager->ExitCurrentTask();
 }
 
@@ -25,7 +27,7 @@ uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int ar
         Exit(arg1);
         break;
     case SYSCALL_UPDATESCREEN:
-        if(GlobalTaskManager->tasks[GlobalTaskManager->currentTask].privilege == TASK_SYSTEM)
+        if(CurrentTask.privilege == TASK_SYSTEM)
             GlobalDisplay->update();
         else
             return ERROR_ACCESS_DENIED;

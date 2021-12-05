@@ -3,30 +3,44 @@
 void printf(const char* str, ...) {
     va_list args;
     va_start(args,str);
+    printf(str,args);
+    va_end(args);
+}
+
+void printf(const char* str, va_list list) {
     int index = 0;
     while(str[index] != 0) {
         if(str[index] == '%') {
             if(str[index+1] == 'd')
-                VirtualTerminals[0].append(inttostr(va_arg (args, int))); //int or decimal
+                VirtualTerminals[CurrentTerminal].append(inttostr(va_arg (list, int))); //int or decimal
             else if(str[index+1] == 'u')
-                VirtualTerminals[0].append(inttostr(va_arg (args, uint64_t))); //uint
+                VirtualTerminals[CurrentTerminal].append(inttostr(va_arg (list, uint64_t))); //uint
             else if(str[index+1] == 'x')
-                VirtualTerminals[0].append(inttohstr(va_arg (args, uint64_t))); 
+                VirtualTerminals[CurrentTerminal].append(inttohstr(va_arg (list, uint64_t))); 
             else if(str[index+1] == 'f')
-                VirtualTerminals[0].append(inttostr(va_arg (args, double))); //float
+                VirtualTerminals[CurrentTerminal].append(inttostr(va_arg (list, double))); //float
             else if(str[index+1] == 'c' && str[index+2] != 'o')
-                VirtualTerminals[0].append(chartostr(va_arg (args, int))); //char
+                VirtualTerminals[CurrentTerminal].append(chartostr(va_arg (list, int))); //char
             else if(str[index+1] == 's')
-                VirtualTerminals[0].append(va_arg (args, const char*)); //string
+                VirtualTerminals[CurrentTerminal].append(va_arg (list, const char*)); //string
             else if(str[index+1] == 'p')
-                VirtualTerminals[0].append(inttostr((uint64_t)va_arg (args, void*))); //address
+                VirtualTerminals[CurrentTerminal].append(inttostr((uint64_t)va_arg (list, void*))); //address
             else if(str[index+1] == 'c' && str[index+2] == 'o') {
-                GlobalDisplay->colour = va_arg (args, int); //colour
+                va_arg (list, int);
                 index++;
             }
             index++;
-        } else VirtualTerminals[0].append(chartostr(str[index])); //char
+        } else VirtualTerminals[CurrentTerminal].append(chartostr(str[index])); //char
         index++;
     }
+}
+
+void printf(uint32_t vt,const char* str, ...) {
+    uint32_t tmp = CurrentTerminal;
+    CurrentTerminal = vt;
+    va_list args;
+    va_start(args,str);
+    printf(str,args);
     va_end(args);
+    CurrentTerminal = tmp;
 }

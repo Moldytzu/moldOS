@@ -5,3 +5,5 @@
 #include <terminal/terminal.h>
 
 void printf(const char* str, ...);
+void printf(const char* str, va_list list);
+void printf(uint32_t vt,const char* str, ...);

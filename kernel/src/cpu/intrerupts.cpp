@@ -48,9 +48,9 @@ void MSHandler() {
 
 void PITHandler(InterruptStack* istack) {
     PITTick();
-    if(VirtualTerminals[0].initialized) {
+    if(VirtualTerminals[CurrentTerminal].initialized) {
         GlobalDisplay->clearScreen(0);
-        GlobalDisplay->puts(VirtualTerminals[0].buffer);
+        GlobalDisplay->puts(VirtualTerminals[CurrentTerminal].buffer);
     }
     GlobalTaskManager->Schedule(istack);
     PIC_EndMaster();

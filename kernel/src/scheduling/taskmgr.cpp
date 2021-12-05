@@ -2,6 +2,8 @@
 
 TaskManager* GlobalTaskManager;
 
+int lastTerminal = 0;
+
 void TaskManager::Schedule(InterruptStack* registers) {
     if(!isEnabled) return;
     //Save registers
@@ -31,6 +33,7 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
     task.entryPoint = (uint64_t)entry;
     task.privilege = privilege;
     task.state = STATE_RUNNING;
+    task.terminal = lastTerminal++;
     task.name = name;
     memset(&task.registers,0,sizeof(InterruptStack));
     task.registers.rip = (uint64_t)entry;
