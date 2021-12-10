@@ -60,7 +60,7 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"moldInit",TASK_USER);
 	//jump in the userspace
 	GlobalTaskManager->isEnabled = 1;
-	CurrentTerminal = 1;
+	CurrentTerminal = 2;
 	RunInUserspace((void*)IdleTask,GenerateUserspaceStack());
 
 	while(1);

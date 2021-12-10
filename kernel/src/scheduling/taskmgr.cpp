@@ -2,7 +2,7 @@
 
 TaskManager* GlobalTaskManager;
 
-int lastTerminal = 0;
+int lastTerminal = 1;
 
 void TaskManager::Schedule(InterruptStack* registers) {
     if(!isEnabled) return;

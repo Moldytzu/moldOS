@@ -11,7 +11,7 @@ void SysSerialWrite(char text) {
 }
 
 void Exit(uint64_t code) {
-    printf(1,"\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
+    printf(CurrentTask.terminal,"\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
     GlobalTaskManager->ExitCurrentTask();
 }
 
