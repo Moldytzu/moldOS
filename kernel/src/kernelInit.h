@@ -150,6 +150,7 @@ void InitVTerminals() {
     GlobalAllocator.RequestPages(64); // padding so we don't allocate in crap
     for(int i = 0;i < 0x800;i++) {
         VirtualTerminals[i].init(0x1000);
+        GlobalTableManager.MapUserspaceMemory((void*)VirtualTerminals[i].buffer);
     }
 }
 

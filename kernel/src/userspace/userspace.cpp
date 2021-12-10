@@ -32,6 +32,9 @@ uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int ar
         else
             return ERROR_ACCESS_DENIED;
         break;
+    case SYSCALL_GETTERMINALOUTPUT:
+        return (uint64_t)(uint64_t*)VirtualTerminals[arg1].buffer;
+        break;
     default:
         LogWarn(inttohstr((uint64_t)syscall));
         LogWarn("Unknown syscall!");
