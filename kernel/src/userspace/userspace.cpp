@@ -35,6 +35,9 @@ uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int ar
     case SYSCALL_GETTERMINALOUTPUT:
         return (uint64_t)(uint64_t*)VirtualTerminals[arg1].buffer;
         break;
+    case SYSCALL_GETPROCESSTERMINAL:
+        return CurrentTask.terminal;
+        break;
     default:
         LogWarn(inttohstr((uint64_t)syscall));
         LogWarn("Unknown syscall!");
