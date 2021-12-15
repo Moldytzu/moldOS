@@ -35,12 +35,14 @@ extern "C" int kernelMain(BootInfo* binfo) {
 
 	//llfs
 	uint64_t fssize = LLFSGetFileSystemSize(binfo->RamFS);
-	LLFSHeader* llfs = (LLFSHeader*)GlobalAllocator.RequestPages(fssize/4096+1);
-	memcpy(llfs,binfo->RamFS,fssize);
-	LLFSMap(llfs); //map as user memory
+	LLFSSource = (LLFSHeader*)GlobalAllocator.RequestPages(fssize/4096+1);
+	memcpy(LLFSSource,binfo->RamFS,fssize);
+	LLFSMap(LLFSSource); //map as user memory
+
+	VFSSource = VFS_SOURCE_RAMFS;
 
 	//and lock the pages
-	GlobalAllocator.LockPages(llfs,fssize/4096+1);
+	GlobalAllocator.LockPages(LLFSSource,fssize/4096+1);
 
 	TaskManager tmgr;
 	GlobalTaskManager = &tmgr;
@@ -49,7 +51,7 @@ extern "C" int kernelMain(BootInfo* binfo) {
 	void* offset = malloc(0x0000100000200000-(uint64_t)lastAddr-sizeof(HeapSegHdr)*3);
 	void* address = malloc(1*1024*1024); //1 mb
 	//userspace
-	void* moldInit = LoadELFExecutable(llfs,"minit.melf      ",0);
+	void* moldInit = LoadELFExecutable(LLFSSource,"minit.melf",0);
 	
 	if(moldInit == (void*)1 || moldInit == (void*)2) {
 		KernelPanic("moldInit is missing or corrupt.");

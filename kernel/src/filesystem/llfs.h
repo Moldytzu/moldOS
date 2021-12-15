@@ -16,8 +16,11 @@ struct LLFSEntry {
     char Padding;
 } __attribute__((packed));
 
+inline LLFSHeader* LLFSSource;
 
 LLFSEntry* LLFSOpenFile(LLFSHeader* fs,const char* filename);
+LLFSEntry* LLFSOpenFile(const char* filename);
+void* LLFSVFSHelperReader(const char* filename);
 void* LLFSReadFile(LLFSEntry* entry);
 uint64_t LLFSGetFileSystemSize(LLFSHeader* fs);
 int LLFSCheck(LLFSHeader* fs);

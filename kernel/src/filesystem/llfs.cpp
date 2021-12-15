@@ -3,12 +3,20 @@
 LLFSEntry* LLFSOpenFile(LLFSHeader* fs,const char* filename) {
     LLFSEntry* firstEntry = (LLFSEntry*)((uint64_t)fs+sizeof(LLFSHeader));
     for(int i = 0;i<fs->Entries;i++) {
-        if(memcmp(firstEntry->Filename,filename,16) == 0) {
+        if(memcmp(firstEntry->Filename,filename,strlen(filename)) == 0) {
             return firstEntry;
         }
         firstEntry = (LLFSEntry*)((uint64_t)firstEntry+sizeof(LLFSEntry)+firstEntry->FileSize);
     }
     return 0;
+}
+
+LLFSEntry* LLFSOpenFile(const char* filename) {
+    return LLFSOpenFile(LLFSSource,filename);
+}
+
+void* LLFSVFSHelperReader(const char* filename) {
+    return LLFSReadFile(LLFSOpenFile(filename));
 }
 
 void* LLFSReadFile(LLFSEntry* entry) {

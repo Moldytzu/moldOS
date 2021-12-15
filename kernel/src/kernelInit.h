@@ -47,6 +47,7 @@
 
 //filesystem
 #include <filesystem/llfs.h> //llfs
+#include <filesystem/vfs.h> //vfs
 
 //elf
 #include <elf/loader.h>
