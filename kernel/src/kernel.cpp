@@ -47,6 +47,24 @@ extern "C" int kernelMain(BootInfo* binfo)
     //and lock the pages
     GlobalAllocator.LockPages(LLFSSource,fssize/4096+1);
 
+    //init filesystem
+    VFSInit();
+
+    //map files from llfs into the vfs
+    LLFSEntry* firstEntry = (LLFSEntry*)((uint64_t)LLFSSource+sizeof(LLFSHeader));
+    uint64_t fsize = sizeof(LLFSHeader);
+    for(int i = 0; i<LLFSSource->Entries; i++)
+    {
+        FileDescriptor descriptor;
+        fastmemcpy(descriptor.path,firstEntry->Filename,368);
+        descriptor.source = VFS_SOURCE_RAMFS;
+        VFSAdd(descriptor);
+        firstEntry = (LLFSEntry*)((uint64_t)firstEntry+sizeof(LLFSEntry)+firstEntry->FileSize);
+    }
+
+    printf("First entry in VFS has the path: %s\n",VFSDescriptors[1]->path);
+
+    //init taskmanager
     TaskManager tmgr;
     GlobalTaskManager = &tmgr;
 

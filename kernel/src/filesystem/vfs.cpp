@@ -1,12 +1,35 @@
 #include <filesystem/vfs.h>
 
+FileDescriptor::FileDescriptor() {}
+
+void VFSAdd(FileDescriptor toAdd) {
+    fastmemcpy((void*)VFSDescriptors[VFSLastDescriptor]->path+1,(void*)toAdd.path,367);
+    VFSDescriptors[VFSLastDescriptor]->path[0] = '/';
+    VFSDescriptors[VFSLastDescriptor++]->source = toAdd.source;
+}
+
+void VFSRemove(const char* path) {
+
+}
+
+void VFSInit()
+{
+    VFSDescriptors = (FileDescriptor**)malloc(sizeof(FileDescriptor*)*VFS_MAX_DESCRIPTORS);
+    for(int i = 0; i<VFS_MAX_DESCRIPTORS; i++)
+    {
+        VFSDescriptors[i] = (FileDescriptor*)malloc(sizeof(FileDescriptor));
+        memset((void*)VFSDescriptors[i],0,sizeof(FileDescriptor));
+    }
+}
+
 FileDescriptor* VFSOpenFile(const char* path)
 {
-    FileDescriptor* descriptor = (FileDescriptor*)GlobalAllocator.RequestPage();
-    memset((void*)descriptor,0,4096);
-    fastmemcpy((void*)descriptor->path,(void*)path,strlen(path)+1);
-    descriptor->source = VFSSource;
-    return descriptor;
+    for(int i = 0;i<VFS_MAX_DESCRIPTORS;i++)
+    {
+        if(memcmp(VFSDescriptors[i]->path,path,strlen(path))==0)
+            return VFSDescriptors[i];
+    }
+    return NULL;
 }
 
 void* VFSReadFile(FileDescriptor* file)
