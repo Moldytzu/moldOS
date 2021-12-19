@@ -13,7 +13,7 @@ struct LLFSHeader
 
 struct LLFSEntry
 {
-    char Filename[16];
+    char Filename[368];
     uint64_t FileSize;
     char Padding;
 } __attribute__((packed));

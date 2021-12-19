@@ -16,3 +16,4 @@ inline uint8_t VFSSource = 0;
 
 FileDescriptor* VFSOpenFile(const char* path);
 void* VFSReadFile(FileDescriptor* file);
+uint64_t VFSSizeFile(FileDescriptor* file);

@@ -7,5 +7,5 @@
 #include <memory/heap.h>
 #include <filesystem/vfs.h>
 
-void* LoadELFExecutable(LLFSHeader* fs,const char* file, bool pie);
-int CheckELF(LLFSHeader* fs,const char* file);
+void* LoadELFExecutable(const char* file, bool pie);
+int CheckELF(Elf64_Ehdr* header);

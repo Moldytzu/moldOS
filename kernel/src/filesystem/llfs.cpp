@@ -44,7 +44,7 @@ uint64_t LLFSGetFileSystemSize(LLFSHeader* fs)
 int LLFSCheck(LLFSHeader* fs)
 {
     if(fs->Signature[0] != 'L' || fs->Signature[1] != 'L' || fs->Signature[2] != 'F' || fs->Signature[3] != 'S') return 0;
-    if(fs->Version == 1 || fs->Version == 2) return 1;
+    if(fs->Version == 2) return 1;
     return 0;
 }
 

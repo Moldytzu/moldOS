@@ -7,6 +7,8 @@ void KernelPanic(const char* Message)
     LogError("A kernel panic occured!");
     LogError(Message);
     LogError(GlobalTaskManager->tasks[GlobalTaskManager->currentTask].name);
+    GlobalDisplay->clearScreen(0);
+    GlobalDisplay->puts(VirtualTerminals[CurrentTerminal].buffer);
     GlobalDisplay->update();
     while(1)
     {

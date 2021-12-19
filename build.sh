@@ -23,7 +23,6 @@ for d in ./apps/* ; do (
 
 #ramfs
 python3 tools/buildllfs.py ./ramfs/ ./kernel/bin/ram.llfs
-python3 tools/buildllfs2.py ./ramfs/ ./kernel/bin/ram.llfs2 
 
 #kernel
 cd kernel

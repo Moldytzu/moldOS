@@ -54,14 +54,14 @@ extern "C" int kernelMain(BootInfo* binfo)
     void* offset = malloc(0x0000100000200000-(uint64_t)lastAddr-sizeof(HeapSegHdr)*3);
     void* address = malloc(1*1024*1024); //1 mb
     //userspace
-    void* moldInit = LoadELFExecutable(LLFSSource,"minit.melf",0);
+    void* moldInit = LoadELFExecutable("/minit.melf",false);
 
     if(moldInit == (void*)1 || moldInit == (void*)2)
     {
         KernelPanic("moldInit is missing or corrupt.");
     }
 
-    printf("%s\n",LLFSReadFile(LLFSOpenFile(VFSOpenFile("/minit.elf")->path)));
+    printf("%s\n",VFSReadFile(VFSOpenFile("/minit.melf")));
 
     GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
     GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);

@@ -1,4 +1,4 @@
-# LLFS version 1 packager
+# LLFS version 1A packager
 import os
 import sys
 
@@ -18,7 +18,7 @@ def AddFileFromHardDisk(ofile,name):
     data = ifile.read()
     ifile.close()
     name = name.split('/')
-    name[-1] = name[-1]+(" "*(16-len(name[-1])))
+    name[-1] = name[-1]+(" "*(368-len(name[-1])))
     AddFile(ofile,name[-1],size.to_bytes(8,'little'),data)
 
 print("Building the file system")
@@ -31,7 +31,7 @@ outfile = open(output,"wb")
 
 # write the header
 outfile.write("LLFS".encode()) # signature
-outfile.write(b"\x01") # version
+outfile.write(b"\x02") # version
 outfile.write(filecount) # file count
 
 for i in range(4):
