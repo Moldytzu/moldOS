@@ -36,6 +36,9 @@ extern "C" int kernelMain(BootInfo* binfo)
         while(1);
     }
 
+    printf("SMBIOS Address: %x\n",binfo->SMBIOS);
+    printf("SMBIOS Signature: %c%c%c%c\n",binfo->SMBIOS->Signature[0],binfo->SMBIOS->Signature[1],binfo->SMBIOS->Signature[2],binfo->SMBIOS->Signature[3]);
+
     //llfs
     uint64_t fssize = LLFSGetFileSystemSize(binfo->RamFS);
     LLFSSource = (LLFSHeader*)GlobalAllocator.RequestPages(fssize/4096+1);

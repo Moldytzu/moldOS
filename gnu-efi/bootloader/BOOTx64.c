@@ -181,10 +181,15 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	//Get SMBIOS
 	configTable = ST->ConfigurationTable;
 	void* SMBIOS = NULL;
-	EFI_GUID SMBIOSGUID = SMBIOS3_TABLE_GUID;
+	EFI_GUID SMBIOSGUID = SMBIOS_TABLE_GUID;
 	for(UINTN i = 0;i < SystemTable->NumberOfTableEntries;i++) {
-		if(CompareGuid(&configTable[i].VendorGuid, &SMBIOSGUID)) 
-			SMBIOS = (void*)configTable->VendorTable;
+		if(CompareGuid(&configTable[i].VendorGuid, &SMBIOSGUID)){
+			if(strcmp((CHAR8*)"_SM_", (CHAR8*)configTable->VendorTable,4)) {
+				SMBIOS = (void*)configTable->VendorTable;
+				break;
+			}
+		}
+			
 		configTable++;
 	}
 

@@ -16,6 +16,7 @@
 #include <misc/colors.h> //colors
 #include <misc/logging/log.h> //logging
 #include <misc/power/acpi.h> //acpi
+#include <misc/smbios/smbios.h> //smbios
 
 //io
 #include <io/serial.h> //serial port
@@ -75,7 +76,7 @@ struct BootInfo
     RSDP2* RSDP;
     
     //smbios
-    void* SMBIOS;
+    SMBiosHeader* SMBIOS;
 
     //llfs
     LLFSHeader* RamFS;
