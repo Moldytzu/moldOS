@@ -62,6 +62,8 @@ extern "C" int kernelMain(BootInfo* binfo)
         firstEntry = (LLFSEntry*)((uint64_t)firstEntry+sizeof(LLFSEntry)+firstEntry->FileSize);
     }
 
+    printf("VFS total entries: %u\n",VFSTotalEntries);
+
     //init taskmanager
     TaskManager tmgr;
     GlobalTaskManager = &tmgr;

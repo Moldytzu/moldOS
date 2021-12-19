@@ -17,7 +17,7 @@ struct FileDescriptor
 };
 
 inline uint8_t VFSSource = 0;
-inline uint64_t VFSLastDescriptor = 0;
+inline uint64_t VFSTotalEntries = 0;
 inline FileDescriptor** VFSDescriptors;
 
 FileDescriptor* VFSOpenFile(const char* path);
