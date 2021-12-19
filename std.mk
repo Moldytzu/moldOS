@@ -15,7 +15,8 @@ LDS = linker.ld
 
 # flags
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib --no-relax -n
-CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static -Isrc/ -mcmodel=large
+CFLAGS = -ffreestanding -fshort-wchar -mno-red-zone -static -Isrc/ -mcmodel=large 
+CFLAGS += -finline-functions -fthread-jumps -faggressive-loop-optimizations -fdce -fdse -foptimize-sibling-calls -foptimize-strlen -frounding-math -ffast-math # optimizations
 ASMFLAGS = 
 
 # wildcard
