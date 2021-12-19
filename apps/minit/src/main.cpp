@@ -10,5 +10,11 @@ extern "C" void moldMain() {
     puts("\nProcess' terminal no': ");
     putchar(sys_getprocessterminal() + '0');
     putchar('\n');
+
+    puts("\nContents of /sample.text: \n");
+    const char* buffer = (const char*)malloc(4096);
+    fread((void*)buffer,43,1,fopen("/sample.text","r"));
+    puts(buffer);
+
     exit(2021);
 }

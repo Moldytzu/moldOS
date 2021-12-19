@@ -24,7 +24,8 @@ void* VFSReadFile(FileDescriptor* file)
     }
 }
 
-uint64_t VFSSizeFile(FileDescriptor* file) {
+uint64_t VFSSizeFile(FileDescriptor* file)
+{
     if(file == NULL) return 0;
     switch (file->source)
     {

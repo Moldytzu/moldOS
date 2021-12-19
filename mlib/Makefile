@@ -41,4 +41,5 @@ $(OBJDIR)/%_asm.o: $(SRCDIR)/%.asm
 #other
 link: $(OBJS)
 	@ echo Linking: $(OBJS)
+	@ strip $(OBJS) --strip-unneeded
 	@ $(AR) rcs $(OUTFILE) $(OBJS)

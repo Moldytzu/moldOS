@@ -18,8 +18,8 @@ void Exit(uint64_t code)
     GlobalTaskManager->ExitCurrentTask();
 }
 
-//    RDX        RDI        RSI                       R8
-uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3)
+//                                  RDX            RDI             RSI                                  R8             R9
+uint64_t SyscallHandler(uint64_t syscall, uint64_t arg1, uint64_t arg2, uint64_t doNotModify, uint64_t arg3, uint64_t arg4)
 {
     switch (syscall)
     {
@@ -30,6 +30,29 @@ uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int ar
     case SYSCALL_EXIT:
         Exit(arg1);
         break;
+    case SYSCALL_OPEN:
+    {
+        FileDescriptor* descriptor = (FileDescriptor*)GlobalAllocator.RequestPage();
+        memset((void*)descriptor,0,4096);
+        GlobalTableManager.MapUserspaceMemory((void*)descriptor);
+        fastmemcpy(descriptor,VFSOpenFile((const char*)(void*)(uint64_t)arg1),sizeof(FileDescriptor));
+        return (uint64_t)(void*)descriptor;
+        break;
+    }
+    case SYSCALL_ALLOCATEMEMORY:
+    {
+        if(!arg1) return 0;
+        void* mem = GlobalAllocator.RequestPages(arg1);
+        for(int i = 0; i<=4096*arg1; i++)
+            GlobalTableManager.MapUserspaceMemory((void*)((uint64_t)mem+i));
+        return (uint64_t)mem;
+        break;
+    }
+    case SYSCALL_READ:
+    {
+        fastmemcpy((void*)arg1,VFSReadFile((FileDescriptor*)(void*)arg2),arg3);
+        break;
+    }
     case SYSCALL_GETTERMINALOUTPUT:
         return (uint64_t)(uint64_t*)VirtualTerminals[arg1].buffer;
         break;

@@ -61,8 +61,6 @@ extern "C" int kernelMain(BootInfo* binfo)
         KernelPanic("moldInit is missing or corrupt.");
     }
 
-    printf("%s\n",VFSReadFile(VFSOpenFile("/minit.melf")));
-
     GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
     GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
     GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"moldInit",TASK_USER);

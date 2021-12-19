@@ -1,5 +1,6 @@
 #include <mlib.h>
 
-int isgraph(int c) {
+int isgraph(int c)
+{
     return (c >= '!') && (c <= '~');
 }
