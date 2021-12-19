@@ -62,8 +62,6 @@ extern "C" int kernelMain(BootInfo* binfo)
         firstEntry = (LLFSEntry*)((uint64_t)firstEntry+sizeof(LLFSEntry)+firstEntry->FileSize);
     }
 
-    printf("First entry in VFS has the path: %s\n",VFSDescriptors[1]->path);
-
     //init taskmanager
     TaskManager tmgr;
     GlobalTaskManager = &tmgr;

@@ -9,7 +9,25 @@ void VFSAdd(FileDescriptor toAdd) {
 }
 
 void VFSRemove(const char* path) {
+    for(int i = 0; i<VFS_MAX_DESCRIPTORS; i++)
+    {
+        if(memcmp(VFSDescriptors[i]->path,path,strlen(path))==0)
+        {
+            memset((void*)VFSDescriptors[i]->path,0,368);
+            switch (VFSDescriptors[i]->source)
+            {
+            case VFS_SOURCE_RAMFS:
+                //can't remove file from ramfs
+                break;
+            
+            default:
+                //call driver to delete file from the filesystem
+                break;
+            }
 
+            return;
+        }
+    }
 }
 
 void VFSInit()
