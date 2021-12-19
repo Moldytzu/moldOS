@@ -74,7 +74,7 @@ struct BootInfo
 
     //acpi
     RSDP2* RSDP;
-    
+
     //smbios
     SMBiosHeader* SMBIOS;
 
