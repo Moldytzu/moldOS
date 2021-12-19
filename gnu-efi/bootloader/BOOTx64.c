@@ -30,6 +30,7 @@ typedef struct {
 	UINTN mMapSize;
 	UINTN mMapDescSize;
 	void* RSDP;
+	void* SMBIOS;
 	void* LLFS;
 } BootInfo;
 
@@ -40,7 +41,6 @@ UINTN strcmp(CHAR8* a,CHAR8* b,UINTN length) {
 		if(*a != *b) return 0;
 	return 1;
 }
-
 
 EFI_FILE* OpenFile(EFI_FILE* Directory, wchar_t* File) {
 	EFI_FILE* LoadedFile = NULL;
@@ -178,6 +178,16 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 		configTable++;
 	}
 
+	//Get SMBIOS
+	configTable = ST->ConfigurationTable;
+	void* SMBIOS = NULL;
+	EFI_GUID SMBIOSGUID = SMBIOS3_TABLE_GUID;
+	for(UINTN i = 0;i < SystemTable->NumberOfTableEntries;i++) {
+		if(CompareGuid(&configTable[i].VendorGuid, &SMBIOSGUID)) 
+			SMBIOS = (void*)configTable->VendorTable;
+		configTable++;
+	}
+
     //Prepare to run the kernel
     int (*EntryPoint)(BootInfo *) = ((__attribute__((sysv_abi)) int (*)(BootInfo *))header.e_entry);
     
@@ -191,6 +201,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     binfo.mMapSize = MapSize;
 
     binfo.RSDP = RSDP;
+	binfo.SMBIOS = SMBIOS;
 
     BS->ExitBootServices(IH, MapKey);
     

@@ -73,6 +73,9 @@ struct BootInfo
 
     //acpi
     RSDP2* RSDP;
+    
+    //smbios
+    void* SMBIOS;
 
     //llfs
     LLFSHeader* RamFS;
