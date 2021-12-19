@@ -4,7 +4,7 @@ FileDescriptor* VFSOpenFile(const char* path)
 {
     FileDescriptor* descriptor = (FileDescriptor*)GlobalAllocator.RequestPage();
     memset((void*)descriptor,0,4096);
-    asmmemcpy((void*)descriptor->path,(void*)path,strlen(path)+1);
+    fastmemcpy((void*)descriptor->path,(void*)path,strlen(path)+1);
     descriptor->source = VFSSource;
     return descriptor;
 }

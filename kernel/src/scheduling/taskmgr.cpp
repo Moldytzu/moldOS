@@ -12,7 +12,7 @@ void TaskManager::Schedule(InterruptStack* registers)
     SerialWrite("Saving registers for task: ",tasks[currentTask].name,"\n");
 #endif
 
-    asmmemcpy(&tasks[currentTask].registers,(void*)registers,sizeof(InterruptStack));
+    fastmemcpy(&tasks[currentTask].registers,(void*)registers,sizeof(InterruptStack));
 
     //Get next task
     do
@@ -27,7 +27,7 @@ void TaskManager::Schedule(InterruptStack* registers)
     SerialWrite("Loading registers for task: ",tasks[currentTask].name,"\n");
 #endif
     int kernelStack = registers->KernelRsp;
-    asmmemcpy((void*)registers,&tasks[currentTask].registers,sizeof(InterruptStack));
+    fastmemcpy((void*)registers,&tasks[currentTask].registers,sizeof(InterruptStack));
     registers->KernelRsp = kernelStack;
 }
 

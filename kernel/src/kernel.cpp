@@ -39,7 +39,7 @@ extern "C" int kernelMain(BootInfo* binfo)
     //llfs
     uint64_t fssize = LLFSGetFileSystemSize(binfo->RamFS);
     LLFSSource = (LLFSHeader*)GlobalAllocator.RequestPages(fssize/4096+1);
-    memcpy(LLFSSource,binfo->RamFS,fssize);
+    fastmemcpy(LLFSSource,binfo->RamFS,fssize);
     LLFSMap(LLFSSource); //map as user memory
 
     VFSSource = VFS_SOURCE_RAMFS;

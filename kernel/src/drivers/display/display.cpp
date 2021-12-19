@@ -26,7 +26,7 @@ void DisplayDriver::putc(char ch)
 
 void DisplayDriver::scroll()
 {
-    asmmemcpy((void*)((uint64_t)secondFrameBuffer->BaseAddr-(secondFrameBuffer->BufferSize%4)),(void*)((uint64_t)secondFrameBuffer->BaseAddr+((getWidth()*4)*16)-(secondFrameBuffer->BufferSize%4)),globalFrameBuffer->BufferSize-((getWidth()*4)*16)-(secondFrameBuffer->BufferSize%4));
+    fastmemcpy((void*)((uint64_t)secondFrameBuffer->BaseAddr-(secondFrameBuffer->BufferSize%4)),(void*)((uint64_t)secondFrameBuffer->BaseAddr+((getWidth()*4)*16)-(secondFrameBuffer->BufferSize%4)),globalFrameBuffer->BufferSize-((getWidth()*4)*16)-(secondFrameBuffer->BufferSize%4));
     memset((void*)((uint64_t)secondFrameBuffer->BaseAddr+globalFrameBuffer->BufferSize-((getWidth()*4)*16)-(secondFrameBuffer->BufferSize%4)),0,(getWidth()*4*16)-(secondFrameBuffer->BufferSize%4));
 }
 
@@ -75,7 +75,7 @@ void DisplayDriver::InitDisplayDriver(DisplayBuffer* framebuf, PSFFont* font)
 void DisplayDriver::clearScreen(uint32_t colour)
 {
     if(colour == 0)
-        asmmemcpy(secondFrameBuffer->BaseAddr,EmptyScreenBuffer,secondFrameBuffer->BufferSize);
+        fastmemcpy(secondFrameBuffer->BaseAddr,EmptyScreenBuffer,secondFrameBuffer->BufferSize);
     else
     {
         for(uint64_t y = 0; y<=getHeight(); y++)
@@ -117,7 +117,7 @@ uint64_t DisplayDriver::getHeight()
 
 void DisplayDriver::update()
 {
-    asmmemcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
+    fastmemcpy(globalFrameBuffer->BaseAddr,secondFrameBuffer->BaseAddr,globalFrameBuffer->BufferSize);
 }
 
 void DisplayDriver::advanceCursor()

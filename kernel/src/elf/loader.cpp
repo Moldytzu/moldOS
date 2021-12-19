@@ -42,7 +42,7 @@ void* LoadELFExecutable(LLFSHeader* fs,const char* file, bool pie)
         {
             void* segmentStart = (void*)((uint64_t)offset+phdrs->p_vaddr); //get the segment start
             if(!pie) segmentStart -= (uint64_t)offset;
-            memcpy(segmentStart,(void*)((uint64_t)Contents+phdrs->p_offset),phdrs->p_filesz);
+            fastmemcpy(segmentStart,(void*)((uint64_t)Contents+phdrs->p_offset),phdrs->p_filesz);
         }
         phdrs++;
     }
