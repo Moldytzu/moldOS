@@ -25,21 +25,24 @@ All credits go to him
 #define GDT_GRAN_4K 0x80
 
 
-struct GDTDescriptor{
+struct GDTDescriptor
+{
     uint16_t Size;
     uint64_t Offset;
 } __attribute__((packed));
 
-struct GDTEntry{
+struct GDTEntry
+{
     uint16_t Limit0;
     uint16_t Base0;
     uint8_t Base1;
     uint8_t AccessByte;
     uint8_t Other;
     uint8_t Base2;
-}__attribute__((packed));
+} __attribute__((packed));
 
-struct gdtTSSEntry{
+struct gdtTSSEntry
+{
     uint16_t Limit0;
     uint16_t Base0;
     uint8_t Base1;
@@ -50,7 +53,8 @@ struct gdtTSSEntry{
     uint32_t Reserved;
 } __attribute__((packed));
 
-struct gdtInfoSelectors{
+struct gdtInfoSelectors
+{
     int KCode;
     int KData;
     int UCode;

@@ -6,7 +6,8 @@
 #include <io/serial.h>
 #include <settings.h>
 
-struct RSDP2 {
+struct RSDP2
+{
     unsigned char Signature[8];
     uint8_t Checksum;
     uint8_t ID[6];
@@ -18,7 +19,8 @@ struct RSDP2 {
     uint8_t Reserved[3];
 } __attribute__((packed));
 
-struct SDT {
+struct SDT
+{
     unsigned char Signature[4];
     uint32_t Lenght;
     uint8_t Revision;
@@ -32,8 +34,8 @@ struct SDT {
 
 struct MCFG
 {
-   SDT Header;
-   uint64_t Reserved;
+    SDT Header;
+    uint64_t Reserved;
 } __attribute__((packed));
 
 struct DeviceConfig
@@ -43,6 +45,6 @@ struct DeviceConfig
     uint8_t StartBus;
     uint8_t EndBus;
     uint32_t Reserved;
-}__attribute__((packed));
+} __attribute__((packed));
 
-    void* ACPIFindTable(SDT* sdt, char* sign); 
+void* ACPIFindTable(SDT* sdt, char* sign);

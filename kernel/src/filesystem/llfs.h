@@ -3,14 +3,16 @@
 #include <memory/PageTableManager.h>
 #include <memory/memory.h>
 
-struct LLFSHeader {
+struct LLFSHeader
+{
     char Signature[4];
     uint8_t Version;
     uint64_t Entries;
     char Padding[4];
-} __attribute__((packed)); 
+} __attribute__((packed));
 
-struct LLFSEntry {
+struct LLFSEntry
+{
     char Filename[16];
     uint64_t FileSize;
     char Padding;

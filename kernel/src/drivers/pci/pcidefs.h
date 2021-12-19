@@ -1,7 +1,8 @@
 #pragma once
 #include <stdint.h>
 
-struct PCIDevice {
+struct PCIDevice
+{
     uint16_t VendorID;
     uint16_t DeviceID;
     uint16_t Command;
@@ -16,7 +17,8 @@ struct PCIDevice {
     uint8_t BIST;
 };
 
-struct PCIHeader0 {
+struct PCIHeader0
+{
     PCIDevice Header;
     uint32_t BAR0;
     uint32_t BAR1;
@@ -38,11 +40,12 @@ struct PCIHeader0 {
     uint8_t MaxLatency;
 };
 
-struct TranslatedPCIDevice {
+struct TranslatedPCIDevice
+{
     const char* VendorID;
     const char* DeviceID;
     const char* Subclass;
-    const char* Class;    
+    const char* Class;
     uint16_t Command;
     uint16_t Status;
     uint8_t RevisionID;

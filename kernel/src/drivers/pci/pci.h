@@ -7,7 +7,8 @@
 #include <libc/stdio.h>
 #include <memory/heap.h>
 
-class PCI {
+class PCI
+{
 private:
     void EnumFunc(uint64_t addr,uint64_t function);
     void EnumDevice(uint64_t addr, uint64_t device);

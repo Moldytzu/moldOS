@@ -20,52 +20,58 @@ To-do list:
 
 extern "C" void IdleTask();
 
-extern "C" int kernelMain(BootInfo* binfo) {
-	InitDrivers(binfo);
+extern "C" int kernelMain(BootInfo* binfo)
+{
+    InitDrivers(binfo);
 
-	if((void*)binfo->RamFS == (void*)0) {
-		LogError("No ram filesystem loaded!");
-		while(1);
-	}
+    if((void*)binfo->RamFS == (void*)0)
+    {
+        LogError("No ram filesystem loaded!");
+        while(1);
+    }
 
-	if(!LLFSCheck(binfo->RamFS)) {
-		LogError("Corrupt or unsupported ram filesystem!");
-		while(1);
-	}
+    if(!LLFSCheck(binfo->RamFS))
+    {
+        LogError("Corrupt or unsupported ram filesystem!");
+        while(1);
+    }
 
-	//llfs
-	uint64_t fssize = LLFSGetFileSystemSize(binfo->RamFS);
-	LLFSSource = (LLFSHeader*)GlobalAllocator.RequestPages(fssize/4096+1);
-	memcpy(LLFSSource,binfo->RamFS,fssize);
-	LLFSMap(LLFSSource); //map as user memory
+    //llfs
+    uint64_t fssize = LLFSGetFileSystemSize(binfo->RamFS);
+    LLFSSource = (LLFSHeader*)GlobalAllocator.RequestPages(fssize/4096+1);
+    memcpy(LLFSSource,binfo->RamFS,fssize);
+    LLFSMap(LLFSSource); //map as user memory
 
-	VFSSource = VFS_SOURCE_RAMFS;
+    VFSSource = VFS_SOURCE_RAMFS;
 
-	//and lock the pages
-	GlobalAllocator.LockPages(LLFSSource,fssize/4096+1);
+    //and lock the pages
+    GlobalAllocator.LockPages(LLFSSource,fssize/4096+1);
 
-	TaskManager tmgr;
-	GlobalTaskManager = &tmgr;
-	
-	void* lastAddr = malloc(1);
-	void* offset = malloc(0x0000100000200000-(uint64_t)lastAddr-sizeof(HeapSegHdr)*3);
-	void* address = malloc(1*1024*1024); //1 mb
-	//userspace
-	void* moldInit = LoadELFExecutable(LLFSSource,"minit.melf",0);
-	
-	if(moldInit == (void*)1 || moldInit == (void*)2) {
-		KernelPanic("moldInit is missing or corrupt.");
-	}
+    TaskManager tmgr;
+    GlobalTaskManager = &tmgr;
 
-	GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
-	GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
-	GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"moldInit",TASK_USER);
-	//jump in the userspace
-	GlobalTaskManager->isEnabled = 1;
-	CurrentTerminal = 2;
-	RunInUserspace((void*)IdleTask,GenerateUserspaceStack());
+    void* lastAddr = malloc(1);
+    void* offset = malloc(0x0000100000200000-(uint64_t)lastAddr-sizeof(HeapSegHdr)*3);
+    void* address = malloc(1*1024*1024); //1 mb
+    //userspace
+    void* moldInit = LoadELFExecutable(LLFSSource,"minit.melf",0);
 
-	while(1);
+    if(moldInit == (void*)1 || moldInit == (void*)2)
+    {
+        KernelPanic("moldInit is missing or corrupt.");
+    }
 
-	return 0;
-} 
+    printf("%s\n",LLFSReadFile(LLFSOpenFile(VFSOpenFile("/minit.elf")->path)));
+
+    GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
+    GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
+    GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"moldInit",TASK_USER);
+    //jump in the userspace
+    GlobalTaskManager->isEnabled = 1;
+    CurrentTerminal = 2;
+    RunInUserspace((void*)IdleTask,GenerateUserspaceStack());
+
+    while(1);
+
+    return 0;
+}

@@ -23,7 +23,7 @@
 #define ERROR_ACCESS_DENIED 5435
 
 extern "C" void EnableSCE();
-extern "C" void RunInUserspace(void* function,void* stack); 
+extern "C" void RunInUserspace(void* function,void* stack);
 
 extern "C" uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3);
 

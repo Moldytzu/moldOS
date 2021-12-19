@@ -4,8 +4,9 @@
 #include <misc/bitmap/bitmap.h>
 #include <panic.h>
 
-class PageFrameAllocator {
-    public:
+class PageFrameAllocator
+{
+public:
     void ReadEFIMemoryMap(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapSize, size_t mMapDescSize);
     Bitmap PageBitmap;
     void FreePage(void* address);
@@ -19,7 +20,7 @@ class PageFrameAllocator {
     uint64_t GetReservedRAM();
 
 
-    private:
+private:
     void InitBitmap(size_t bitmapSize, void* bufferAddress);
     void ReservePage(void* address);
     void ReservePages(void* address, uint64_t pageCount);

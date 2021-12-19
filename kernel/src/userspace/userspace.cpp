@@ -2,21 +2,25 @@
 
 #define CurrentTask GlobalTaskManager->tasks[GlobalTaskManager->currentTask]
 
-void SysConsoleWrite(char text) {
+void SysConsoleWrite(char text)
+{
     printf(CurrentTask.terminal,"%c",text);
 }
 
-void SysSerialWrite(char text) {
+void SysSerialWrite(char text)
+{
     SerialWrite(text);
 }
 
-void Exit(uint64_t code) {
+void Exit(uint64_t code)
+{
     printf(CurrentTask.terminal,"\nProgram exit code: %co%u%co\n",YELLOW,code,WHITE);
     GlobalTaskManager->ExitCurrentTask();
 }
 
-                    //    RDX        RDI        RSI                       R8
-uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3) {
+//    RDX        RDI        RSI                       R8
+uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int arg3)
+{
     switch (syscall)
     {
     case SYSCALL_WRITE:

@@ -22,23 +22,25 @@ const char ScanCodeSet1[] = {0,0,'1','2','3','4','5','6','7','8','9','0','-','='
 const char ScanCodeUpperSet1[] = {0,0,'1','@','#','$','%','^','&','*','(',')','_','+','\b',0,'Q','W','E','R','T','Y','U','I','O','P','{','}','\n',0,'A','S','D','F','G','H','J','K','L',':','"','~',0,'|','Z','X','C','V','B','N','M','<','>','?',0,'*',0,' '};
 const char ScanCodeCapsSet1[] = {0,0,'1','2','3','4','5','6','7','8','9','0','-','=','\b',0,'Q','W','E','R','T','Y','U','I','O','P','[',']','\n',0,'A','S','D','F','G','H','J','K','L',';','\'','`',0,'\\','Z','X','C','V','B','N','M',',','.','/',0,'*',0,' '};
 
-enum KeyState {
+enum KeyState
+{
     UP,
     DOWN
 };
 
-class Keyboard {
-    public:
-        char buffer[0xFFFF];
-        int bufferIndex = 0;
+class Keyboard
+{
+public:
+    char buffer[0xFFFF];
+    int bufferIndex = 0;
 
-        KeyState LeftShift = UP;
-        KeyState RightShift = UP;
-        KeyState CapsLock = UP;
-        
-        char Translate(uint8_t keycode,KeyState isUpperCase,KeyState isCaps);
-        void Handle(uint8_t keycode);
-        
+    KeyState LeftShift = UP;
+    KeyState RightShift = UP;
+    KeyState CapsLock = UP;
+
+    char Translate(uint8_t keycode,KeyState isUpperCase,KeyState isCaps);
+    void Handle(uint8_t keycode);
+
 };
 
 int kbhit();

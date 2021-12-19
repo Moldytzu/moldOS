@@ -15,7 +15,8 @@ gdtInfoSelectors GDTInfoSelectors;
 const uint8_t BASE_DESC = GDT_DESC_PRESENT | GDT_DESC_READWRITE | GDT_DESC_CODEDATA;
 const uint8_t BASE_GRAN = GDT_GRAN_64BIT | GDT_GRAN_4K;
 
-void gdtInit(){
+void gdtInit()
+{
     TSS DefaultTSS;
     gdtBaseInfo.Size = (sizeof(GDTEntry) * GDT_MAX_DESCRIPTORS) - 1; //get the total size where gdt entries are
     gdtBaseInfo.Offset = (uint64_t)&GDTEntries[0]; //get adress of the table where gdt entries are
@@ -29,19 +30,20 @@ void gdtInit(){
     setGDTRing(3); //user space
 
     gdtInstallDescriptor(0, 0, 0x00, 0x00); // user null
-    GDTInfoSelectors.UData = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_DPL, BASE_GRAN); // user data segment   
+    GDTInfoSelectors.UData = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_DPL, BASE_GRAN); // user data segment
     GDTInfoSelectors.UCode = gdtInstallDescriptor(0, 0, BASE_DESC | GDT_DESC_EXECUTABLE | GDT_DESC_DPL, BASE_GRAN); // user code segment
 
     setGDTRing(0);
 
     TSSInit();
     uint16_t TSSlocation = TSSInstall(0);
-    LoadGDT(&gdtBaseInfo);    
+    LoadGDT(&gdtBaseInfo);
 
     asm volatile("ltr %0" :: "a" (TSSlocation));
 }
 
-int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t flags){
+int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t flags)
+{
     if(GDTIndexTable >= GDT_MAX_DESCRIPTORS) return 0;
 
     GDTEntries[GDTIndexTable].Base0 = (uint16_t)(base & 0xFFFF);
@@ -57,8 +59,10 @@ int gdtInstallDescriptor(uint64_t base, uint64_t limit, uint8_t access, uint8_t 
     return ((GDTIndexTable - 1) * sizeof(GDTEntry)) + ringGDT;
 }
 
-uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){ 
-    if(GDTIndexTable >= GDT_MAX_DESCRIPTORS) {
+uint16_t gdtInstallTSS(uint64_t base, uint64_t limit)
+{
+    if(GDTIndexTable >= GDT_MAX_DESCRIPTORS)
+    {
         return 0;
     }
 
@@ -82,6 +86,7 @@ uint16_t gdtInstallTSS(uint64_t base, uint64_t limit){
     return (uint16_t)((GDTIndexTable - 2) * sizeof(GDTEntry));
 }
 
-void setGDTRing(int ring){
+void setGDTRing(int ring)
+{
     ringGDT = ring;
 }

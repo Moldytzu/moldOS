@@ -5,116 +5,134 @@
 
 Mouse* GlobalMouse;
 
-void Wait() {
-    for(int timeout = 100000;timeout > 0;timeout--)
+void Wait()
+{
+    for(int timeout = 100000; timeout > 0; timeout--)
         if(inportb(PS2_STATUS) & 0b10 == 0)
             return;
 }
 
-void WaitInput() {
-    for(int timeout = 100000;timeout > 0;timeout--)
+void WaitInput()
+{
+    for(int timeout = 100000; timeout > 0; timeout--)
         if(inportb(PS2_STATUS) & 0b1)
             return;
 }
 
-void Mouse::Send(int val) {
+void Mouse::Send(int val)
+{
     Wait();
     outb(PS2_STATUS, 0xD4);
     Wait();
     outb(PS2_DATA, val);
 }
 
-int Mouse::Read() {
+int Mouse::Read()
+{
     WaitInput();
     return inb(PS2_DATA);
 }
 
-void Mouse::HandlePacket() {
+void Mouse::HandlePacket()
+{
     if(!PacketReady) return;
     PacketReady = false;
     bool xN=false,yN=false,xO=false,yO=false;
 
-    if(Packet[0] & X_SIGN) 
+    if(Packet[0] & X_SIGN)
         xN = true;
 
-    if(Packet[0] & Y_SIGN) 
+    if(Packet[0] & Y_SIGN)
         yN = true;
 
-    if(Packet[0] & X_OVER) 
+    if(Packet[0] & X_OVER)
         xO = true;
 
-    if(Packet[0] & Y_OVER) 
+    if(Packet[0] & Y_OVER)
         yO = true;
 
-    if(!xN) {
+    if(!xN)
+    {
         state.X += Packet[1];
         if(xO)
             state.X += 255;
-    } else {
+    }
+    else
+    {
         Packet[1] = 256-Packet[1];
         state.X -= Packet[1];
         if(xO)
-            state.X -= 255;       
+            state.X -= 255;
     }
 
-    if(!yN) {
+    if(!yN)
+    {
         state.Y -= Packet[2];
         if(yO)
             state.Y -= 255;
-    } else {
+    }
+    else
+    {
         Packet[2] = 256-Packet[2];
         state.Y += Packet[2];
         if(yO)
-            state.Y += 255;      
+            state.Y += 255;
     }
 
     if(state.X < 0) state.X = 0;
     if(state.X > GlobalDisplay->getWidth()-1) state.X = GlobalDisplay->getWidth()-1;
 
     if(state.Y < 0) state.Y = 0;
-    if(state.Y > GlobalDisplay->getHeight()-1) state.Y = GlobalDisplay->getHeight()-1;   
+    if(state.Y > GlobalDisplay->getHeight()-1) state.Y = GlobalDisplay->getHeight()-1;
 
     if(Packet[0] & BTN_LEFT)
         state.ButtonLeft = true;
-    else 
+    else
         state.ButtonLeft = false;
 
     if(Packet[0] & BTN_MIDDLE)
         state.ButtonMiddle = true;
-    else 
+    else
         state.ButtonMiddle = false;
-    
+
     if(Packet[0] & BTN_RIGHT)
         state.ButtonRight = true;
-    else 
+    else
         state.ButtonRight = false;
 }
 
 bool skipPacket = true;
-void Mouse::Handle(uint8_t data) {
+void Mouse::Handle(uint8_t data)
+{
     HandlePacket();
-    if(skipPacket) {skipPacket = false;return;}
-    switch(Cycle){
-        case 0:
-            if (PacketReady) break;
-            Packet[0] = data;
-            Cycle++;
-            break;
-        case 1:
-            if (PacketReady) break;
-            Packet[1] = data;
-            Cycle++;
-            break;
-        case 2:
-            if (PacketReady) break;
-            Packet[2] = data;
-            PacketReady = true;
-            Cycle = 0;
-            break;
+    if(skipPacket)
+    {
+        skipPacket = false;
+        return;
+    }
+    switch(Cycle)
+    {
+    case 0:
+        if (PacketReady) break;
+        Packet[0] = data;
+        Cycle++;
+        break;
+    case 1:
+        if (PacketReady) break;
+        Packet[1] = data;
+        Cycle++;
+        break;
+    case 2:
+        if (PacketReady) break;
+        Packet[2] = data;
+        PacketReady = true;
+        Cycle = 0;
+        break;
     }
 }
 
-void Mouse::Init() {
+void Mouse::Init()
+{
     outb(PS2_STATUS, 0xA8);
 
     Wait();

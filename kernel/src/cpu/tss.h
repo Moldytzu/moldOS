@@ -12,7 +12,8 @@ All credits go to him
 #define IST_SIZE            0x100000
 
 
-struct TSS{
+struct TSS
+{
     uint32_t Reserved0;
 
     //RSP
@@ -27,7 +28,7 @@ struct TSS{
     uint16_t Reserved3;
 
     uint16_t IOPBOffset;
-}__attribute__((packed));
+} __attribute__((packed));
 
 void TSSInit();
 uint16_t TSSInstall(int numCPU);

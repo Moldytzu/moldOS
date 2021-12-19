@@ -2,10 +2,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
-struct EFI_MEMORY_DESCRIPTOR {
+struct EFI_MEMORY_DESCRIPTOR
+{
     uint32_t type;
     void* physAddr;
-    void* virtAddr; 
+    void* virtAddr;
     uint64_t numPages;
     uint64_t attribs;
 };

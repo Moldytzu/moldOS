@@ -1,0 +1,1 @@
+astyle --style=allman -r -n -q "kernel/src/*.cpp" "kernel/src/*.h"

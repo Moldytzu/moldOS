@@ -4,31 +4,35 @@ TaskManager* GlobalTaskManager;
 
 int lastTerminal = 1;
 
-void TaskManager::Schedule(InterruptStack* registers) {
+void TaskManager::Schedule(InterruptStack* registers)
+{
     if(!isEnabled) return;
     //Save registers
-    #ifdef Debugging_Scheduler 
-        SerialWrite("Saving registers for task: ",tasks[currentTask].name,"\n");
-    #endif
+#ifdef Debugging_Scheduler
+    SerialWrite("Saving registers for task: ",tasks[currentTask].name,"\n");
+#endif
 
     asmmemcpy(&tasks[currentTask].registers,(void*)registers,sizeof(InterruptStack));
 
     //Get next task
-    do {
+    do
+    {
         currentTask++;
         if(taskNum <= currentTask) currentTask = 0;
-    }while(tasks[currentTask].state == STATE_HALTED); //load next task that isn't halted
+    }
+    while(tasks[currentTask].state == STATE_HALTED);  //load next task that isn't halted
 
     //Load new registers
-    #ifdef Debugging_Scheduler 
-        SerialWrite("Loading registers for task: ",tasks[currentTask].name,"\n");
-    #endif
+#ifdef Debugging_Scheduler
+    SerialWrite("Loading registers for task: ",tasks[currentTask].name,"\n");
+#endif
     int kernelStack = registers->KernelRsp;
     asmmemcpy((void*)registers,&tasks[currentTask].registers,sizeof(InterruptStack));
     registers->KernelRsp = kernelStack;
 }
 
-void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privilege) {
+void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privilege)
+{
     Task task;
     task.entryPoint = (uint64_t)entry;
     task.privilege = privilege;
@@ -47,7 +51,8 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
     GlobalTableManager.MapUserspaceMemory(stack);
 }
 
-void TaskManager::ExitCurrentTask() {
+void TaskManager::ExitCurrentTask()
+{
     SerialWrite("The task ",tasks[currentTask].name," is going to a halt.\n");
     tasks[currentTask].state = STATE_HALTED;
 }

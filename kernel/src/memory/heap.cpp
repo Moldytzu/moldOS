@@ -4,10 +4,12 @@ void* heapStart;
 void* heapEnd;
 HeapSegHdr* LastHdr;
 
- void volatile InitializeHeap(void* heapAddress, size_t pageCount){
+void volatile InitializeHeap(void* heapAddress, size_t pageCount)
+{
     void* pos = heapAddress;
 
-    for (size_t i = 0; i < pageCount; i++){
+    for (size_t i = 0; i < pageCount; i++)
+    {
         GlobalTableManager.MapMemory(pos, GlobalAllocator.RequestPage());
         pos = (void*)((size_t)pos + 0x1000);
     }
@@ -24,15 +26,18 @@ HeapSegHdr* LastHdr;
     LastHdr = startSeg;
 }
 
- void volatile free(void* address){
+void volatile free(void* address)
+{
     HeapSegHdr* segment = (HeapSegHdr*)address - 1;
     segment->free = true;
     segment->CombineForward();
     segment->CombineBackward();
 }
 
- void* volatile malloc(size_t size){
-    if (size % 0x10 > 0){ // it is not a multiple of 0x10
+void* volatile malloc(size_t size)
+{
+    if (size % 0x10 > 0)  // it is not a multiple of 0x10
+    {
         size -= (size % 0x10);
         size += 0x10;
     }
@@ -40,14 +45,18 @@ HeapSegHdr* LastHdr;
     if (size == 0) return NULL;
 
     HeapSegHdr* currentSeg = (HeapSegHdr*) heapStart;
-    while(true){
-        if(currentSeg->free){
-            if (currentSeg->length > size){
+    while(true)
+    {
+        if(currentSeg->free)
+        {
+            if (currentSeg->length > size)
+            {
                 currentSeg->Split(size);
                 currentSeg->free = false;
                 return (void*)((uint64_t)currentSeg + sizeof(HeapSegHdr));
             }
-            if (currentSeg->length == size){
+            if (currentSeg->length == size)
+            {
                 currentSeg->free = false;
                 return (void*)((uint64_t)currentSeg + sizeof(HeapSegHdr));
             }
@@ -59,7 +68,8 @@ HeapSegHdr* LastHdr;
     return malloc(size);
 }
 
- HeapSegHdr* volatile HeapSegHdr::Split(size_t splitLength){
+HeapSegHdr* volatile HeapSegHdr::Split(size_t splitLength)
+{
     if (splitLength < 0x10) return NULL;
     int64_t splitSegLength = length - splitLength - (sizeof(HeapSegHdr));
     if (splitSegLength < 0x10) return NULL;
@@ -77,8 +87,10 @@ HeapSegHdr* LastHdr;
     return newSplitHdr;
 }
 
- void volatile ExpandHeap(size_t length){
-    if (length % 0x1000) {
+void volatile ExpandHeap(size_t length)
+{
+    if (length % 0x1000)
+    {
         length -= length % 0x1000;
         length += 0x1000;
     }
@@ -86,7 +98,8 @@ HeapSegHdr* LastHdr;
     size_t pageCount = length / 0x1000;
     HeapSegHdr* newSegment = (HeapSegHdr*)heapEnd;
 
-    for (size_t i = 0; i < pageCount; i++){
+    for (size_t i = 0; i < pageCount; i++)
+    {
         GlobalTableManager.MapMemory(heapEnd, GlobalAllocator.RequestPage());
         heapEnd = (void*)((size_t)heapEnd + 0x1000);
     }
@@ -101,13 +114,15 @@ HeapSegHdr* LastHdr;
 
 }
 
- void volatile HeapSegHdr::CombineForward(){
+void volatile HeapSegHdr::CombineForward()
+{
     if (next == NULL) return;
     if (!next->free) return;
 
     if (next == LastHdr) LastHdr = this;
 
-    if (next->next != NULL){
+    if (next->next != NULL)
+    {
         next->next->last = this;
     }
 
@@ -116,7 +131,8 @@ HeapSegHdr* LastHdr;
     next = next->next;
 }
 
- void volatile HeapSegHdr::CombineBackward(){
+void volatile HeapSegHdr::CombineBackward()
+{
     if (last != NULL && last->free) last->CombineForward();
 }
 

@@ -14,7 +14,8 @@
 #define PS2_STATUS 0x64
 #define PS2_DATA 0x60
 
-struct MouseState {
+struct MouseState
+{
     int X;
     int Y;
     int ButtonLeft;
@@ -22,7 +23,8 @@ struct MouseState {
     int ButtonRight;
 };
 
-class Mouse {
+class Mouse
+{
 public:
     MouseState state;
 

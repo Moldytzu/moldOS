@@ -5,7 +5,8 @@
 #include <memory/PageTableManager.h>
 #include <memory/PageFrameAllocator.h>
 
-struct HeapSegHdr{
+struct HeapSegHdr
+{
     size_t length;
     HeapSegHdr* next;
     HeapSegHdr* last;
@@ -22,7 +23,16 @@ void volatile free(void* address);
 
 void volatile ExpandHeap(size_t length);
 
-inline void* operator new(size_t size) {return malloc(size);}
-inline void* operator new[](size_t size) {return malloc(size);}
+inline void* operator new(size_t size)
+{
+    return malloc(size);
+}
+inline void* operator new[](size_t size)
+{
+    return malloc(size);
+}
 
-inline void operator delete(void* p) {free(p);}
+inline void operator delete(void* p)
+{
+    free(p);
+}

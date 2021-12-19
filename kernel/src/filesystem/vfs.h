@@ -6,7 +6,8 @@
 
 #define VFS_SOURCE_RAMFS 1
 
-struct FileDescriptor {
+struct FileDescriptor
+{
     const char path[368];
     uint8_t source = 0;
 };

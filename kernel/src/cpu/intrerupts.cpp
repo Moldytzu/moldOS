@@ -2,13 +2,15 @@
 
 IDTR* idt;
 
-void IDTDescriptorEntry::setOffset(uint64_t Offset) {
+void IDTDescriptorEntry::setOffset(uint64_t Offset)
+{
     Offset0 = (uint16_t)(Offset & 0x000000000000ffff);
     Offset1 = (uint16_t)((Offset & 0x00000000ffff0000) >> 16);
     Offset2 = (uint32_t)((Offset & 0xffffffff00000000) >> 32);
 }
 
-uint64_t IDTDescriptorEntry::getOffset() {
+uint64_t IDTDescriptorEntry::getOffset()
+{
     uint64_t offset = 0;
     offset |= (uint64_t)Offset0;
     offset |= (uint64_t)Offset1 << 16;
@@ -16,39 +18,47 @@ uint64_t IDTDescriptorEntry::getOffset() {
     return offset;
 }
 
-void GeneralProtectionFaultHandler() {
+void GeneralProtectionFaultHandler()
+{
     KernelPanic("General Protection Fault");
     while(1);
 }
-void PageFaultHandler() {
+void PageFaultHandler()
+{
     KernelPanic("Page Fault");
     while(1);
 }
-void DoubleFaultHandler() {
+void DoubleFaultHandler()
+{
     KernelPanic("Double Fault");
     while(1);
 }
 
-void InvalideOpcodeHandler() {
+void InvalideOpcodeHandler()
+{
     KernelPanic("Invalid Opcode");
     while(1);
 }
 
-void KBHandler() {
+void KBHandler()
+{
     uint8_t keycode = inportb(0x60);
     GlobalKeyboard->Handle(keycode);
     PIC_EndMaster();
 }
 
-void MSHandler() {
+void MSHandler()
+{
     uint8_t data = inportb(0x60);
     GlobalMouse->Handle(data);
     PIC_EndSlave();
 }
 
-void PITHandler(InterruptStack* istack) {
+void PITHandler(InterruptStack* istack)
+{
     PITTick();
-    if(VirtualTerminals[CurrentTerminal].initialized) {
+    if(VirtualTerminals[CurrentTerminal].initialized)
+    {
         GlobalDisplay->clearScreen(0);
         GlobalDisplay->puts(VirtualTerminals[CurrentTerminal].buffer);
     }
@@ -56,17 +66,20 @@ void PITHandler(InterruptStack* istack) {
     PIC_EndMaster();
 }
 
-void PIC_EndMaster(){
+void PIC_EndMaster()
+{
     outportb(PIC1_COMMAND, PIC_EOI);
 }
 
-void PIC_EndSlave(){
+void PIC_EndSlave()
+{
     outportb(PIC2_COMMAND, PIC_EOI);
     outportb(PIC1_COMMAND, PIC_EOI);
 }
-   
-void RemapPIC(){
-    uint8_t a1, a2; 
+
+void RemapPIC()
+{
+    uint8_t a1, a2;
 
     a1 = inportb(PIC1_DATA);
     io_wait();
@@ -99,7 +112,8 @@ void RemapPIC(){
 
 }
 
-void CreateIntrerupt(void* handler,uint8_t offset,uint8_t typeAttributes,uint8_t selector) {
+void CreateIntrerupt(void* handler,uint8_t offset,uint8_t typeAttributes,uint8_t selector)
+{
     IDTDescriptorEntry* int_NewInt = (IDTDescriptorEntry*)(idt->Offset + offset * sizeof(IDTDescriptorEntry));
     int_NewInt->setOffset((uint64_t)handler);
     int_NewInt->Type_Attributes = typeAttributes;

@@ -24,7 +24,8 @@
 #define IDT_TA_CallGate         0b10001100
 #define IDT_TA_TrapGate         0b10001111
 
-struct IDTDescriptorEntry {
+struct IDTDescriptorEntry
+{
     uint16_t Offset0;
     uint16_t Selector;
     uint8_t IST;
@@ -36,7 +37,8 @@ struct IDTDescriptorEntry {
     uint64_t getOffset();
 };
 
-struct IDTR {
+struct IDTR
+{
     uint16_t Limit;
     uint64_t Offset;
 } __attribute__((packed));

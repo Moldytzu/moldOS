@@ -40,3 +40,6 @@ To build moldOS you need to run a x86_64 Debian-based Linux distro. Run the prep
 
 # Running:
 Run run.sh to start the virtual machine with moldOS installed.
+
+# Contributing:
+Before commiting anything, run the style.sh script. It styles the source code using the astyle formater.
