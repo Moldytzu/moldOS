@@ -61,6 +61,7 @@ void PITHandler(InterruptStack* istack)
     {
         GlobalDisplay->clearScreen(0);
         GlobalDisplay->puts(VirtualTerminals[CurrentTerminal].buffer);
+        GlobalDisplay->update();
     }
     GlobalTaskManager->Schedule(istack);
     PIC_EndMaster();

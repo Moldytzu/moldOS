@@ -30,12 +30,6 @@ uint64_t SyscallHandler(int syscall, int arg1, int arg2, int doNotModify, int ar
     case SYSCALL_EXIT:
         Exit(arg1);
         break;
-    case SYSCALL_UPDATESCREEN:
-        if(CurrentTask.privilege == TASK_SYSTEM)
-            GlobalDisplay->update();
-        else
-            return ERROR_ACCESS_DENIED;
-        break;
     case SYSCALL_GETTERMINALOUTPUT:
         return (uint64_t)(uint64_t*)VirtualTerminals[arg1].buffer;
         break;
