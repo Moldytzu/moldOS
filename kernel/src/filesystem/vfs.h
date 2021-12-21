@@ -13,13 +13,13 @@ struct FileDescriptor
 {
     char path[368] = {0};
     uint8_t source = 0;
-    FileDescriptor();
 };
 
 inline uint8_t VFSSource = 0;
 inline uint64_t VFSTotalEntries = 0;
 inline FileDescriptor** VFSDescriptors;
 
+bool VFSExistsFileAt(const char* path);
 FileDescriptor* VFSOpenFile(const char* path);
 void* VFSReadFile(FileDescriptor* file);
 uint64_t VFSSizeFile(FileDescriptor* file);

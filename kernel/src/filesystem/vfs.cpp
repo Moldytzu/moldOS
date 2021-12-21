@@ -1,7 +1,5 @@
 #include <filesystem/vfs.h>
 
-FileDescriptor::FileDescriptor() {}
-
 void VFSAdd(FileDescriptor toAdd)
 {
     for(int i = 0; i<VFS_MAX_DESCRIPTORS; i++)
@@ -89,4 +87,14 @@ uint64_t VFSSizeFile(FileDescriptor* file)
         return 0; //TODO: call driver
         break;
     }
+}
+
+bool VFSExistsFileAt(const char* path)
+{
+    for(int i = 0; i<VFS_MAX_DESCRIPTORS; i++)
+    {
+        if(memcmp(VFSDescriptors[i]->path,path,strlen(path))==0)
+            return true;
+    }
+    return false;
 }
