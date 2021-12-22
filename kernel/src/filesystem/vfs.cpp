@@ -1,5 +1,28 @@
 #include <filesystem/vfs.h>
 
+int min(int a,int b)
+{
+    if (a > b) return b;
+    return a;
+}
+
+bool VFSPathEq(const char* path,const char* path2)
+{
+    //precompute string lenghts
+    int lenA = strlen(path);
+    int lenB = strlen(path2);
+    int cmp = memcmp((const void*)path,(const void*)path2,min(lenA,lenB)); //basic compare
+    if(cmp == 0)
+    {
+        //we switch to the larger string to do the comparasion or else we will hit unwanted memory and do crazy things
+        if(lenA > lenB)
+            return path[lenB+1]==' ' || path[lenB+1]==0; //a
+
+        return path2[lenA+1]==' ' || path2[lenA+1]==0; //b
+    }
+    return false;
+}
+
 void VFSAdd(FileDescriptor toAdd)
 {
     for(int i = 0; i<VFS_MAX_DESCRIPTORS; i++)
@@ -19,7 +42,7 @@ void VFSRemove(const char* path)
 {
     for(int i = 0; i<VFS_MAX_DESCRIPTORS; i++)
     {
-        if(memcmp(VFSDescriptors[i]->path,path,strlen(path))==0)
+        if(VFSPathEq(VFSDescriptors[i]->path,path))
         {
             VFSTotalEntries--;
             memset((void*)VFSDescriptors[i]->path,0,368);
@@ -53,7 +76,7 @@ FileDescriptor* VFSOpenFile(const char* path)
 {
     for(int i = 0; i<VFS_MAX_DESCRIPTORS; i++)
     {
-        if(memcmp(VFSDescriptors[i]->path,path,strlen(path))==0)
+        if(VFSPathEq(VFSDescriptors[i]->path,path))
             return VFSDescriptors[i];
     }
     return NULL;
@@ -93,7 +116,7 @@ bool VFSExistsFileAt(const char* path)
 {
     for(int i = 0; i<VFS_MAX_DESCRIPTORS; i++)
     {
-        if(memcmp(VFSDescriptors[i]->path,path,strlen(path))==0)
+        if(VFSPathEq(VFSDescriptors[i]->path,path))
             return true;
     }
     return false;

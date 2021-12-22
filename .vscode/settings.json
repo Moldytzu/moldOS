@@ -10,6 +10,8 @@
         "*.tcc": "cpp",
         "cstdint": "cpp",
         "typeinfo": "cpp",
-        "userspace.h": "c"
+        "userspace.h": "c",
+        "chrono": "cpp",
+        "random": "cpp"
     }
 }

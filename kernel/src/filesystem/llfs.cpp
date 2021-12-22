@@ -5,7 +5,7 @@ LLFSEntry* LLFSOpenFile(LLFSHeader* fs,const char* filename)
     LLFSEntry* firstEntry = (LLFSEntry*)((uint64_t)fs+sizeof(LLFSHeader));
     for(int i = 0; i<fs->Entries; i++)
     {
-        if(memcmp(firstEntry->Filename,filename,strlen(filename)) == 0)
+        if(memcmp(firstEntry->Filename,filename,strlen(filename)) == 0) //we don't need to use VFSPathEq as we don't have to do more sanity checks than this. this is enough as all the calls will be from the vfs and it will pass the string without the spaces removed
         {
             return firstEntry;
         }
