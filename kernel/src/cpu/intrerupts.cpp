@@ -60,7 +60,7 @@ void PITHandler(InterruptStack* istack)
     if(VirtualTerminals[CurrentTerminal].initialized)
     {
         GlobalDisplay->clearScreen(0);
-        GlobalDisplay->puts(VirtualTerminals[CurrentTerminal].buffer);
+        ANSIPrint(VirtualTerminals[CurrentTerminal].buffer);
         GlobalDisplay->update();
     }
     GlobalTaskManager->Schedule(istack);
