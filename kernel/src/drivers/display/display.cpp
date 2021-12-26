@@ -20,6 +20,11 @@ void DisplayDriver::putc(char ch,uint32_t xx,uint32_t yy)
 
 void DisplayDriver::putc(char ch)
 {
+    if(ch == '\n')
+    {
+        cursorNewLine();
+        return;
+    }
     putc(ch,CursorPos.X,CursorPos.Y);
     advanceCursor();
 }
