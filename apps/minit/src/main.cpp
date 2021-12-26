@@ -2,7 +2,7 @@
 
 extern "C" void moldMain() {
     puts("Welcome to moldOS!\n");
-    puts("By Moldu' (Nov. 2020 - Oct. 2021)\n\n");
+    puts("By Moldu' (Nov. 2020 - Jan. 2022)\n\n");
 
     puts("\033[1;30mCOLOUR!\n");
     puts("\033[1;31mCOLOUR!\n");
@@ -12,9 +12,6 @@ extern "C" void moldMain() {
     puts("\033[1;35mCOLOUR!\n");
     puts("\033[1;36mCOLOUR!\n");
     puts("\033[1;37mCOLOUR!\n");
-
-    puts("Kernel vtty output:\n");
-    puts(sys_getterminaloutput(0));
 
     puts("\nProcess' terminal no': ");
     putchar(sys_getprocessterminal() + '0');
