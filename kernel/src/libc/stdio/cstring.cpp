@@ -1,5 +1,13 @@
 #include <libc/stdio/cstring.h>
 
+int atoi(char* str)
+{
+    int integer = 0;
+    for (int i = 0; str[i] != '\0'; ++i)
+        integer = integer * 10 + str[i] - '0';
+    return integer;
+}
+
 int strcmp (const char *p1, const char *p2) //https://code.woboq.org/userspace/glibc/string/strcmp.c.html
 {
     const unsigned char *s1 = (const unsigned char *) p1;

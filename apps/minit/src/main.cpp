@@ -4,7 +4,7 @@ extern "C" void moldMain() {
     puts("Welcome to moldOS!\n");
     puts("By Moldu' (Nov. 2020 - Oct. 2021)\n\n");
 
-    puts("Let it be \033[1;33mcolour!\n");
+    puts("Let it be \033[1;31mcolour!\n");
 
     puts("Kernel vtty output:\n");
     puts(sys_getterminaloutput(0));

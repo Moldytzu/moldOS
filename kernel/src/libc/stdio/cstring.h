@@ -4,6 +4,9 @@
 
 #define streq(x,y) (strcmp(x,y)==0)
 
+//string to int
+int atoi(char* str);
+
 //int
 char* inttostr(uint64_t val);
 char* inttostr(uint32_t val);

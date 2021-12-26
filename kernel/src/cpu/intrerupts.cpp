@@ -60,6 +60,8 @@ void PITHandler(InterruptStack* istack)
     if(VirtualTerminals[CurrentTerminal].initialized)
     {
         GlobalDisplay->clearScreen(0);
+        //reset style
+        GlobalDisplay->colour = WHITE;
         ANSIPrint(VirtualTerminals[CurrentTerminal].buffer);
         GlobalDisplay->update();
     }

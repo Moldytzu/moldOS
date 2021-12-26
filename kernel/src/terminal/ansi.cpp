@@ -1,5 +1,44 @@
 #include <terminal/ansi.h>
 
+void handle(int arg)
+{
+    switch(arg)
+    {
+    case 1: //bold
+    case 2: //non-bold
+    case 4: //underline
+    case 5: //slow blink
+        break; //unsupported
+    case 30:
+        GlobalDisplay->colour = BLACK;
+        break;
+    case 31:
+        GlobalDisplay->colour = RED;
+        break;
+    case 32:
+        GlobalDisplay->colour = GREEN;
+        break;
+    case 33:
+        GlobalDisplay->colour = YELLOW;
+        break;
+    case 34:
+        GlobalDisplay->colour = BLUE;
+        break;
+    case 35:
+        GlobalDisplay->colour = MAGENTA;
+        break;
+    case 36:
+        GlobalDisplay->colour = LIGHTGREEN;
+        break;
+    case 37:
+        GlobalDisplay->colour = WHITE;
+        break;
+    default: //reset
+        GlobalDisplay->colour = WHITE;
+        break;
+    }
+}
+
 void ANSIPrint(const char* text)
 {
     //GlobalDisplay->puts(text);
@@ -14,12 +53,12 @@ void ANSIPrint(const char* text)
                 index+=2;
 
                 //buffers to store the parameters individualy
-                char param1[2];
-                char param2[2];
+                char param1[3];
+                char param2[3];
 
                 //clear them
-                memset(param1,0,2);
-                memset(param2,0,2);
+                memset(param1,0,3);
+                memset(param2,0,3);
 
                 bool switched = false;
                 int paramIndex = 0;
@@ -43,13 +82,8 @@ void ANSIPrint(const char* text)
                 }
                 while(text[index] != 'm');
 
-                GlobalDisplay->puts(" First param is ");
-                GlobalDisplay->putc(param1[0]);
-                GlobalDisplay->putc(param1[1]);
-                GlobalDisplay->puts(" Second param is ");
-                GlobalDisplay->putc(param2[0]);
-                GlobalDisplay->putc(param2[1]);
-                GlobalDisplay->putc(' ');
+                handle(atoi(param1));
+                handle(atoi(param2));
             }
             continue;
         }
