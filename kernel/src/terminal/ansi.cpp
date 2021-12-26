@@ -9,26 +9,26 @@ void handle(int arg)
     case 4: //underline
     case 5: //slow blink
         break; //unsupported
-    case 30:
+    case 30: //fg
         GlobalDisplay->colour = BLACK;
         break;
     case 31:
-        GlobalDisplay->colour = RED;
+        GlobalDisplay->colour = LIGHTRED;
         break;
     case 32:
-        GlobalDisplay->colour = GREEN;
+        GlobalDisplay->colour = LIGHTGREEN;
         break;
     case 33:
         GlobalDisplay->colour = YELLOW;
         break;
     case 34:
-        GlobalDisplay->colour = BLUE;
+        GlobalDisplay->colour = LIGHTBLUE;
         break;
     case 35:
-        GlobalDisplay->colour = MAGENTA;
+        GlobalDisplay->colour = LIGHTMAGENTA;
         break;
     case 36:
-        GlobalDisplay->colour = LIGHTGREEN;
+        GlobalDisplay->colour = LIGHTTURQOISE;
         break;
     case 37:
         GlobalDisplay->colour = WHITE;
