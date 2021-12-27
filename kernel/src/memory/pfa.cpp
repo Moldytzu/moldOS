@@ -1,4 +1,4 @@
-#include <memory/PageFrameAllocator.h>
+#include <memory/pfa.h>
 
 uint64_t freeMemory;
 uint64_t reservedMemory;

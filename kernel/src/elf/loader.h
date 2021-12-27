@@ -3,7 +3,7 @@
 #include <elf/elf.h>
 #include <stddef.h>
 #include <libc/stdio.h>
-#include <memory/PageTableManager.h>
+#include <memory/ptm.h>
 #include <memory/heap.h>
 #include <filesystem/vfs.h>
 

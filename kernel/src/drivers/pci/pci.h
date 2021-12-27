@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <misc/power/acpi.h>
 #include <drivers/pci/pcitranslate.h>
-#include <memory/PageTableManager.h>
+#include <memory/ptm.h>
 #include <drivers/display/display.h>
 #include <libc/stdio.h>
 #include <memory/heap.h>

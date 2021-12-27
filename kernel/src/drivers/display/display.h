@@ -4,7 +4,7 @@
 #include <libc/stdio.h>
 #include <libc/math.h>
 #include <memory/memory.h>
-#include <memory/PageFrameAllocator.h>
+#include <memory/pfa.h>
 #include <misc/psf1.h>
 
 typedef struct

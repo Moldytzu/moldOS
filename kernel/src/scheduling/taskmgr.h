@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include <memory/PageTableManager.h>
+#include <memory/ptm.h>
 #include <cpu/gdt.h>
 #include <io/serial.h>
 #include <memory/memory.h>

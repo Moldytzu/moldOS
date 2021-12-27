@@ -1,7 +1,7 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-#include <memory/PageFrameAllocator.h>
+#include <memory/pfa.h>
 #include <filesystem/llfs.h>
 #include <memory/heap.h>
 

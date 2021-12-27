@@ -24,10 +24,10 @@
 
 //memory
 #include <memory/memory.h> //memory
-#include <memory/PageFrameAllocator.h> //pfa
-#include <memory/PageMapIndexer.h> //pmi
+#include <memory/pfa.h> //pfa
+#include <memory/pmi.h> //pmi
 #include <memory/paging.h> //paging
-#include <memory/PageTableManager.h> //ptm
+#include <memory/ptm.h> //ptm
 #include <memory/heap.h> //heap
 
 //cpu

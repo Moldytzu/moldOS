@@ -26,4 +26,4 @@ python3 tools/buildllfs.py ./ramfs/ ./kernel/bin/ram.llfs
 
 #kernel
 cd kernel
-make -s -j kernel
+make -s -j$(nproc) kernel

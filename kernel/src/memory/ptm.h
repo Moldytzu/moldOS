@@ -1,8 +1,8 @@
 #pragma once
 #include <memory/paging.h>
-#include <memory/PageMapIndexer.h>
+#include <memory/pmi.h>
 #include <stdint.h>
-#include <memory/PageFrameAllocator.h>
+#include <memory/pfa.h>
 #include <memory/memory.h>
 
 // x86_64 multi-level addressing

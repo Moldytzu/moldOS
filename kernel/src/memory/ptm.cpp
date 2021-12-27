@@ -1,4 +1,4 @@
-#include <memory/PageTableManager.h>
+#include <memory/ptm.h>
 
 PageTableManager GlobalTableManager = NULL;
 

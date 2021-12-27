@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#include <memory/PageFrameAllocator.h>
+#include <memory/pfa.h>
 
 struct VirtualTerminal
 {

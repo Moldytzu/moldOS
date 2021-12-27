@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <libc/stdio.h>
-#include <memory/PageTableManager.h>
+#include <memory/ptm.h>
 #include <drivers/display/display.h>
 #include <io/serial.h>
 #include <settings.h>

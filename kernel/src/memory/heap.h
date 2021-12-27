@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <memory/PageTableManager.h>
-#include <memory/PageFrameAllocator.h>
+#include <memory/ptm.h>
+#include <memory/pfa.h>
 
 struct HeapSegHdr
 {
