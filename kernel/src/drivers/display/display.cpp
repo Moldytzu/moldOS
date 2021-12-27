@@ -28,7 +28,7 @@ void DisplayDriver::putc(char ch,uint32_t xx,uint32_t yy)
             //we display a point if the value is larger than 0, it means that the result of that and
             //we got a lighten pixel from the character.
             //if we don't get a lighten pixel, the result of the and will be 0 and thus we will skip drawing that dot.
-            if ((*fontPtr & (0b10000000 >> (x - xx))) > 0) 
+            if ((*fontPtr & (0b10000000 >> (x - xx))) > 0)
             {
                 *(uint32_t*)((uint32_t*)secondFrameBuffer->BaseAddr + x + (y * secondFrameBuffer->PixelPerScanLine)) = colour;
             }
@@ -50,8 +50,8 @@ void DisplayDriver::putc(char ch)
 
 void DisplayDriver::scroll()
 {
-    #define secondBufferPixels (secondFrameBuffer->BufferSize%4)
-    #define lastLineOfCharacters ((getWidth()*4)*16)
+#define secondBufferPixels (secondFrameBuffer->BufferSize%4)
+#define lastLineOfCharacters ((getWidth()*4)*16)
     //shift the last line of characters up by one line
     memcpy((void*)((uint64_t)secondFrameBuffer->BaseAddr-secondBufferPixels),(void*)((uint64_t)secondFrameBuffer->BaseAddr+lastLineOfCharacters-secondBufferPixels),globalFrameBuffer->BufferSize-lastLineOfCharacters-secondBufferPixels);
     memset((void*)((uint64_t)secondFrameBuffer->BaseAddr+globalFrameBuffer->BufferSize-lastLineOfCharacters-secondBufferPixels),0,lastLineOfCharacters-secondBufferPixels);

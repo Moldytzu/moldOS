@@ -86,5 +86,5 @@ uint64_t SyscallHandler(uint64_t syscall, uint64_t arg1, uint64_t arg2, uint64_t
         return ERROR_UNKNOWN_SYSCALL;
         break;
     }
-   return 512;
+    return 512;
 }
