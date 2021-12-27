@@ -35,7 +35,7 @@ uint64_t SyscallHandler(uint64_t syscall, uint64_t arg1, uint64_t arg2, uint64_t
         FileDescriptor* descriptor = (FileDescriptor*)GlobalAllocator.RequestPage();
         memset((void*)descriptor,0,4096);
         GlobalTableManager.MapUserspaceMemory((void*)descriptor);
-        fastmemcpy(descriptor,VFSOpenFile((const char*)(void*)(uint64_t)arg1),sizeof(FileDescriptor));
+        memcpy(descriptor,VFSOpenFile((const char*)(void*)(uint64_t)arg1),sizeof(FileDescriptor));
         return (uint64_t)(void*)descriptor;
         break;
     }
@@ -55,7 +55,7 @@ uint64_t SyscallHandler(uint64_t syscall, uint64_t arg1, uint64_t arg2, uint64_t
     }
     case SYSCALL_READ:
     {
-        fastmemcpy((void*)arg1,VFSReadFile((FileDescriptor*)(void*)arg2),arg3);
+        memcpy((void*)arg1,VFSReadFile((FileDescriptor*)(void*)arg2),arg3);
         break;
     }
     case SYSCALL_GETTERMINALOUTPUT:

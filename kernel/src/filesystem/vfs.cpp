@@ -30,7 +30,7 @@ void VFSAdd(FileDescriptor toAdd)
         if(VFSDescriptors[i]->path[0] == 0) //free descriptor
         {
             VFSTotalEntries++;
-            fastmemcpy((void*)VFSDescriptors[i]->path+1,(void*)toAdd.path,367);
+            memcpy((void*)VFSDescriptors[i]->path+1,(void*)toAdd.path,367);
             VFSDescriptors[i]->path[0] = '/';
             VFSDescriptors[i]->source = toAdd.source;
             return;

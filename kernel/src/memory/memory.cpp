@@ -53,7 +53,7 @@ void memset(void* start, uint8_t value, uint64_t num)
     }
 }
 
-void fastmemcpy(void *d, const void *s, size_t n)
+void memcpy(void *d, const void *s, size_t n)
 {
     uint64_t d0, d1, d2;
     asm volatile(

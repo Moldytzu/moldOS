@@ -18,6 +18,6 @@ void VirtualTerminal::append(const char* string)
         index = 0;
         memset((void*)buffer,0,maxLen);
     }
-    fastmemcpy((void*)((uint64_t)buffer+index),string,strlen(string)+1);
+    memcpy((void*)((uint64_t)buffer+index),string,strlen(string)+1);
     index += strlen(string)+1;
 }

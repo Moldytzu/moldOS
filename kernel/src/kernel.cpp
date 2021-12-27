@@ -44,7 +44,7 @@ extern "C" int kernelMain(BootInfo* binfo)
     //llfs
     uint64_t fssize = LLFSGetFileSystemSize(binfo->RamFS);
     LLFSSource = (LLFSHeader*)GlobalAllocator.RequestPages(fssize/4096+1);
-    fastmemcpy(LLFSSource,binfo->RamFS,fssize);
+    memcpy(LLFSSource,binfo->RamFS,fssize);
     LLFSMap(LLFSSource); //map as user memory
 
     VFSSource = VFS_SOURCE_RAMFS;
@@ -61,7 +61,7 @@ extern "C" int kernelMain(BootInfo* binfo)
     for(int i = 0; i<LLFSSource->Entries; i++)
     {
         FileDescriptor descriptor;
-        fastmemcpy(descriptor.path,firstEntry->Filename,368);
+        memcpy(descriptor.path,firstEntry->Filename,368);
         descriptor.source = VFS_SOURCE_RAMFS;
         VFSAdd(descriptor);
         firstEntry = (LLFSEntry*)((uint64_t)firstEntry+sizeof(LLFSEntry)+firstEntry->FileSize);

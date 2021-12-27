@@ -12,7 +12,7 @@ void TaskManager::Schedule(InterruptStack* registers)
     SerialWrite("Saving registers for task: ",tasks[currentTask].name,"\n");
 #endif
 
-    fastmemcpy(&tasks[currentTask].registers,(void*)registers,sizeof(InterruptStack));
+    memcpy(&tasks[currentTask].registers,(void*)registers,sizeof(InterruptStack));
 
     //Get next task
     do
@@ -27,7 +27,7 @@ void TaskManager::Schedule(InterruptStack* registers)
     SerialWrite("Loading registers for task: ",tasks[currentTask].name,"\n");
 #endif
     int kernelStack = registers->KernelRsp;
-    fastmemcpy((void*)registers,&tasks[currentTask].registers,sizeof(InterruptStack));
+    memcpy((void*)registers,&tasks[currentTask].registers,sizeof(InterruptStack));
     registers->KernelRsp = kernelStack;
 }
 
@@ -58,7 +58,7 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
 
     if(i >= taskNum) taskNum = i+1;
 
-    fastmemcpy(&tasks[i],&task,sizeof(Task));
+    memcpy(&tasks[i],&task,sizeof(Task));
 
     GlobalTableManager.MapUserspaceMemory(entry);
     GlobalTableManager.MapUserspaceMemory(stack);
