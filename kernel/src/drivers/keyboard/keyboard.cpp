@@ -22,7 +22,7 @@ void Keyboard::Handle(uint8_t keycode)
 {
     ReceivedIntrerupt = true;
     LastKeycode = (int)Translate(keycode,(KeyState)((int)LeftShift | (int)RightShift),CapsLock);
-    switch (keycode)
+    switch (keycode) //handle special keys
     {
     case KEY_BACKSPACE:
         if(bufferIndex)

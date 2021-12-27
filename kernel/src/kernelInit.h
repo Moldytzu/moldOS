@@ -242,9 +242,6 @@ void InitDrivers(BootInfo* bootInfo)
 
     InitializeHeap((void*)0x0000100000000000, 0x10);
 
-    display.EmptyScreenBuffer = malloc(display.globalFrameBuffer->BufferSize);
-    memset(display.EmptyScreenBuffer,0,display.globalFrameBuffer->BufferSize);
-
 #ifdef DoubleBuffer
     doubleBuffer->BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1);
     doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;

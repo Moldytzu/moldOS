@@ -79,7 +79,7 @@ void PITHandler(InterruptStack *istack)
     PITTick();
     if (VirtualTerminals[CurrentTerminal].initialized) //don't display if it's not initialized
     {
-        GlobalDisplay->clearScreen(0); //clear screen
+        GlobalDisplay->clearScreen(BLACK); //clear screen
         GlobalDisplay->colour = WHITE; //reset style
         ANSIPrint(VirtualTerminals[CurrentTerminal].buffer); //display with style
         HandleBlink(); //handle cursor blinking

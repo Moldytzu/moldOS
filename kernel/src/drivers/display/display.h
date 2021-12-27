@@ -56,7 +56,6 @@ public:
     PSFFont* globalFont;
     Point CursorPos;
     uint64_t colour;
-    void* EmptyScreenBuffer;
 };
 
 extern DisplayDriver* GlobalDisplay;
