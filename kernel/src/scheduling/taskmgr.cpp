@@ -43,16 +43,22 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
 
     memset(&task.registers,0,sizeof(InterruptStack));
     task.registers.rip = (uint64_t)entry;
-    task.registers.rsp = (uint64_t)stack+0x1000;
+    task.registers.rsp = (uint64_t)stack+(0x1000*8);
     task.registers.rflags = 0x202; //interrupts
     task.registers.cs = GDTInfoSelectors.UCode;
     task.registers.ss = GDTInfoSelectors.UData;
 
-    #ifdef Debugging_Scheduler
-        SerialWrite("The task ",name," consummes ",inttostr(executableSize/1024)," KB\n");
-    #endif
+#ifdef Debugging_Scheduler
+    SerialWrite("The task ",name," consummes ",inttostr(executableSize/1024)," KB\n");
+#endif
 
-    tasks[taskNum++] = task;
+    int i = 0;
+    while (tasks[i].state != STATE_HALTED) //find the first spot that's empty
+        i++;
+
+    if(i >= taskNum) taskNum = i+1;
+
+    fastmemcpy(&tasks[i],&task,sizeof(Task));
 
     GlobalTableManager.MapUserspaceMemory(entry);
     GlobalTableManager.MapUserspaceMemory(stack);
@@ -60,8 +66,8 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
 
 void TaskManager::ExitCurrentTask()
 {
-    #ifdef Debugging_Scheduler
-        SerialWrite("The task ",tasks[currentTask].name," is going to a halt.\n");
-    #endif
+#ifdef Debugging_Scheduler
+    SerialWrite("The task ",tasks[currentTask].name," is going to a halt.\n");
+#endif
     tasks[currentTask].state = STATE_HALTED;
 }

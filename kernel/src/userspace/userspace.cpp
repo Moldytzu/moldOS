@@ -46,10 +46,10 @@ uint64_t SyscallHandler(uint64_t syscall, uint64_t arg1, uint64_t arg2, uint64_t
         void* mem = GlobalAllocator.RequestPages(arg1);
         for(int i = 0; i<=4096*arg1; i++)
             GlobalTableManager.MapUserspaceMemory((void*)((uint64_t)mem+i));
-        #ifdef Debugging_Scheduler
-            SerialWrite(CurrentTask.name," is now using in total ", inttostr(CurrentTask.memoryUse/1024), " KB, while the whole operating system using only ");
-            SerialWrite(inttostr(GlobalAllocator.GetUsedRAM()/1024/1024), " MB\n");
-        #endif
+#ifdef Debugging_Scheduler
+        SerialWrite(CurrentTask.name," is now using in total ", inttostr(CurrentTask.memoryUse/1024), " KB, while the whole operating system using only ");
+        SerialWrite(inttostr(GlobalAllocator.GetUsedRAM()/1024/1024), " MB\n");
+#endif
         return (uint64_t)mem;
         break;
     }
