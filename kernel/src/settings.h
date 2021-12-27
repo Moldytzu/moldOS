@@ -20,4 +20,9 @@
 //====
 //#define Logging_Serial //logs in the serial console everything that's logged with the LogInfo,LogWarn and LogError functions
 //#define Quiet //makes the kernel boot up process quiet
+
+//=====
+//Video
+//=====
+#define Blink_Time 10 //interval in which the cursor switches between show/hide. DON'T COMMENT, CHANGE VALUE
 #define Blink //enable blinking cursor

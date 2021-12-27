@@ -12,12 +12,14 @@ void IDTDescriptorEntry::setOffset(uint64_t Offset)
 uint64_t IDTDescriptorEntry::getOffset()
 {
     uint64_t offset = 0;
-    offset |= (uint64_t)Offset0;
-    offset |= (uint64_t)Offset1 << 16;
-    offset |= (uint64_t)Offset2 << 32;
+    offset |= (uint64_t)Offset0; //lower 16 bits
+    offset |= (uint64_t)Offset1 << 16; //middle 16 bits
+    offset |= (uint64_t)Offset2 << 32; //the rest of the bits
+    //16+16+32=64
     return offset;
 }
 
+//Intrerrupt handlers
 void GeneralProtectionFaultHandler()
 {
     KernelPanic("General Protection Fault");
@@ -47,27 +49,27 @@ void InvalideOpcodeHandler()
 void KBHandler()
 {
     uint8_t keycode = inportb(0x60);
-    GlobalKeyboard->Handle(keycode);
+    GlobalKeyboard->Handle(keycode); //handle scancode
     PIC_EndMaster();
 }
 
 void MSHandler()
 {
     uint8_t data = inportb(0x60);
-    GlobalMouse->Handle(data);
+    GlobalMouse->Handle(data); //handle packet
     PIC_EndSlave();
 }
 
 bool underline = false;
-int times = 5;
+int times = 0;
 void HandleBlink()
 {
     if (underline)
         GlobalDisplay->putc('_');
-    if (times == 5)
+    if (times == Blink_Time) //display each X intrerrupts
     {
         underline = !underline;
-        times = 0;
+        times = 0; //reset counter
     }
     times++;
 }
@@ -75,17 +77,15 @@ void HandleBlink()
 void PITHandler(InterruptStack *istack)
 {
     PITTick();
-    if (VirtualTerminals[CurrentTerminal].initialized)
+    if (VirtualTerminals[CurrentTerminal].initialized) //don't display if it's not initialized
     {
-        GlobalDisplay->clearScreen(0);
-        //reset style
-        GlobalDisplay->colour = WHITE;
-        //display with style
-        ANSIPrint(VirtualTerminals[CurrentTerminal].buffer);
-        HandleBlink();
-        GlobalDisplay->update();
+        GlobalDisplay->clearScreen(0); //clear screen
+        GlobalDisplay->colour = WHITE; //reset style
+        ANSIPrint(VirtualTerminals[CurrentTerminal].buffer); //display with style
+        HandleBlink(); //handle cursor blinking
+        GlobalDisplay->update(); //update screen
     }
-    GlobalTaskManager->Schedule(istack);
+    GlobalTaskManager->Schedule(istack); //schedule
     PIC_EndMaster();
 }
 
