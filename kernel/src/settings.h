@@ -20,3 +20,4 @@
 //====
 #define Logging_Serial //logs in the serial console everything that's logged on the screen
 //#define Quiet //makes the kernel boot up process quiet
+#define Blink //enable blinking cursor

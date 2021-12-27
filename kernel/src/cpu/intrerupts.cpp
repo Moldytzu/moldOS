@@ -1,6 +1,6 @@
 #include <cpu/intrerupts.h>
 
-IDTR* idt;
+IDTR *idt;
 
 void IDTDescriptorEntry::setOffset(uint64_t Offset)
 {
@@ -21,23 +21,27 @@ uint64_t IDTDescriptorEntry::getOffset()
 void GeneralProtectionFaultHandler()
 {
     KernelPanic("General Protection Fault");
-    while(1);
+    while (1)
+        ;
 }
 void PageFaultHandler()
 {
     KernelPanic("Page Fault");
-    while(1);
+    while (1)
+        ;
 }
 void DoubleFaultHandler()
 {
     KernelPanic("Double Fault");
-    while(1);
+    while (1)
+        ;
 }
 
 void InvalideOpcodeHandler()
 {
     KernelPanic("Invalid Opcode");
-    while(1);
+    while (1)
+        ;
 }
 
 void KBHandler()
@@ -54,15 +58,31 @@ void MSHandler()
     PIC_EndSlave();
 }
 
-void PITHandler(InterruptStack* istack)
+bool underline = false;
+int times = 5;
+void HandleBlink()
+{
+    if (underline)
+        GlobalDisplay->putc('_');
+    if (times == 5)
+    {
+        underline = !underline;
+        times = 0;
+    }
+    times++;
+}
+
+void PITHandler(InterruptStack *istack)
 {
     PITTick();
-    if(VirtualTerminals[CurrentTerminal].initialized)
+    if (VirtualTerminals[CurrentTerminal].initialized)
     {
         GlobalDisplay->clearScreen(0);
         //reset style
         GlobalDisplay->colour = WHITE;
+        //display with style
         ANSIPrint(VirtualTerminals[CurrentTerminal].buffer);
+        HandleBlink();
         GlobalDisplay->update();
     }
     GlobalTaskManager->Schedule(istack);
@@ -112,12 +132,11 @@ void RemapPIC()
     outportb(PIC1_DATA, a1);
     io_wait();
     outportb(PIC2_DATA, a2);
-
 }
 
-void CreateIntrerupt(void* handler,uint8_t offset,uint8_t typeAttributes,uint8_t selector)
+void CreateIntrerupt(void *handler, uint8_t offset, uint8_t typeAttributes, uint8_t selector)
 {
-    IDTDescriptorEntry* int_NewInt = (IDTDescriptorEntry*)(idt->Offset + offset * sizeof(IDTDescriptorEntry));
+    IDTDescriptorEntry *int_NewInt = (IDTDescriptorEntry *)(idt->Offset + offset * sizeof(IDTDescriptorEntry));
     int_NewInt->setOffset((uint64_t)handler);
     int_NewInt->Type_Attributes = typeAttributes;
     int_NewInt->Selector = selector;
