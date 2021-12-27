@@ -1,14 +1,14 @@
 #pragma once
 
 //moldOS Build Settings
-//Comment to disable an option
+//Comment to disable a setting
 //Uncomment to enable
 
 //=========
 //Debugging
 //=========
-//#define Debugging_ACPI //shows ACPI-related stuff
-//#define Debugging_Scheduler //show how the tasks are switched
+//#define Debugging_ACPI //debug ACPI
+#define Debugging_Scheduler //debug userspace and the scheduler
 
 //========
 //Hardware
@@ -18,6 +18,6 @@
 //====
 //Misc
 //====
-#define Logging_Serial //logs in the serial console everything that's logged on the screen
+//#define Logging_Serial //logs in the serial console everything that's logged with the LogInfo,LogWarn and LogError functions
 //#define Quiet //makes the kernel boot up process quiet
 #define Blink //enable blinking cursor

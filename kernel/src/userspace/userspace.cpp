@@ -42,9 +42,14 @@ uint64_t SyscallHandler(uint64_t syscall, uint64_t arg1, uint64_t arg2, uint64_t
     case SYSCALL_ALLOCATEMEMORY:
     {
         if(!arg1) return 0;
+        CurrentTask.memoryUse += arg1 * 4096; //it allocates pages, each being 4 kilobytes
         void* mem = GlobalAllocator.RequestPages(arg1);
         for(int i = 0; i<=4096*arg1; i++)
             GlobalTableManager.MapUserspaceMemory((void*)((uint64_t)mem+i));
+        #ifdef Debugging_Scheduler
+            SerialWrite(CurrentTask.name," is now using in total ", inttostr(CurrentTask.memoryUse/1024), " KB, while the whole operating system using only ");
+            SerialWrite(inttostr(GlobalAllocator.GetUsedRAM()/1024/1024), " MB\n");
+        #endif
         return (uint64_t)mem;
         break;
     }

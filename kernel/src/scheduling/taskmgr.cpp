@@ -31,7 +31,7 @@ void TaskManager::Schedule(InterruptStack* registers)
     registers->KernelRsp = kernelStack;
 }
 
-void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privilege)
+void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privilege,uint64_t executableSize)
 {
     Task task;
     task.entryPoint = (uint64_t)entry;
@@ -39,12 +39,19 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
     task.state = STATE_RUNNING;
     task.terminal = lastTerminal++;
     task.name = name;
+    task.memoryUse = executableSize;
+
     memset(&task.registers,0,sizeof(InterruptStack));
     task.registers.rip = (uint64_t)entry;
     task.registers.rsp = (uint64_t)stack+0x1000;
     task.registers.rflags = 0x202; //interrupts
     task.registers.cs = GDTInfoSelectors.UCode;
     task.registers.ss = GDTInfoSelectors.UData;
+
+    #ifdef Debugging_Scheduler
+        SerialWrite("The task ",name," consummes ",inttostr(executableSize/1024)," KB\n");
+    #endif
+
     tasks[taskNum++] = task;
 
     GlobalTableManager.MapUserspaceMemory(entry);
@@ -53,6 +60,8 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
 
 void TaskManager::ExitCurrentTask()
 {
-    SerialWrite("The task ",tasks[currentTask].name," is going to a halt.\n");
+    #ifdef Debugging_Scheduler
+        SerialWrite("The task ",tasks[currentTask].name," is going to a halt.\n");
+    #endif
     tasks[currentTask].state = STATE_HALTED;
 }

@@ -46,6 +46,7 @@ struct Task
     uint8_t privilege;
     InterruptStack registers;
     int terminal = 0;
+    uint64_t memoryUse = 0;
 };
 
 class TaskManager
@@ -57,7 +58,7 @@ public:
     int isEnabled = 0;
 
     void Schedule(InterruptStack* registers);
-    void AddTask(void* entry,void* stack,const char* name,uint8_t privilege);
+    void AddTask(void* entry,void* stack,const char* name,uint8_t privilege,uint64_t executableSize);
     void ExitCurrentTask();
 };
 
