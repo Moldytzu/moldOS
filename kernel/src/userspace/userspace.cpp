@@ -59,6 +59,22 @@ uint64_t SyscallHandler(uint64_t syscall, uint64_t arg1, uint64_t arg2, uint64_t
     case SYSCALL_GETPROCESSTERMINAL:
         return CurrentTask.terminal;
         break;
+    case SYSCALL_GETPIDBYNAME:
+    {
+        for(int i = 0; i<1024; i++)
+        {
+            if(memcmp((const void*)arg1,GlobalTaskManager->tasks[i].name,strlen(GlobalTaskManager->tasks[i].name))==0)
+                return i;
+        }
+        return 0xFFFFFFFFFFFFFFFF;
+        break;
+    }
+    case SYSCALL_GETPID:
+        return GlobalTaskManager->currentTask;
+        break;
+    case SYSCALL_GETTERMINALBYPID:
+        return GlobalTaskManager->tasks[arg1].terminal;
+        break;
     default:
         LogWarn(inttohstr((uint64_t)syscall));
         LogWarn("Unknown syscall!");

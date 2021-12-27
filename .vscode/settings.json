@@ -12,6 +12,7 @@
         "typeinfo": "cpp",
         "userspace.h": "c",
         "chrono": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "system_error": "cpp"
     }
 }

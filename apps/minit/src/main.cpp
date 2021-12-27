@@ -17,6 +17,18 @@ extern "C" void moldMain() {
     putchar(sys_getprocessterminal() + '0');
     putchar('\n');
 
+    puts("\nProcess' pid: ");
+    putchar(sys_getpid() + '0');
+    putchar('\n');
+
+    puts("\n'/minit.melf' task's pid: ");
+    putchar(sys_getpidbyname("/minit.melf") + '0');
+    putchar('\n');
+
+    puts("\nIdle task's pid: ");
+    putchar(sys_getpidbyname("Idle Task") + '0');
+    putchar('\n');
+
     puts("\nContents of /sample.text: \n");
     const char* buffer = (const char*)malloc(4096);
     fread((void*)buffer,43,1,fopen("/sample.text","r"));

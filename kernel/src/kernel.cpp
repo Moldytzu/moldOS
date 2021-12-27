@@ -86,7 +86,7 @@ extern "C" int kernelMain(BootInfo* binfo)
 
     GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
     GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM);
-    GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"moldInit",TASK_USER);
+    GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"/minit.melf",TASK_USER);
     //jump in the userspace
     GlobalTaskManager->isEnabled = 1;
     CurrentTerminal = 2;
