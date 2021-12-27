@@ -15,9 +15,7 @@ void* LoadELFExecutable(const char* file, bool pie)
     void* Contents = VFSReadFile(fDescriptor);
 
     if((void*)Contents == (void*)0)
-    {
-        return (void*)1;
-    }
+        return Contents;
 
     Elf64_Ehdr* header = (Elf64_Ehdr*)Contents;
     Elf64_Phdr *phdrs = (Elf64_Phdr *)((uint64_t)Contents+header->e_phoff);

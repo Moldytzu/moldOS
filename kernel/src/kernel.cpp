@@ -79,7 +79,7 @@ extern "C" int kernelMain(BootInfo* binfo)
     //userspace
     void* moldInit = LoadELFExecutable("/minit.melf",false);
 
-    if(moldInit == (void*)1 || moldInit == (void*)2)
+    if(moldInit == (void*)0)
     {
         KernelPanic("moldInit is missing or corrupt.");
     }
