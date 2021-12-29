@@ -82,9 +82,6 @@ struct BootInfo
     LLFSHeader* RamFS;
 };
 
-extern uint64_t _KernelStart;
-extern uint64_t _KernelEnd;
-
 extern uint64_t _BssStart;
 extern uint64_t _BssEnd;
 
@@ -109,29 +106,50 @@ void* GenerateUserspaceStack()
     return Stack;
 }
 
-void EnablePaging(BootInfo* bootInfo)
+extern "C" void LoadPML4(uint64_t pml4,uint64_t offset);
+uint64_t LastVirtualAddressUsed = 0;
+void EnablePaging(BootInfo* bootInfo,void* pTable,void* Start,void* End)
 {
+    
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
     PageTable* PML4 = (PageTable*)GlobalAllocator.RequestPage();
-    memset(PML4, 0, 0x1000);
-
+    memset(PML4,0,0x1000);
     GlobalTableManager = PageTableManager(PML4);
 
-    for (uint64_t page = 0; page < GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize); page+= 0x1000)
-    {
-        GlobalTableManager.MapMemory((void*)page, (void*)page);
+    PageTableManager uefi = PageTableManager((PageTable*)pTable);
+
+    SerialWrite("Kernel Map\n");
+    //map kernel
+    uint64_t kpages = ((uint64_t)End - (uint64_t)Start) / 0x1000;
+    LastVirtualAddressUsed = (uint64_t)End;
+    GlobalTableManager.DefinePhysicalMemoryLocation((void*)(LastVirtualAddressUsed + 0x1000));
+
+    
+    for(uint64_t i = 0; i < kpages; i++){
+        void* VirtualAddress = (void*)(Start + i * 0x1000);
+        void* PhysicalAddress = uefi.GetPhysicalAddress(VirtualAddress);
+        GlobalTableManager.MapMemory(VirtualAddress, PhysicalAddress);
+    }
+    
+    uint64_t memorySize = GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize);
+
+    SerialWrite("Memory Map\n");
+    //map all the memory
+
+    for(uint64_t i = 0; i < memorySize; i += 0x1000){
+        LastVirtualAddressUsed += 0x1000;
+        GlobalTableManager.MapMemory((void*)LastVirtualAddressUsed, (void*)i);
     }
 
-    uint64_t fbBase = (uint64_t)bootInfo->GOPFrameBuffer->BaseAddr;
-    uint64_t fbSize = (uint64_t)bootInfo->GOPFrameBuffer->BufferSize + 0x1000;
-    GlobalAllocator.LockPages((void*)fbBase, fbSize / 0x1000 + 1);
-    for (uint64_t t = fbBase; t < fbBase + fbSize; t += 4096)
-    {
-        GlobalTableManager.MapMemory((void*)t, (void*)t);
-    }
+    SerialWrite("Defining\n");
+    LastVirtualAddressUsed += 0x1000;
 
-    asm volatile ("mov %0, %%cr3" : : "r" (PML4));
+    GlobalTableManager.DefineVirtualTableLocation();
+
+    SerialWrite("Enabling Paging\n");
+
+    LoadPML4((uint64_t)PML4,(uint64_t)GlobalTableManager.PhysicalMemoryVirtualAddress);
 }
 
 void InitIntrerupts()
@@ -160,9 +178,11 @@ void InitIntrerupts()
 
 void InitVTerminals()
 {
+    SerialWrite("A");
     GlobalAllocator.RequestPages(64); // padding so we don't allocate in crap
-    for(int i = 0; i < 0x800; i++)
+    for(int i = 0; i < 0x400; i++)
     {
+        SerialWrite("A");
         VirtualTerminals[i].init(0x1000);
         GlobalTableManager.MapUserspaceMemory((void*)VirtualTerminals[i].buffer);
     }
@@ -198,7 +218,7 @@ void InitACPI(BootInfo* bootInfo)
 
 }
 
-void InitDrivers(BootInfo* bootInfo)
+void InitDrivers(BootInfo* bootInfo, void* kernelPhysicalAddress, void* Start, void* End)
 {
     GlobalInfo = bootInfo;
 
@@ -215,21 +235,21 @@ void InitDrivers(BootInfo* bootInfo)
     SerialWrite("Readed memory map!\n");
 
     //lock kernel pages
-    uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
+    uint64_t kernelSize = (uint64_t)End - (uint64_t)Start;
     uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
 
-    GlobalAllocator.LockPages(&_KernelStart, kernelPages);
+    GlobalAllocator.LockPages(Start, kernelPages);
     SerialWrite("Locked kernel pages\n");
 
     //gdt and intrerupts
     gdtInit();
+    SerialWrite("Loading GDT\n");
     InitIntrerupts();
+    SerialWrite("Loading IDT\n");
     PITSetDivisor(0xFFFF);
-    asm volatile ("sti");
-    SerialWrite("Loaded the GDT and intrerrupts!\n");
 
     //enable paging
-    EnablePaging(bootInfo);
+    EnablePaging(bootInfo,kernelPhysicalAddress,  Start, End);
     SerialWrite("Enabled Paging!\n");
 
     //enable mouse and keyboard
@@ -240,7 +260,7 @@ void InitDrivers(BootInfo* bootInfo)
 
     display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);
 
-    InitializeHeap((void*)0x0000100000000000, 0x10);
+    InitializeHeap((void*)LastVirtualAddressUsed, 0x10);
 
 #ifdef DoubleBuffer
     doubleBuffer->BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1);
@@ -248,11 +268,6 @@ void InitDrivers(BootInfo* bootInfo)
     doubleBuffer->Height = display.globalFrameBuffer->Height;
     doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
     doubleBuffer->Width = display.globalFrameBuffer->Width;
-
-    for (uint64_t t = (uint64_t)doubleBuffer->BaseAddr; t < doubleBuffer->BufferSize + (uint64_t)doubleBuffer->BaseAddr; t += 4096)
-    {
-        GlobalTableManager.MapMemory((void*)t, (void*)t);
-    }
 
     display.InitDoubleBuffer(doubleBuffer);
 #else

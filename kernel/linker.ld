@@ -3,25 +3,24 @@ ENTRY(kernelMain)
 
 SECTIONS
 {
-	_KernelStart = .;
-	.text :
+	. = 0xFFFF800000000000;
+	.text : ALIGN(0x1000)
 	{
 		*(.text)
 	}
-	.data :
+	.data : ALIGN(0x1000)
 	{
 		*(.data)
 	}
-	.rodata :
+	.rodata : ALIGN(0x1000)
 	{
 		*(.rodata)
 	}
 	_BssStart = .;
-	.bss :
+	.bss : ALIGN(0x1000)
 	{
 		*(COMMON)
 		*(.bss)
 	}
 	_BssEnd = .;
-	_KernelEnd = .;
 }

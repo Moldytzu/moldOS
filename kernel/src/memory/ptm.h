@@ -18,10 +18,18 @@ class PageTableManager
 {
 public:
     PageTableManager(PageTable* PML4Address);
-    PageTable* PML4;
+
     void GetIndexes(void* address, PageLevelIndexes* out);
     void MapMemory(void* virtualMemory, void* physicalMemory);
     void MapUserspaceMemory(void* virtualMemory);
+    void* GetPhysicalAddress(void* virtualAddress);
+    void* GetVirtualAddress(void* physicalAddress); 
+    void DefinePhysicalMemoryLocation(void* PhysicalMemoryVirtualAddress);
+    void DefineVirtualTableLocation();
+      PageTable* PML4;
+        uint64_t VirtualAddress;  
+    void* PhysicalMemoryVirtualAddressSaver;
+    void* PhysicalMemoryVirtualAddress;
 };
 
 extern PageTableManager GlobalTableManager;

@@ -40,40 +40,47 @@ ALIGN 16
 %endmacro
 
 InvalideOpcodeHandlerEntry:
+    jmp $
     PUSH_REG
     call InvalideOpcodeHandler
     POP_REG
     jmp $
 
 GeneralProtectionFaultHandlerEntry:
+    jmp $
     PUSH_REG
     call GeneralProtectionFaultHandler
     POP_REG
     jmp $
 
 PageFaultHandlerEntry:
+    jmp $
 	PUSH_REG
     call PageFaultHandler
     POP_REG
     jmp $
 
 DoubleFaultHandlerEntry:
+    jmp $
 	PUSH_REG
     call DoubleFaultHandler
     POP_REG
     jmp $
 
 KBHandlerEntry:
+    jmp $
 	PUSH_REG
 	call KBHandler
     POP_REG
 	iretq
 MSHandlerEntry:
+    jmp $
 	PUSH_REG
 	call MSHandler
     POP_REG
 	iretq
 PITHandlerEntry:
+    jmp $
 	PUSH_REG
     mov rdi, rsp
 	call PITHandler

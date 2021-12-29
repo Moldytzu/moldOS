@@ -184,10 +184,12 @@ void mymemcpy(void *d, const void *s, size_t n)
 }
 
 void* InitMemory(EFI_MEMORY_DESCRIPTOR* Map, uint64_t MapSize, uint64_t MapDescSize){
-	//get uefi's page table
-	uint64_t uefiPageTable;
-	__asm__  volatile("mov %%cr3, %0" : "=r"(uefiPageTable));
-	void* PML4 = (void*)uefiPageTable; //and pass it as our own :)
+    void* PML4 = allocatePage();
+
+    //copy uefi's page table
+    uint64_t uefiPageTable;
+    __asm__  volatile("mov %%cr3, %0" : "=r"(uefiPageTable));
+    mymemcpy(PML4,(void*)uefiPageTable,0x1000); //copy over our own page
 
     uint64_t MapEntries = MapSize / MapDescSize;
 
@@ -294,7 +296,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 
 	uint64_t MapEntries = MapSize / DescriptorSize;
 	GetMemorySize(Map, MapEntries, DescriptorSize);
-	Print(L"OK");
+	Print(L"OK\n");
 
     //Read the ELF header
     Elf64_Ehdr header;
@@ -313,20 +315,35 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	SystemTable->BootServices->AllocatePool(EfiLoaderData, kernelSize, (void **)&phdrs);
 	kernel->Read(kernel, &kernelSize, phdrs);
 
+
+	uint64_t VirtualKernelStart = 0;
+	uint64_t VirtualKernelEnd = 0;
+
+	int iter = 0;
 	for (Elf64_Phdr *phdr = phdrs; (char *)phdr < (char *)phdrs + header.e_phnum * header.e_phentsize; phdr = (Elf64_Phdr *)((char *)phdr + header.e_phentsize)) {
 		switch (phdr->p_type) {
 		case PT_LOAD: {
-				int pages = (phdr->p_memsz + 0x1000 - 1) / 0x1000;
 				Elf64_Addr segment = phdr->p_paddr;
-				SystemTable->BootServices->AllocatePages(AllocateAddress, EfiLoaderData, pages, &segment);
+				if(VirtualKernelStart == 0){
+					VirtualKernelStart = segment;
+				}
+				Status = kernel->SetPosition(kernel, phdr->p_offset);
 
-				kernel->SetPosition(kernel, phdr->p_offset);
-				UINTN phdrSize = phdr->p_filesz;
-				kernel->Read(kernel, &phdrSize, (void *)segment);
+				uint64_t pages = (phdr->p_memsz + 0x1000 - 1) / 0x1000;
+				void* PhysicalBuffer = allocatePages(pages);
+				for(uint64_t i = 0; i < pages; i++){
+					MapMemory(PML4, (void*)segment + i * 0x1000, (void*)PhysicalBuffer + i * 0x1000);
+				}	
+				VirtualKernelEnd = segment + pages * 0x1000;
+				UINTN size = phdr->p_filesz;
+				Status = kernel->Read(kernel, &size, (void*)PhysicalBuffer);
+				
 				break;
 			}
 		}
 	}
+
+	Print(L"OK\n");
 
     //Load the font
 	PSFHeader* fontHeader;
@@ -397,7 +414,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	}
 
     //Prepare to run the kernel
-    int (*EntryPoint)(BootInfo *) = ((__attribute__((sysv_abi)) int (*)(BootInfo *))header.e_entry);
+    int (*EntryPoint)(BootInfo *, void *, void *, void *) = ((__attribute__((sysv_abi)) int (*)(BootInfo *, void *, void *, void *))header.e_entry);
     
     BootInfo binfo;
     binfo.font = finishedFont;
@@ -411,9 +428,11 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     binfo.RSDP = RSDP;
 	binfo.SMBIOS = SMBIOS;
 
+	Print(L"Booting...\n");
+
     BS->ExitBootServices(IH, MapKey);
     
-    EntryPoint(&binfo);
+    EntryPoint(&binfo,PML4,(void*)VirtualKernelStart,(void*)VirtualKernelEnd);
 
     while(1) {
         __asm__ volatile ("hlt");

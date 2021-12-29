@@ -20,9 +20,9 @@ To-do list:
 
 extern "C" void IdleTask();
 
-extern "C" int kernelMain(BootInfo* binfo)
+extern "C" int kernelMain(BootInfo* binfo, void* pTable, void* Start, void* End)
 {
-    InitDrivers(binfo);
+    InitDrivers(binfo,pTable,  Start,  End);
 
     if((void*)binfo->RamFS == (void*)0)
     {

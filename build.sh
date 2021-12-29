@@ -1,3 +1,6 @@
+#crash on error
+set -e
+
 #clean up
 ./clean.sh
 
