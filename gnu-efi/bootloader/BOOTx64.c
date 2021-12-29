@@ -170,20 +170,33 @@ void allocatePagesVirtualAddress(void* PML4, uint64_t pages, void* segment){
     }
 }
 
+void mymemcpy(void *d, const void *s, size_t n)
+{
+    uint64_t d0, d1, d2;
+    __asm__ volatile(
+        "rep ; movsq\n\t""movq %4,%%rcx\n\t""rep ; movsb\n\t": "=&c" (d0),
+        "=&D" (d1),
+        "=&S" (d2): "0" (n >> 3),
+        "g" (n & 7),
+        "1" (d),
+        "2" (s): "memory"
+    );  //not mine (found it on reddit: https://www.reddit.com/r/C_Programming/comments/ivoqhk/understanding_the_assembly_code_of_memcpy/)
+}
+
 void* InitMemory(EFI_MEMORY_DESCRIPTOR* Map, uint64_t MapSize, uint64_t MapDescSize){
     void* PML4 = allocatePage();
     mymemset(PML4, 0, 0x1000);
 
+	//copy uefi's page table
+	uint64_t uefiPageTable;
+	__asm__  volatile("mov %%cr3, %0" : "=r"(uefiPageTable));
+	mymemcpy(PML4,(void*)uefiPageTable,0x1000);
     uint64_t MapEntries = MapSize / MapDescSize;
 
     uint64_t MemorySize = GetMemorySize(Map, MapEntries, MapDescSize);
     MapMemory(PML4, (void*)Map, (void*)Map);
 
-    for (uint64_t t = 0; t < MemorySize; t += 0x1000){
-        MapMemory(PML4, (void*)t, (void*)t);
-    }
-
-    __asm__ ("mov %0, %%cr3" :: "r" (PML4));
+    __asm__ volatile("mov %0, %%cr3" :: "r" (PML4));
     return PML4;
 }
 

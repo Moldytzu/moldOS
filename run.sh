@@ -1,1 +1,1 @@
-qemu-system-x86_64 -drive format=raw,file=kernel/bin/disk.img -bios RELEASEX64_OVMF.fd -serial stdio -m 3G -machine q35 -d int -no-reboot -no-shutdown -M smm=off
+qemu-system-x86_64 -drive format=raw,file=kernel/bin/disk.img -bios RELEASEX64_OVMF.fd -serial stdio -m 512M -machine q35 -d int -no-reboot -no-shutdown -M smm=off
