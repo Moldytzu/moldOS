@@ -184,13 +184,11 @@ void mymemcpy(void *d, const void *s, size_t n)
 }
 
 void* InitMemory(EFI_MEMORY_DESCRIPTOR* Map, uint64_t MapSize, uint64_t MapDescSize){
-    void* PML4 = allocatePage();
-    mymemset(PML4, 0, 0x1000);
-
-	//copy uefi's page table
+	//get uefi's page table
 	uint64_t uefiPageTable;
 	__asm__  volatile("mov %%cr3, %0" : "=r"(uefiPageTable));
-	mymemcpy(PML4,(void*)uefiPageTable,0x1000);
+	void* PML4 = (void*)uefiPageTable; //and pass it as our own :)
+
     uint64_t MapEntries = MapSize / MapDescSize;
 
     uint64_t MemorySize = GetMemorySize(Map, MapEntries, MapDescSize);
