@@ -4,6 +4,189 @@
 #include <efilib.h>
 #include <elf.h>
 
+/* Data */
+
+//bool variable
+#define true 1
+#define false 0
+
+#define DECIMAL 10
+#define HEX     16
+
+typedef unsigned int            bool; 
+
+struct PageMapIndexer {
+    uint64_t PDP_i;
+    uint64_t PD_i;
+    uint64_t PT_i;
+    uint64_t P_i;
+};
+
+enum PT_Flag {
+    Present = 0,
+    ReadWrite = 1,
+    WriteThrough = 3,
+    CacheDisabled = 4,
+    Accessed = 5,
+};
+
+struct PageTable { 
+    uint64_t entries[512];
+}__attribute__((aligned(0x1000)));
+
+
+/* Code */
+void mymemset(void* start, uint8_t value, uint64_t num){
+    for (uint64_t i = 0; i < num; i++){
+        *(uint8_t*)((uint64_t)start + i) = value;
+    }
+}
+
+uint64_t SetFlag(uint64_t Value, int flag, bool enabled){
+    uint64_t bitSelector = (uint64_t)1 << flag;
+    Value &= ~bitSelector;
+    if (enabled){
+        Value |= bitSelector;
+    }
+    return Value;
+}
+
+bool GetFlag(uint64_t Value, int flag){
+    uint64_t bitSelector = (uint64_t)1 << flag;
+    return (Value & bitSelector) > 0 ? true : false;
+}
+
+uint64_t GetAddress(uint64_t Value){
+    return (Value & 0x000ffffffffff000) >> 12;
+}
+
+uint64_t SetAddress(uint64_t Value, uint64_t address){
+    address &= 0x000000ffffffffff;
+    Value &= 0xfff0000000000fff;
+    Value |= (address << 12);
+	return Value;
+}
+
+
+void* allocatePage(){
+    EFI_PHYSICAL_ADDRESS PhysicalBuffer;
+    ST->BootServices->AllocatePages(AllocateAnyPages, EfiLoaderData,1, &PhysicalBuffer);
+    return (void*)PhysicalBuffer;
+}
+
+void* allocatePages(uint64_t pages){
+    EFI_PHYSICAL_ADDRESS PhysicalBuffer;
+    ST->BootServices->AllocatePages(AllocateAnyPages, EfiLoaderData, pages, &PhysicalBuffer);
+    return (void*)PhysicalBuffer;
+}
+
+uint64_t GetMemorySize(EFI_MEMORY_DESCRIPTOR* mMap, uint64_t mMapEntries, uint64_t mMapDescSize){
+    uint64_t memorySizeBytes = 0;
+
+    for (uint64_t i = 0; i < mMapEntries; i++){
+        EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)mMap + (i * mMapDescSize));
+        memorySizeBytes += desc->NumberOfPages * 0x1000;
+    }
+    return memorySizeBytes;
+}
+
+struct PageMapIndexer PageMapIndexer(uint64_t virtualAddress){
+    struct PageMapIndexer pageMapIndexer;
+    virtualAddress >>= 12;
+    pageMapIndexer.P_i = virtualAddress & 0x1ff;
+    virtualAddress >>= 9;
+    pageMapIndexer.PT_i = virtualAddress & 0x1ff;
+    virtualAddress >>= 9;
+    pageMapIndexer.PD_i = virtualAddress & 0x1ff;
+    virtualAddress >>= 9;
+    pageMapIndexer.PDP_i = virtualAddress & 0x1ff;
+    return pageMapIndexer;
+}
+
+void MapMemory(void* PML4, void* virtualAddress, void* physicalAddress){
+    struct PageMapIndexer indexer = PageMapIndexer((uint64_t)virtualAddress);
+    uint64_t PDE;
+    
+    struct PageTable* Table = (struct PageTable*)PML4;
+    PDE = Table->entries[indexer.PDP_i];
+    uint64_t PDP;
+    if (!GetFlag(PDE, 0)){
+        PDP = (uint64_t)allocatePage();
+        mymemset((void*)PDP, 0, 0x1000);
+        PDE = SetAddress(PDE, PDP >> 12);
+        PDE = SetFlag(PDE, 0, true);
+        PDE = SetFlag(PDE, 1, true);
+        Table->entries[indexer.PDP_i] = PDE;
+    }
+    else
+    {
+        PDP = (uint64_t)GetAddress(PDE) << 12;
+    }
+    
+    Table = (struct PageTable*)PDP;
+    PDE = Table->entries[indexer.PD_i];
+    uint64_t PD;
+    if (!GetFlag(PDE, 0)){
+        PD = (uint64_t)allocatePage();
+        mymemset((void*)PD, 0, 0x1000);
+        PDE = SetAddress(PDE, (uint64_t)PD >> 12);
+        PDE = SetFlag(PDE, 0, true);
+        PDE = SetFlag(PDE, 1, true);
+        Table->entries[indexer.PD_i] = PDE;
+    }
+    else
+    {
+        PD = (uint64_t)GetAddress(PDE) << 12;
+    }
+
+    Table = (struct PageTable*)PD;
+    PDE = Table->entries[indexer.PT_i];
+    uint64_t PT;
+    if (!GetFlag(PDE, 0)){
+        PT = (uint64_t)allocatePage();
+        mymemset((void*)PT, 0, 0x1000);
+        PDE = SetAddress(PDE, (uint64_t)PT >> 12);
+        PDE = SetFlag(PDE, 0, true);
+        PDE = SetFlag(PDE, 1, true);
+        Table->entries[indexer.PT_i] = PDE;
+    }
+    else
+    {
+        PT = (uint64_t)GetAddress(PDE) << 12;
+    }
+
+    Table = (struct PageTable*)PT;
+    PDE = Table->entries[indexer.P_i];
+    PDE = SetAddress(PDE, (uint64_t)physicalAddress >> 12);
+    PDE = SetFlag(PDE, 0, true);
+    PDE = SetFlag(PDE, 1, true);
+    Table->entries[indexer.P_i] = PDE;
+}
+
+void allocatePagesVirtualAddress(void* PML4, uint64_t pages, void* segment){
+    for(uint64_t i = 0; i < pages; i += 0x1000){
+        void* PhysicalBuffer = allocatePage();
+        MapMemory(PML4, (void*)segment + i, (void*)PhysicalBuffer);
+    }
+}
+
+void* InitMemory(EFI_MEMORY_DESCRIPTOR* Map, uint64_t MapSize, uint64_t MapDescSize){
+    void* PML4 = allocatePage();
+    mymemset(PML4, 0, 0x1000);
+
+    uint64_t MapEntries = MapSize / MapDescSize;
+
+    uint64_t MemorySize = GetMemorySize(Map, MapEntries, MapDescSize);
+    MapMemory(PML4, (void*)Map, (void*)Map);
+
+    for (uint64_t t = 0; t < MemorySize; t += 0x1000){
+        MapMemory(PML4, (void*)t, (void*)t);
+    }
+
+    __asm__ ("mov %0, %%cr3" :: "r" (PML4));
+    return PML4;
+}
+
 typedef struct {
 	void* BaseAddr;
 	uint64_t BufferSize;
@@ -82,6 +265,26 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     EFI_FILE* llfs = OpenFile(moldOSFolder,L"ram.llfs");
     if (llfs == NULL) DoError(L"Failed to open the LLFS!\n\r");
 
+	/* Load paging */
+	EFI_MEMORY_DESCRIPTOR* Map = NULL;
+	UINTN MapSize = 0;
+	UINTN MapKey;
+	UINTN DescriptorSize;
+	UINT32 DescriptorVersion;
+	EFI_STATUS Status = SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+	Status = SystemTable->BootServices->AllocatePool(EfiLoaderData, MapSize, (void**)&Map);
+
+	Status = EFI_LOAD_ERROR;
+	while(Status != EFI_SUCCESS){
+		Status = SystemTable->BootServices->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
+	}	
+
+	void* PML4 = InitMemory(Map, MapSize, DescriptorSize);
+
+	uint64_t MapEntries = MapSize / DescriptorSize;
+	GetMemorySize(Map, MapEntries, DescriptorSize);
+	Print(L"OK");
+
     //Read the ELF header
     Elf64_Ehdr header;
 	UINTN size = sizeof(header);
@@ -153,17 +356,6 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
 	framebuffer.Width = gop->Mode->Info->HorizontalResolution;
 	framebuffer.Height = gop->Mode->Info->VerticalResolution;
 	framebuffer.PixelPerScanLine = gop->Mode->Info->PixelsPerScanLine;
-
-    //Get memory map
-	EFI_MEMORY_DESCRIPTOR *Map = NULL;
-	UINTN MapSize, MapKey;
-	UINTN DescriptorSize;
-	UINT32 DescriptorVersion;
-	EFI_STATUS st = BS->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-	BS->AllocatePool(EfiLoaderData, MapSize, (void **)&Map);
-	do {
-			st = BS->GetMemoryMap(&MapSize, Map, &MapKey, &DescriptorSize, &DescriptorVersion);
-	} while(st != EFI_SUCCESS);
 
     //Get RSDP
 	EFI_CONFIGURATION_TABLE* configTable = ST->ConfigurationTable;
