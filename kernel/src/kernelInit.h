@@ -5,42 +5,42 @@
 #include <stdint.h>
 
 //drivers
-#include <drivers/display/display.h> //display
-#include <drivers/pci/pci.h> //pci
-#include <drivers/rtc/rtc.h> //real time clock
+#include <drivers/display/display.h>   //display
+#include <drivers/pci/pci.h>           //pci
+#include <drivers/rtc/rtc.h>           //real time clock
 #include <drivers/keyboard/keyboard.h> // keyboard
-#include <drivers/mouse/mouse.h> //ps/2 mouse
+#include <drivers/mouse/mouse.h>       //ps/2 mouse
 
 //misc
 #include <misc/bitmap/bitmap.h> //bitmap
-#include <misc/colors.h> //colors
-#include <misc/logging/log.h> //logging
-#include <misc/power/acpi.h> //acpi
+#include <misc/colors.h>        //colors
+#include <misc/logging/log.h>   //logging
+#include <misc/power/acpi.h>    //acpi
 #include <misc/smbios/smbios.h> //smbios
 
 //io
 #include <io/serial.h> //serial port
-#include <io/msr.h> //model specific registers
+#include <io/msr.h>    //model specific registers
 
 //memory
 #include <memory/memory.h> //memory
-#include <memory/pfa.h> //pfa
-#include <memory/pmi.h> //pmi
+#include <memory/pfa.h>    //pfa
+#include <memory/pmi.h>    //pmi
 #include <memory/paging.h> //paging
-#include <memory/ptm.h> //ptm
-#include <memory/heap.h> //heap
+#include <memory/ptm.h>    //ptm
+#include <memory/heap.h>   //heap
 
 //cpu
 #include <cpu/intrerupts.h> //idt
-#include <cpu/gdt.h> //gdt
-#include <cpu/tss.h> //tss
+#include <cpu/gdt.h>        //gdt
+#include <cpu/tss.h>        //tss
 
 //libc
 #include <libc/stdio.h> //standard i/o
-#include <libc/math.h> //maths
+#include <libc/math.h>  //maths
 
 //scheduling
-#include <scheduling/pit.h> //pit
+#include <scheduling/pit.h>     //pit
 #include <scheduling/taskmgr.h> //task manager
 
 //userspace
@@ -48,7 +48,7 @@
 
 //filesystem
 #include <filesystem/llfs.h> //llfs
-#include <filesystem/vfs.h> //vfs
+#include <filesystem/vfs.h>  //vfs
 
 //elf
 #include <elf/loader.h>
@@ -64,92 +64,99 @@
 struct BootInfo
 {
     //display
-    DisplayBuffer* GOPFrameBuffer;
-    PSFFont* Font;
+    DisplayBuffer *GOPFrameBuffer;
+    PSFFont *Font;
 
     //memory
-    EFI_MEMORY_DESCRIPTOR* mMap;
+    EFI_MEMORY_DESCRIPTOR *mMap;
     uint64_t mMapSize;
     uint64_t mMapDescSize;
 
     //acpi
-    RSDP2* RSDP;
+    RSDP2 *RSDP;
 
     //smbios
-    SMBiosHeader* SMBIOS;
+    SMBiosHeader *SMBIOS;
 
     //llfs
-    LLFSHeader* RamFS;
+    LLFSHeader *RamFS;
 };
 
 extern uint64_t _BssStart;
 extern uint64_t _BssEnd;
 
-char** CPUFeatures;
+char **CPUFeatures;
 
-BootInfo* GlobalInfo;
+BootInfo *GlobalInfo;
 
+//variables
 DisplayDriver display;
-PCI pci;
-DisplayBuffer* doubleBuffer;
+DisplayBuffer *doubleBuffer;
 Keyboard kb;
 Mouse mouse;
+PCI pci;
 
-void* GenerateUserspaceStack()
+void *GenerateUserspaceStack()
 {
-    void* Stack = GlobalAllocator.RequestPages(8);
-    uint64_t StackSize = 0x1000*8; //32k
+    void *Stack = GlobalAllocator.RequestPages(8);
+    uint64_t StackSize = 0x1000 * 8; //32k
     for (uint64_t t = (uint64_t)Stack; t < (uint64_t)Stack + StackSize; t += 4096)
     {
-        GlobalTableManager.MapUserspaceMemory((void*)t);
+        GlobalTableManager.MapUserspaceMemory((void *)t);
     }
     return Stack;
 }
 
-extern "C" void LoadPML4(uint64_t pml4,uint64_t offset);
+extern "C" void LoadPML4(uint64_t pml4, uint64_t offset);
 uint64_t LastVirtualAddressUsed = 0;
-void EnablePaging(BootInfo* bootInfo,void* pTable,void* Start,void* End)
+void EnablePaging(BootInfo *bootInfo, void *pTable, void *Start, void *End)
 {
-    
+
     uint64_t mMapEntries = bootInfo->mMapSize / bootInfo->mMapDescSize;
 
-    PageTable* PML4 = (PageTable*)GlobalAllocator.RequestPage();
-    memset(PML4,0,0x1000);
+    uint64_t fbBase = (uint64_t)bootInfo->GOPFrameBuffer->BaseAddr;
+    uint64_t fbSize = (uint64_t)bootInfo->GOPFrameBuffer->BufferSize + 0x1000;
+    GlobalAllocator.LockPages((void *)fbBase, fbSize / 0x1000 + 1);
+
+    PageTable *PML4 = (PageTable *)GlobalAllocator.RequestPage();
+    memset(PML4, 0, 0x1000);
     GlobalTableManager = PageTableManager(PML4);
 
-    PageTableManager uefi = PageTableManager((PageTable*)pTable);
+    PageTableManager uefi = PageTableManager((PageTable *)pTable);
 
     SerialWrite("Kernel Map\n");
     //map kernel
     uint64_t kpages = ((uint64_t)End - (uint64_t)Start) / 0x1000;
     LastVirtualAddressUsed = (uint64_t)End;
-    GlobalTableManager.DefinePhysicalMemoryLocation((void*)(LastVirtualAddressUsed + 0x1000));
+    LastVirtualAddressUsed += 0x1000 - (LastVirtualAddressUsed % 0x1000);
+    GlobalTableManager.DefinePhysicalMemoryLocation((void *)(LastVirtualAddressUsed + 0x1000));
 
-    
-    for(uint64_t i = 0; i < kpages; i++){
-        void* VirtualAddress = (void*)(Start + i * 0x1000);
-        void* PhysicalAddress = uefi.GetPhysicalAddress(VirtualAddress);
+    for (uint64_t i = 0; i < kpages; i++)
+    {
+        void *VirtualAddress = (void *)(Start + i * 0x1000);
+        void *PhysicalAddress = uefi.GetPhysicalAddress(VirtualAddress);
         GlobalTableManager.MapMemory(VirtualAddress, PhysicalAddress);
     }
-    
+
     uint64_t memorySize = GetMemorySize(bootInfo->mMap, mMapEntries, bootInfo->mMapDescSize);
 
     SerialWrite("Memory Map\n");
     //map all the memory
 
-    for(uint64_t i = 0; i < memorySize; i += 0x1000){
+    for (uint64_t i = 0; i < memorySize; i += 0x1000)
+    {
         LastVirtualAddressUsed += 0x1000;
-        GlobalTableManager.MapMemory((void*)LastVirtualAddressUsed, (void*)i);
+        GlobalTableManager.MapMemory((void *)LastVirtualAddressUsed, (void *)i);
     }
+    LastVirtualAddressUsed += 0x1000;
 
     SerialWrite("Defining\n");
-    LastVirtualAddressUsed += 0x1000;
 
     GlobalTableManager.DefineVirtualTableLocation();
 
     SerialWrite("Enabling Paging\n");
 
-    LoadPML4((uint64_t)PML4,(uint64_t)GlobalTableManager.PhysicalMemoryVirtualAddress);
+    LoadPML4((uint64_t)PML4, (uint64_t)GlobalTableManager.PhysicalMemoryVirtualAddress);
 }
 
 void InitIntrerupts()
@@ -157,16 +164,18 @@ void InitIntrerupts()
     idt->Limit = 0x0FFF;
     idt->Offset = (uint64_t)GlobalAllocator.RequestPage();
 
-    CreateIntrerupt((void*)PageFaultHandlerEntry,0xE,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)DoubleFaultHandlerEntry,0x8,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)GeneralProtectionFaultHandlerEntry,0xD,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)InvalideOpcodeHandlerEntry,0x6,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void *)PageFaultHandlerEntry, 0xE, IDT_TA_InterruptGate, 0x08);
+    CreateIntrerupt((void *)DoubleFaultHandlerEntry, 0x8, IDT_TA_InterruptGate, 0x08);
+    CreateIntrerupt((void *)GeneralProtectionFaultHandlerEntry, 0xD, IDT_TA_InterruptGate, 0x08);
+    CreateIntrerupt((void *)InvalideOpcodeHandlerEntry, 0x6, IDT_TA_InterruptGate, 0x08);
 
-    CreateIntrerupt((void*)KBHandlerEntry,0x21,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)MSHandlerEntry,0x2C,IDT_TA_InterruptGate,0x08);
-    CreateIntrerupt((void*)PITHandlerEntry,0x20,IDT_TA_InterruptGate,0x08);
+    CreateIntrerupt((void *)KBHandlerEntry, 0x21, IDT_TA_InterruptGate, 0x08);
+    CreateIntrerupt((void *)MSHandlerEntry, 0x2C, IDT_TA_InterruptGate, 0x08);
+    CreateIntrerupt((void *)PITHandlerEntry, 0x20, IDT_TA_InterruptGate, 0x08);
 
-    asm volatile ("lidt %0" : : "m" (*idt));
+    asm volatile("lidt %0"
+                 :
+                 : "m"(*idt));
 
     RemapPIC();
 
@@ -180,33 +189,33 @@ void InitVTerminals()
 {
     SerialWrite("A");
     GlobalAllocator.RequestPages(64); // padding so we don't allocate in crap
-    for(int i = 0; i < 0x400; i++)
+    for (int i = 0; i < 0x400; i++)
     {
         SerialWrite("A");
         VirtualTerminals[i].init(0x1000);
-        GlobalTableManager.MapUserspaceMemory((void*)VirtualTerminals[i].buffer);
+        GlobalTableManager.MapUserspaceMemory((void *)VirtualTerminals[i].buffer);
     }
 }
 
-void InitACPI(BootInfo* bootInfo)
+void InitACPI(BootInfo *bootInfo)
 {
-    SDT* xsdt = (SDT*)(bootInfo->RSDP->XSDTAddress);
+    SDT *xsdt = (SDT *)(bootInfo->RSDP->XSDTAddress);
 
-    if(memcmp(&xsdt->Signature,"XSDT",4) != 0)
+    if (memcmp(&xsdt->Signature, "XSDT", 4) != 0)
     {
         LogWarn("Wrong XSDT signature! ACPI is disabled.");
         return;
     }
 
-    MCFG* mcfg = (MCFG*)ACPIFindTable(xsdt,(char*)"MCFG");
+    MCFG *mcfg = (MCFG *)ACPIFindTable(xsdt, (char *)"MCFG");
 
 #ifndef Quiet
     LogInfo("Enumerating PCI");
 #endif
-    if(mcfg != nullptr)
+    if (mcfg != nullptr)
     {
         pci.EnumeratePCI(mcfg);
-        if(pci.DevicesIndex == 0)
+        if (pci.DevicesIndex == 0)
         {
             LogWarn("No PCI devices!");
         }
@@ -215,10 +224,9 @@ void InitACPI(BootInfo* bootInfo)
     {
         LogWarn("No MCFG found!");
     }
-
 }
 
-void InitDrivers(BootInfo* bootInfo, void* kernelPhysicalAddress, void* Start, void* End)
+void InitDrivers(BootInfo *bootInfo, void *kernelPhysicalAddress, void *Start, void *End)
 {
     GlobalInfo = bootInfo;
 
@@ -227,7 +235,7 @@ void InitDrivers(BootInfo* bootInfo, void* kernelPhysicalAddress, void* Start, v
     SerialWrite("Kernel pre-display phase has begun!\n");
 
     //clear the bss so it will not have random values at startup
-    memset(&_BssStart,0,&_BssEnd-&_BssStart);
+    memset(&_BssStart, 0, &_BssEnd - &_BssStart);
 
     //read memory map
     GlobalAllocator = PageFrameAllocator();
@@ -249,7 +257,8 @@ void InitDrivers(BootInfo* bootInfo, void* kernelPhysicalAddress, void* Start, v
     PITSetDivisor(0xFFFF);
 
     //enable paging
-    EnablePaging(bootInfo,kernelPhysicalAddress,  Start, End);
+    EnablePaging(bootInfo, kernelPhysicalAddress, Start, End);
+    GlobalInfo = (BootInfo *)GlobalTableManager.GetVirtualAddress(GlobalInfo);
     SerialWrite("Enabled Paging!\n");
 
     //enable mouse and keyboard
@@ -258,9 +267,13 @@ void InitDrivers(BootInfo* bootInfo, void* kernelPhysicalAddress, void* Start, v
     GlobalMouse = &mouse;
     SerialWrite("Enabled mouse and keyboard!\n");
 
-    display.InitDisplayDriver(bootInfo->GOPFrameBuffer,bootInfo->Font);
+    display.InitDisplayDriver(GlobalInfo->GOPFrameBuffer, GlobalInfo->Font);
 
-    InitializeHeap((void*)LastVirtualAddressUsed, 0x10);
+    SerialWrite("Done display\n");
+
+    InitializeHeap((void *)LastVirtualAddressUsed, 0x10);
+
+    SerialWrite("Heap\n");
 
 #ifdef DoubleBuffer
     doubleBuffer->BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1);
@@ -271,7 +284,7 @@ void InitDrivers(BootInfo* bootInfo, void* kernelPhysicalAddress, void* Start, v
 
     display.InitDoubleBuffer(doubleBuffer);
 #else
-    display.InitDoubleBuffer(bootInfo->GOPFrameBuffer);
+    display.InitDoubleBuffer(GlobalInfo->GOPFrameBuffer);
 #endif
 
     display.colour = WHITE;
@@ -289,12 +302,11 @@ void InitDrivers(BootInfo* bootInfo, void* kernelPhysicalAddress, void* Start, v
     LogInfo("Initialized PS/2, Intrerupts, Display, Serial!");
 #endif
 
-    InitACPI(bootInfo);
+    InitACPI(GlobalInfo);
 #ifndef Quiet
     LogInfo("Initialized ACPI!");
 #endif
     SerialWrite("Kernel intialized ACPI!\n");
-
 
     EnableSCE();
 #ifndef Quiet
@@ -304,6 +316,5 @@ void InitDrivers(BootInfo* bootInfo, void* kernelPhysicalAddress, void* Start, v
 #endif
     SerialWrite("Kernel intialized SCE!\n");
 
-
-    SerialWrite("Kernel finished loading in ",inttostr(TimeSinceBoot)," seconds!\n");
+    SerialWrite("Kernel finished loading in ", inttostr(TimeSinceBoot), " seconds!\n");
 }
