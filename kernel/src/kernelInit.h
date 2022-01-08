@@ -91,7 +91,6 @@ BootInfo *GlobalInfo;
 
 //variables
 DisplayDriver display;
-DisplayBuffer *doubleBuffer;
 Keyboard kb;
 Mouse mouse;
 PCI pci;
@@ -276,16 +275,25 @@ void InitDrivers(BootInfo *bootInfo, void *kernelPhysicalAddress, void *Start, v
     SerialWrite("Heap\n");
 
 #ifdef DoubleBuffer
-    doubleBuffer->BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1);
-    doubleBuffer->BufferSize = display.globalFrameBuffer->BufferSize;
-    doubleBuffer->Height = display.globalFrameBuffer->Height;
-    doubleBuffer->PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
-    doubleBuffer->Width = display.globalFrameBuffer->Width;
+DisplayBuffer doubleBuffer;
+SerialWrite("A\n");
+    doubleBuffer.BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1); SerialWrite("A\n");
+    doubleBuffer.BufferSize = display.globalFrameBuffer->BufferSize;
+    doubleBuffer.Height = display.globalFrameBuffer->Height;
+    doubleBuffer.PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
+    doubleBuffer.Width = display.globalFrameBuffer->Width; SerialWrite("A\n");
 
-    display.InitDoubleBuffer(doubleBuffer);
+    for (uint64_t t = (uint64_t)doubleBuffer.BaseAddr; t < doubleBuffer.BufferSize + (uint64_t)doubleBuffer.BaseAddr; t += 4096)
+    {
+        GlobalTableManager.MapMemory((void*)t, (void*)t);
+    }SerialWrite("A\n");
+
+    display.InitDoubleBuffer(&doubleBuffer);SerialWrite("A\n");
 #else
     display.InitDoubleBuffer(GlobalInfo->GOPFrameBuffer);
 #endif
+
+    SerialWrite("Double buffer\n");
 
     display.colour = WHITE;
     display.clearScreen(0);
