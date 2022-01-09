@@ -255,10 +255,15 @@ void InitDrivers(BootInfo *bootInfo, void *kernelPhysicalAddress, void *Start, v
     SerialWrite("Loading IDT\n");
     PITSetDivisor(0xFFFF);
 
+    SerialWrite(inttohstr((uint64_t)GlobalAllocator.PageBitmap.Buffer),"\n");
+
     //enable paging
     EnablePaging(bootInfo, kernelPhysicalAddress, Start, End);
     GlobalInfo = (BootInfo *)GlobalTableManager.GetVirtualAddress(GlobalInfo);
+    GlobalAllocator.PageBitmap.Buffer = (uint8_t*)GlobalTableManager.GetPhysicalAddress(GlobalAllocator.PageBitmap.Buffer);
     SerialWrite("Enabled Paging!\n");
+
+    SerialWrite(inttohstr((uint64_t)GlobalAllocator.PageBitmap.Buffer),"\n");
 
     //enable mouse and keyboard
     mouse.Init();
