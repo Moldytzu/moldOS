@@ -225,6 +225,8 @@ void InitACPI(BootInfo *bootInfo)
     }
 }
 
+void stub(){}
+
 void InitDrivers(BootInfo *bootInfo, void *kernelPhysicalAddress, void *Start, void *End)
 {
     GlobalInfo = bootInfo;
@@ -260,7 +262,7 @@ void InitDrivers(BootInfo *bootInfo, void *kernelPhysicalAddress, void *Start, v
     //enable paging
     EnablePaging(bootInfo, kernelPhysicalAddress, Start, End);
     GlobalInfo = (BootInfo *)GlobalTableManager.GetVirtualAddress(GlobalInfo);
-    GlobalAllocator.PageBitmap.Buffer = (uint8_t*)GlobalTableManager.GetPhysicalAddress(GlobalAllocator.PageBitmap.Buffer);
+    //GlobalAllocator.PageBitmap.Buffer = (uint8_t*)GlobalTableManager.GetPhysicalAddress(GlobalAllocator.PageBitmap.Buffer);
     SerialWrite("Enabled Paging!\n");
 
     SerialWrite(inttohstr((uint64_t)GlobalAllocator.PageBitmap.Buffer),"\n");
@@ -282,6 +284,7 @@ void InitDrivers(BootInfo *bootInfo, void *kernelPhysicalAddress, void *Start, v
 #ifdef DoubleBuffer
 DisplayBuffer doubleBuffer;
 SerialWrite("A\n");
+    stub();
     void* baddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1); SerialWrite("A\n");
     doubleBuffer.BaseAddr = baddr; SerialWrite("A\n");
     doubleBuffer.BufferSize = display.globalFrameBuffer->BufferSize;

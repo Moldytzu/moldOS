@@ -29,8 +29,8 @@ link: $(OBJS)
 	@ $(LD) $(LDFLAGS) -o $(BUILDDIR)/kernel.melf $(OBJS)
 
 stripbinaries: link
-	@ strip $(GNUEFI)/x86_64/bootloader/BOOTx64.efi --strip-unneeded
-	@ strip $(BUILDDIR)/kernel.melf --strip-unneeded
+	#@ strip $(GNUEFI)/x86_64/bootloader/BOOTx64.efi --strip-unneeded
+	#@ strip $(BUILDDIR)/kernel.melf --strip-unneeded
 
 buildimg: stripbinaries
 	@ echo Creating disk image
