@@ -277,7 +277,8 @@ void InitDrivers(BootInfo *bootInfo, void *kernelPhysicalAddress, void *Start, v
 #ifdef DoubleBuffer
 DisplayBuffer doubleBuffer;
 SerialWrite("A\n");
-    doubleBuffer.BaseAddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1); SerialWrite("A\n");
+    void* baddr = GlobalAllocator.RequestPages(display.globalFrameBuffer->BufferSize / 4096 + 1); SerialWrite("A\n");
+    doubleBuffer.BaseAddr = baddr; SerialWrite("A\n");
     doubleBuffer.BufferSize = display.globalFrameBuffer->BufferSize;
     doubleBuffer.Height = display.globalFrameBuffer->Height;
     doubleBuffer.PixelPerScanLine = display.globalFrameBuffer->PixelPerScanLine;
