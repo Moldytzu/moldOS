@@ -8,7 +8,7 @@
 //Debugging
 //=========
 //#define Debugging_ACPI //debug ACPI
-//#define Debugging_Scheduler //debug userspace and the scheduler
+#define Debugging_Scheduler //debug userspace and the scheduler
 
 //========
 //Hardware

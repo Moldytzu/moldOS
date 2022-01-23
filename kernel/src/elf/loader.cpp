@@ -28,13 +28,12 @@ void* LoadELFExecutable(const char* file, bool pie)
     {
         if(phdrs->p_type == PT_LOAD)
         {
-            uint64_t segmentStart = ((uint64_t)offset+phdrs->p_vaddr); //get the segment start
-            if(!pie) segmentStart -= (uint64_t)offset;
+            uint64_t segmentStart = ((uint64_t)offset+phdrs->p_offset); //get the segment start
+            printf("offset: %x\n",segmentStart);
             memcpy((void*)segmentStart,(void*)((uint64_t)Contents+phdrs->p_offset),phdrs->p_filesz);
         }
         phdrs++;
     }
 
-    if(!pie) return (void*)header->e_entry;
-    return (void*)((uint64_t)offset+header->e_entry);
+    return (void*)((uint64_t)offset+header->e_entry-0xFFFF800000000000);
 }

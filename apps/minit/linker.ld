@@ -3,7 +3,7 @@ ENTRY(moldMain)
 
 SECTIONS
 {
-	. = 0x0000100000200004;
+	. = 0xFFFF800000000000;
 	.text :
 	{
 		*(.text)

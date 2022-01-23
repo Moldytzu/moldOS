@@ -29,6 +29,13 @@ void TaskManager::Schedule(InterruptStack* registers)
     int kernelStack = registers->KernelRsp;
     memcpy((void*)registers,&tasks[currentTask].registers,sizeof(InterruptStack));
     registers->KernelRsp = kernelStack;
+
+    //Map task
+#ifdef Debugging_Scheduler
+    SerialWrite("Mapping memory: ",inttohstr(tasks[currentTask].entryPoint),"\n");
+#endif
+    GlobalTableManager.MapMemory((void*)0xFFFF800000000000,(void*)tasks[currentTask].entryPoint);
+    GlobalTableManager.MapUserspaceMemory((void*)0xFFFF800000000000);
 }
 
 void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privilege,uint64_t executableSize)
@@ -41,8 +48,9 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
     task.name = name;
     task.memoryUse = executableSize;
 
-    memset(&task.registers,0,sizeof(InterruptStack));
-    task.registers.rip = (uint64_t)entry;
+    //set up instruction pointer, stack, rflags, code segment and stack segment
+    memset(&task.registers,0,sizeof(InterruptStack)); //clear out the registers
+    task.registers.rip = (uint64_t)0xFFFF800000000000;
     task.registers.rsp = (uint64_t)stack+(0x1000*8);
     task.registers.rflags = 0x202; //interrupts
     task.registers.cs = GDTInfoSelectors.UCode;
@@ -53,14 +61,14 @@ void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privi
 #endif
 
     int i = 0;
-    while (tasks[i].state != STATE_HALTED) //find the first spot that's empty
+    while (tasks[i].state != STATE_HALTED) //find the first task in the array that's empty
         i++;
 
     if(i >= taskNum) taskNum = i+1;
 
     memcpy(&tasks[i],&task,sizeof(Task));
 
-    GlobalTableManager.MapUserspaceMemory(entry);
+    GlobalTableManager.MapUserspaceMemory(entry); //map as userspace memory
     GlobalTableManager.MapUserspaceMemory(stack);
 }
 

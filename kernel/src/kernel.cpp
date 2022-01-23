@@ -73,9 +73,6 @@ extern "C" int kernelMain(BootInfo* binfo)
     TaskManager tmgr;
     GlobalTaskManager = &tmgr;
 
-    void* lastAddr = malloc(1);
-    void* offset = malloc(0x0000100000200000-(uint64_t)lastAddr-sizeof(HeapSegHdr)*3);
-    void* address = malloc(1*1024*1024); //1 mb
     //userspace
     void* moldInit = LoadELFExecutable("/minit.melf",false);
 
@@ -88,6 +85,12 @@ extern "C" int kernelMain(BootInfo* binfo)
     GlobalTaskManager->AddTask((void*)IdleTask,GenerateUserspaceStack(),"Idle Task",TASK_SYSTEM,0);
     GlobalTaskManager->AddTask(moldInit,GenerateUserspaceStack(),"/minit.melf",TASK_USER,VFSSizeFile(VFSOpenFile("/minit.melf")));
     //jump in the userspace
+    printf("%x\n",moldInit);
+    
+    GlobalTableManager.MapMemory((void*)0xFFFF800000000000,(void*)IdleTask);
+    GlobalTableManager.MapUserspaceMemory((void*)IdleTask);
+
+    asm volatile ("cli");
     GlobalTaskManager->isEnabled = 1;
     CurrentTerminal = 2;
     RunInUserspace((void*)IdleTask,GenerateUserspaceStack());
