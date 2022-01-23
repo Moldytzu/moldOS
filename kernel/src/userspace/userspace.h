@@ -8,7 +8,8 @@
 #include <scheduling/taskmgr.h>
 #include <filesystem/vfs.h>
 
-#define SYSCALL_WRITE 0x1
+#define SYSCALL_WRITEC 0x1
+#define SYSCALL_WRITEP 0xA
 #define SYSCALL_READ 0x2
 #define SYSCALL_OPEN 0x3
 #define SYSCALL_GETTERMINALOUTPUT 0x4

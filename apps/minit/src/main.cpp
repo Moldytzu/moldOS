@@ -34,5 +34,5 @@ extern "C" void moldMain() {
     fread((void*)buffer,43,1,fopen("/sample.text","r"));
     puts(buffer);
 
-    exit(2021);
+    exit(2022);
 }

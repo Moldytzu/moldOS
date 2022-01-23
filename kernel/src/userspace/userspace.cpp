@@ -23,10 +23,21 @@ uint64_t SyscallHandler(uint64_t syscall, uint64_t arg1, uint64_t arg2, uint64_t
 {
     switch (syscall)
     {
-    case SYSCALL_WRITE:
+    case SYSCALL_WRITEC:
         if(arg2 == SOUT) SysSerialWrite((char)arg1); //write on serial
         else SysConsoleWrite((char)arg1); //write on tty
         break;
+    case SYSCALL_WRITEP:
+        {
+        const char *str = (const char*)(void*)arg1;
+        if(arg2 == SOUT)
+            for (int i = 0;i < arg3-1;i++)
+                SysSerialWrite(str[i]);
+        else
+            for (int i = 0;i < arg3-1;i++)
+                SysConsoleWrite(str[i]);
+        break;
+        }
     case SYSCALL_EXIT:
         Exit(arg1); //exit
         break;

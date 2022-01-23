@@ -2,6 +2,5 @@
 
 void puts(const char* str)
 {
-    for(int i = 0; str[i] != 0; i++)
-        putchar(str[i]);
+    sys_call(SYS_WRITEP,(uint64_t)(void*)str,COUT,strlen(str),0);
 }

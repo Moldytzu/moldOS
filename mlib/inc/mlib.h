@@ -12,6 +12,7 @@
 #define isyscall sys_call
 
 #define SYS_WRITEC 0x1
+#define SYS_WRITEP 0xA
 #define SYS_READ 0x2
 #define SYS_OPEN 0x3
 #define SYS_GETTERMINALOUTPUT 0x4
