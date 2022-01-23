@@ -22,7 +22,7 @@ void* LoadELFExecutable(const char* file, bool pie)
 
     if(!CheckELF(header)) return (void*)2;
 
-    void* offset = malloc(VFSSizeFile(fDescriptor)); //allocate ram for the elf
+    void* offset = GlobalAllocator.RequestPages(VFSSizeFile(fDescriptor)/4096+1); //allocate ram for the elf
 
     for (uint64_t i = 0; i < header->e_phnum; i++)
     {

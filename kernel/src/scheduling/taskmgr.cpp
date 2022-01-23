@@ -32,10 +32,12 @@ void TaskManager::Schedule(InterruptStack* registers)
 
     //Map task
 #ifdef Debugging_Scheduler
-    SerialWrite("Mapping memory: ",inttohstr(tasks[currentTask].entryPoint),"\n");
+    SerialWrite("Mapping memory: ",inttohstr(tasks[currentTask].entryPoint - (tasks[currentTask].entryPoint % 4096)),"\n");
 #endif
-    GlobalTableManager.MapMemory((void*)0xFFFF800000000000,(void*)tasks[currentTask].entryPoint);
+    GlobalTableManager.MapUserspaceMemory((void*)(tasks[currentTask].entryPoint - (tasks[currentTask].entryPoint % 4096)));
+    GlobalTableManager.MapMemory((void*)0xFFFF800000000000,(void*)(tasks[currentTask].entryPoint - (tasks[currentTask].entryPoint % 4096)));
     GlobalTableManager.MapUserspaceMemory((void*)0xFFFF800000000000);
+    memset((void*)0xFFFF800000000000,0,0x1000);
 }
 
 void TaskManager::AddTask(void* entry,void* stack,const char* name,uint8_t privilege,uint64_t executableSize)
