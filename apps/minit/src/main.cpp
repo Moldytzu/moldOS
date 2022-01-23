@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 extern "C" void moldMain() {
+    while(1);
     puts("Welcome to moldOS!\n");
     puts("By Moldu' (Nov. 2020 - Jan. 2022)\n\n");
 
