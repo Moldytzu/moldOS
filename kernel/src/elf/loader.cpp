@@ -22,18 +22,18 @@ void* LoadELFExecutable(const char* file, bool pie)
 
     if(!CheckELF(header)) return (void*)2;
 
-    void* offset = GlobalAllocator.RequestPages(VFSSizeFile(fDescriptor)/4096+1); //allocate ram for the elf
+    GlobalTableManager.MapMemory((void*)0xFFFF800000000000,GlobalAllocator.RequestPages(VFSSizeFile(fDescriptor)/4096+1)); //map memory
 
     for (uint64_t i = 0; i < header->e_phnum; i++)
     {
         if(phdrs->p_type == PT_LOAD)
         {
-            uint64_t segmentStart = ((uint64_t)offset+phdrs->p_offset); //get the segment start
-            printf("offset: %x\n",segmentStart);
+            uint64_t segmentStart = phdrs->p_paddr; //get the segment start
+            printf("poffset: %x\n",phdrs->p_offset);
             memcpy((void*)segmentStart,(void*)((uint64_t)Contents+phdrs->p_offset),phdrs->p_filesz);
         }
         phdrs++;
     }
 
-    return (void*)((uint64_t)offset+header->e_entry-0xFFFF800000000000);
+    return (void*)0xFFFF800000000000;
 }
